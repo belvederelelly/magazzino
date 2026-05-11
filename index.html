@@ -3,167 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magazzino Smart PRO</title>
+    <title>App Magazzino - Ristorante</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+    <style>
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        /* Transizioni fluide per il cambio schermata */
+        .fade-enter { opacity: 0; transform: translateY(10px); transition: all 0.4s ease-out; }
+        .fade-enter-active { opacity: 1; transform: translateY(0); }
+    </style>
 </head>
-<body class="bg-gray-50 font-sans pb-24">
+<body class="bg-gray-100 font-sans text-gray-800 h-screen overflow-hidden">
 
-    <header class="bg-slate-900 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-lg">
-        <h1 class="font-bold text-emerald-400"><i class="fas fa-box-open mr-2"></i>Gestione Ristorante</h1>
-        <div id="status-db" class="text-[10px] bg-emerald-900 text-emerald-300 px-2 py-1 rounded-full">DB Online</div>
-    </header>
-
-    <main class="max-w-md mx-auto p-4 space-y-6">
-
-        <section id="scanner-section" class="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
-            <div class="p-4 border-b bg-slate-50 flex justify-between items-center">
-                <h2 class="font-bold text-slate-700 underline decoration-emerald-500">Scanner Barcode</h2>
-                <span class="text-xs text-slate-400">Database Mondiale Attivo</span>
+    <!-- ========================================== -->
+    <!-- SCHERMATA DI LOGIN                         -->
+    <!-- ========================================== -->
+    <div id="login-screen" class="h-full flex flex-col justify-center items-center bg-slate-900 px-6 transition-opacity duration-500">
+        <div class="text-center mb-10">
+            <div class="bg-emerald-500 text-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/30">
+                <i class="fas fa-utensils text-4xl"></i>
             </div>
-            
-            <div id="reader" class="w-full bg-black min-h-[300px]"></div>
-
-            <div id="scanned-result" class="p-4 hidden animate-pulse bg-emerald-50 text-emerald-700 text-sm font-medium">
-                Prodotto identificato! Recupero dati...
-            </div>
-        </section>
-
-        <section class="bg-white rounded-3xl shadow-xl p-6 border-t-4 border-amber-500">
-            <h2 class="font-bold text-lg mb-2">Chiusura Serale</h2>
-            <p class="text-xs text-slate-500 mb-4">Carica la foto del resoconto di cassa per scaricare il magazzino.</p>
-            
-            <label class="w-full flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-400 rounded-xl border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 transition">
-                <i class="fas fa-receipt text-3xl mb-2"></i>
-                <span class="text-sm">Scansiona Scontrino</span>
-                <input type="file" class="hidden" accept="image/*" id="receipt-upload" onchange="processReceipt(event)" />
-            </label>
-            <div id="ocr-status" class="mt-2 text-xs font-mono text-slate-500"></div>
-        </section>
-
-        <div id="form-carico" class="bg-white rounded-3xl shadow-xl p-6 hidden">
-            <div class="flex items-center mb-4">
-                <img id="prod-img" src="" class="w-16 h-16 rounded-lg object-cover mr-4 border hidden">
-                <div>
-                    <h3 id="prod-name" class="font-bold text-slate-800">Nome Prodotto</h3>
-                    <p id="prod-brand" class="text-xs text-slate-500">Marca</p>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="text-[10px] font-bold uppercase text-slate-400">Quantità</label>
-                    <input type="number" id="qnt" value="1" class="w-full p-2 border rounded-lg text-lg font-bold">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold uppercase text-slate-400">Posizione</label>
-                    <select id="pos" class="w-full p-2 border rounded-lg">
-                        <option>Cella Frigo</option>
-                        <option>Secco</option>
-                        <option>Cantina</option>
-                    </select>
-                </div>
-            </div>
-            <button onclick="salvaSuSupabase()" class="w-full mt-4 bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition shadow-lg">
-                CONFERMA CARICO
-            </button>
+            <h1 class="text-3xl font-bold text-white">Magazzino Smart</h1>
+            <p class="text-slate-400 mt-2">Accedi per continuare</p>
         </div>
 
-    </main>
+        <div class="w-full max-w-sm bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700">
+            <div class="mb-5">
+                <label class="block text-slate-400 text-sm font-bold mb-2 uppercase tracking-wide">Password di Accesso</label>
+                <div class="relative">
+                    <i class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500"></i>
+                    <input type="password" id="password-input" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl py-3 px-4 pl-12 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition" placeholder="Inserisci password...">
+                </div>
+                <p id="login-error" class="text-red-400 text-xs mt-2 hidden"><i class="fas fa-exclamation-circle mr-1"></i> Password errata.</p>
+            </div>
+            <button onclick="eseguiLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition transform hover:-translate-y-0.5">
+                Accedi
+            </button>
+        </div>
+    </div>
 
-    <script>
-        const supabaseUrl = 'https://nizktofcamulygzszydw.supabase.co';
-        const supabaseKey = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    <!-- ========================================== -->
+    <!-- SCHERMATA PRINCIPALE DELL'APP              -->
+    <!-- ========================================== -->
+    <div id="app-screen" class="hidden h-full flex flex-col fade-enter">
+        
+        <!-- Header -->
+        <header class="bg-slate-900 text-white p-4 flex justify-between items-center shadow-md z-20">
+            <div class="flex items-center">
+                <i class="fas fa-box-open text-emerald-400 text-xl mr-3"></i>
+                <div>
+                    <h1 class="font-bold leading-tight">Dashboard</h1>
+                    <p id="user-role-display" class="text-[10px] text-emerald-400 font-mono uppercase tracking-widest bg-emerald-900/50 px-2 py-0.5 rounded inline-block">Ruolo</p>
+                </div>
+            </div>
+            <button onclick="eseguiLogout()" class="text-slate-400 hover:text-white transition p-2">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </header>
 
-        let currentProduct = null;
-
-        // --- 1. CONFIGURAZIONE SCANNER BARCODE ---
-        const html5QrCode = new Html5Qrcode("reader");
-        const qrConfig = { fps: 10, qrbox: { width: 250, height: 150 } };
-
-        html5QrCode.start({ facingMode: "environment" }, qrConfig, onScanSuccess);
-
-        async function onScanSuccess(decodedText) {
-            // Vibrazione se supportata
-            if (navigator.vibrate) navigator.vibrate(100);
+        <!-- Area Contenuti (Scorrevole) -->
+        <main class="flex-1 overflow-y-auto p-4 pb-24 bg-gray-50">
             
-            document.getElementById('scanned-result').classList.remove('hidden');
-            
-            // --- 2. RICERCA SU DATABASE MONDIALE (Open Food Facts) ---
-            try {
-                const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${decodedText}.json`);
-                const data = await res.json();
+            <!-- VISTA STAFF & TITOLARE: Strumenti Operativi -->
+            <section class="mb-8">
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Operazioni Rapide</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <button class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center justify-center gap-2 hover:border-emerald-400 transition hover:shadow-md">
+                        <div class="bg-emerald-100 text-emerald-600 w-12 h-12 rounded-full flex items-center justify-center text-xl mb-1"><i class="fas fa-barcode"></i></div>
+                        <span class="font-semibold text-slate-700 text-sm">Carico Scanner</span>
+                    </button>
+                    <button class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center justify-center gap-2 hover:border-amber-400 transition hover:shadow-md">
+                        <div class="bg-amber-100 text-amber-600 w-12 h-12 rounded-full flex items-center justify-center text-xl mb-1"><i class="fas fa-camera"></i></div>
+                        <span class="font-semibold text-slate-700 text-sm">Chiusura Serale</span>
+                    </button>
+                </div>
+            </section>
 
-                if (data.status === 1) {
-                    const p = data.product;
-                    currentProduct = {
-                        nome: p.product_name || "Sconosciuto",
-                        barcode: decodedText,
-                        marca: p.brands || "Generico",
-                        img: p.image_front_small_url || ""
-                    };
-                    mostraForm(currentProduct);
-                } else {
-                    alert("Prodotto non trovato nel database mondiale. Inserimento manuale.");
-                }
-            } catch (e) {
-                console.error("Errore database:", e);
-            }
-        }
+            <!-- VISTA STAFF & TITOLARE: Allarmi -->
+            <section class="mb-8">
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Allarmi Magazzino</h2>
+                <div class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+                        <div>
+                            <p class="font-bold text-red-800 text-sm">3 Prodotti Sottoscorta</p>
+                            <p class="text-xs text-red-600">Guanciale, Uova, Olio Frittura</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-red-300"></i>
+                </div>
+            </section>
 
-        function mostraForm(p) {
-            document.getElementById('form-carico').classList.remove('hidden');
-            document.getElementById('prod-name').innerText = p.nome;
-            document.getElementById('prod-brand').innerText = p.marca;
-            if(p.img) {
-                const imgTag = document.getElementById('prod-img');
-                imgTag.src = p.img;
-                imgTag.classList.remove('hidden');
-            }
-        }
-
-        // --- 3. SALVATAGGIO SU SUPABASE ---
-        async function salvaSuSupabase() {
-            const qnt = parseFloat(document.getElementById('qnt').value);
-            const pos = document.getElementById('pos').value;
-
-            // Logica identica alla precedente per tabelle prodotti, movimenti e giacenze
-            const { data: prodData } = await supabase.from('prodotti').upsert({
-                nome_prodotto: currentProduct.nome,
-                codice_a_barre: currentProduct.barcode,
-                unita_misura: 'pz'
-            }, { onConflict: 'codice_a_barre' }).select().single();
-
-            await supabase.from('movimenti').insert({
-                prodotto_id: prodData.id,
-                tipo: 'carico',
-                quantita: qnt
-            });
-
-            alert("Dati salvati in Supabase!");
-            document.getElementById('form-carico').classList.add('hidden');
-        }
-
-        // --- 4. FUNZIONE OCR (CHIUSURA SERALE) ---
-        async function processReceipt(event) {
-            const file = event.target.files[0];
-            const status = document.getElementById('ocr-status');
-            status.innerText = "Lettura scontrino in corso (OCR)...";
-
-            Tesseract.recognize(file, 'ita', { logger: m => console.log(m) })
-            .then(({ data: { text } }) => {
-                status.innerText = "Analisi completata!";
-                console.log("Testo estratto dallo scontrino:", text);
+            <!-- VISTA SOLO TITOLARE: Dati Finanziari & Gestione -->
+            <section id="sezione-titolare" class="mb-8 hidden">
+                <h2 class="text-sm font-bold text-emerald-600 uppercase tracking-wider mb-3"><i class="fas fa-chart-line mr-2"></i>Area Manager</h2>
                 
-                // Qui aggiungeremo il parser per trovare i piatti (es: Carbonara x10)
-                alert("Ho letto lo scontrino. Ora posso confrontarlo con le tue ricette per scalare il magazzino.");
-            });
-        }
-    </script>
+                <!-- Widget Food Cost -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-slate-700">Food Cost Medio</h3>
+                        <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">-2.1% questo mese</span>
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <span class="text-3xl font-bold text-slate-800">28.4%</span>
+                    </div>
+                </div>
 
+                <!-- Menu Gestione Avanzata -->
+                <div class="grid grid-cols-1 gap-3">
+                    <button class="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-slate-100 text-slate-600 w-8 h-8 rounded-lg flex items-center justify-center"><i class="fas fa-book-open"></i></div>
+                            <span class="font-semibold text-slate-700 text-sm">Gestione Ricettario (Distinta Base)</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
+                    </button>
+                    <button class="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-slate-100 text-slate-600 w-8 h-8 rounded-lg flex items-center justify-center"><i class="fas fa-truck"></i></div>
+                            <span class="font-semibold text-slate-700 text-sm">Ordini Fornitori</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
+                    </button>
+                    <button class="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-slate-100 text-slate-600 w-8 h-8 rounded-lg flex items-center justify-center"><i class="fas fa-euro-sign"></i></div>
+                            <span class="font-semibold text-slate-700 text-sm">Variazione Prezzi Acquisto</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
+                    </button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Navbar Inferiore -->
+        <nav class="bg-white fixed bottom-0 w-full border-t border-slate-200 flex justify-around py-2 pb-safe shadow-[0_-5px_15px_-15px_rgba(0,0,0,0.3)] z-20">
+            <button class="flex flex-col items-center p-2 text-emerald-600">
+                <i class="fas fa-home text-xl mb-1"></i>
+                <span class="text-[10px] font-semibold uppercase">Dashboard</span>
+            </button>
+            <button class="flex flex-col items-center p-2 text-slate-400 hover:text-emerald-600 transition">
+                <i class="fas fa-boxes text-xl mb-1"></i>
+                <span class="text-[10px] font-semibold uppercase">Giacenze</span>
+            </button>
+            <!-- Tasto Ricette (Nascosto per lo staff) -->
+            <button id="nav-ricette" class="flex flex-col items-center p-2 text-slate-400 hover:text-emerald-600 transition hidden">
+                <i class="fas fa-book-open text-xl mb-1"></i>
+                <span class="text-[10px] font-semibold uppercase">Ricette</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- LOGICA JAVASCRIPT (LOGIN E RUOLI)          -->
+    <!-- ========================================== -->
+    <script>
+        function eseguiLogin() {
+            const passInput = document.getElementById('password-input').value;
+            const errorMsg = document.getElementById('login-error');
+            
+            // Ripristina l'errore visivo
+            errorMsg.classList.add('hidden');
+            
+            let ruolo = null;
+
+            // Controllo Password richieste
+            if (passInput === 'staff') {
+                ruolo = 'staff';
+            } else if (passInput === 'belvedere59') {
+                ruolo = 'titolare';
+            } else {
+                // Password errata
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            // Se la password è corretta, prepariamo l'interfaccia
+            avviaApp(ruolo);
+        }
+
+        function avviaApp(ruolo) {
+            // 1. Nascondi Login, Mostra App
+            document.getElementById('login-screen').classList.add('hidden');
+            const appScreen = document.getElementById('app-screen');
+            appScreen.classList.remove('hidden');
+            
+            // Piccola animazione di entrata
+            setTimeout(() => {
+                appScreen.classList.add('fade-enter-active');
+            }, 50);
+
+            // 2. Personalizza l'interfaccia in base al ruolo
+            const displayRuolo = document.getElementById('user-role-display');
+            const sezioneTitolare = document.getElementById('sezione-titolare');
+            const navRicette = document.getElementById('nav-ricette');
+
+            if (ruolo === 'titolare') {
+                displayRuolo.innerText = "Titolare / Admin";
+                displayRuolo.classList.replace('bg-emerald-900/50', 'bg-amber-500/20');
+                displayRuolo.classList.replace('text-emerald-400', 'text-amber-600');
+                
+                // Mostra le sezioni bloccate
+                sezioneTitolare.classList.remove('hidden');
+                navRicette.classList.remove('hidden');
+            } else if (ruolo === 'staff') {
+                displayRuolo.innerText = "Membro Staff";
+                
+                // Assicurati che le sezioni bloccate siano nascoste
+                sezioneTitolare.classList.add('hidden');
+                navRicette.classList.add('hidden');
+            }
+
+            // Pulisci il campo password per sicurezza
+            document.getElementById('password-input').value = '';
+        }
+
+        function eseguiLogout() {
+            // Rimuovi l'animazione di entrata
+            document.getElementById('app-screen').classList.remove('fade-enter-active');
+            
+            // Torna alla schermata di login
+            setTimeout(() => {
+                document.getElementById('app-screen').classList.add('hidden');
+                document.getElementById('login-screen').classList.remove('hidden');
+            }, 300);
+        }
+
+        // Permette di fare login premendo il tasto "Invio" sulla tastiera
+        document.getElementById('password-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                eseguiLogin();
+            }
+        });
+    </script>
 </body>
 </html>
