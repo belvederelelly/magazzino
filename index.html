@@ -104,12 +104,34 @@
             </div>
 
             <div id="view-finanza" class="view-panel space-y-5">
-                <div class="bg-slate-900 p-6 rounded-3xl shadow-xl text-center">
-                    <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Liquidità Reale</h3>
-                    <p id="finanza-saldo" class="text-4xl font-black text-emerald-400">€ 0.00</p>
-                    <div class="flex justify-around mt-4 border-t border-slate-700 pt-4">
-                        <div><p class="text-[9px] text-slate-400 uppercase font-bold">Incasso Tot.</p><p id="finanza-entrate" class="font-bold text-slate-200">€ 0.00</p></div>
-                        <div class="bg-red-500/20 px-3 py-1 rounded-xl"><p class="text-[9px] text-red-300 uppercase font-black">Debiti Attivi</p><p id="finanza-debiti" class="font-black text-red-400">€ 0.00</p></div>
+                
+                <div class="bg-white p-3 rounded-2xl shadow-sm border flex justify-between items-center">
+                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest"><i class="far fa-calendar-alt mr-1"></i> Mensilità:</span>
+                    <input type="month" id="finanza-mese-selettore" onchange="caricaFinanzaDaSupabase()" class="font-bold text-sm bg-slate-50 border border-slate-200 p-2 rounded-xl text-slate-800 outline-none w-36 text-center shadow-inner">
+                </div>
+
+                <div class="bg-slate-900 p-6 rounded-3xl shadow-xl text-center relative">
+                    <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Liquidità Reale Mensile</h3>
+                    
+                    <div class="flex justify-center mb-1">
+                        <span id="finanza-saldo-segno" class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-slate-700 text-white shadow-md">CALCOLO...</span>
+                    </div>
+                    
+                    <p id="finanza-saldo" class="text-4xl font-black text-emerald-400 relative z-10">€ 0.00</p>
+                    
+                    <div class="flex justify-between mt-5 border-t border-slate-700 pt-4 px-1">
+                        <div class="text-left">
+                            <p class="text-[9px] text-slate-400 uppercase font-bold">Incasso</p>
+                            <p id="finanza-entrate" class="font-bold text-slate-200">€ 0.00</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[9px] text-slate-400 uppercase font-bold">Uscite Pagate</p>
+                            <p id="finanza-uscite-pagate" class="font-bold text-slate-200">€ 0.00</p>
+                        </div>
+                        <div class="text-right bg-red-500/20 px-2 py-1 rounded-lg">
+                            <p class="text-[9px] text-red-300 uppercase font-black">Da Pagare</p>
+                            <p id="finanza-debiti" class="font-black text-red-400">€ 0.00</p>
+                        </div>
                     </div>
                 </div>
 
@@ -123,8 +145,10 @@
                     <div class="mb-4"><label class="text-[9px] font-bold uppercase text-slate-400 ml-1">Importo (€)</label><input type="number" id="fin-importo" value="0.00" class="w-full border p-3 rounded-xl font-black text-slate-800 text-lg bg-slate-50 text-center"></div>
                     <button onclick="salvaMovimentoFinanza()" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl shadow-md uppercase tracking-widest text-xs active:scale-95">Registra</button>
                 </div>
-                <h4 class="font-black text-sm text-slate-800 mt-2">Scadenze e Movimenti</h4>
-                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden divide-y divide-slate-100" id="finanza-list"></div>
+                
+                <h4 class="font-black text-sm text-slate-800 mt-2">Dettaglio del Mese</h4>
+                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden divide-y divide-slate-100" id="finanza-list">
+                    </div>
             </div>
 
             <div id="view-fatture" class="view-panel space-y-4">
@@ -270,7 +294,17 @@
         let html5QrScanner = null;
         let fatturaItemsLetti = [];
 
-        window.onload = () => { const savedRole = localStorage.getItem('belvedereAuthRole'); if(savedRole) { userRole = savedRole; avviaApp(); } };
+        window.onload = () => { 
+            impostaMeseCorrente();
+            const savedRole = localStorage.getItem('belvedereAuthRole'); 
+            if(savedRole) { userRole = savedRole; avviaApp(); } 
+        };
+
+        function impostaMeseCorrente() {
+            let oggi = new Date();
+            let meseAttuale = oggi.getFullYear() + '-' + String(oggi.getMonth() + 1).padStart(2, '0');
+            document.getElementById('finanza-mese-selettore').value = meseAttuale;
+        }
 
         function handleAuth() {
             let pass = document.getElementById('pass-field').value.trim().toLowerCase();
@@ -303,41 +337,103 @@
         }
 
         // ==========================================
-        // FINANZA: BILANCIO E DEBITI
+        // FINANZA: BILANCIO, DEBITI E CANCELLAZIONE
         // ==========================================
         async function caricaFinanzaDaSupabase() {
             const { data, error } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false });
             if(error) return;
+            
+            // Lettura del mese scelto nel selettore (Formato: YYYY-MM)
+            let meseSelezionato = document.getElementById('finanza-mese-selettore').value;
+            let datiFiltrati = data;
+            
+            // Se c'è un mese selezionato, filtra i dati (ignora quelli senza data)
+            if (meseSelezionato) {
+                datiFiltrati = data.filter(m => m.data && m.data.startsWith(meseSelezionato));
+            }
+
             let html = ''; let totE=0; let totUPag=0; let totDeb=0;
-            data.forEach(m => {
-                let imp = parseFloat(m.importo||0); let isEnt = m.tipo==='entrata' || m.categoria==='entrata';
+            
+            datiFiltrati.forEach(m => {
+                let imp = parseFloat(m.importo||0); 
+                let isEnt = m.tipo==='entrata' || m.categoria==='entrata';
                 if(isEnt) totE+=imp; else { if(m.stato_pagamento==='da_pagare') totDeb+=imp; else totUPag+=imp; }
-                let badge = m.stato_pagamento === 'da_pagare' ? `<span class="bg-red-500 text-white status-badge ml-2">Da Pagare</span>` : `<span class="text-slate-300 status-badge ml-2">Pagato</span>`;
-                let action = (m.stato_pagamento === 'da_pagare') ? `<button onclick="segnaPagata('${m.id}')" class="mt-2 text-[9px] bg-slate-900 text-white px-2 py-1 rounded font-black uppercase">Paga Ora</button>` : '';
-                html += `<div class="p-4 border-b flex justify-between items-start"><div><p class="font-black text-sm text-slate-800">${m.descrizione||m.categoria}</p><p class="text-[9px] text-slate-500 uppercase font-bold">${m.categoria} ${badge}</p>${action}</div><span class="font-black ${isEnt?'text-emerald-500':'text-slate-700'} text-md">€ ${imp.toFixed(2)}</span></div>`;
+                
+                let badge = m.stato_pagamento === 'da_pagare' ? `<span class="bg-red-500 text-white status-badge ml-2">Da Pagare</span>` : `<span class="bg-slate-200 text-slate-600 status-badge ml-2">Pagato</span>`;
+                let action = (m.stato_pagamento === 'da_pagare') ? `<button onclick="segnaPagata('${m.id}')" class="mt-2 text-[9px] bg-slate-900 text-white px-3 py-1.5 rounded-lg font-black uppercase shadow-sm active:scale-95">Paga Ora</button>` : '';
+                
+                // TASTO ELIMINA
+                let deleteBtn = `<button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-300 hover:text-red-500 bg-red-50 p-2 rounded-xl active:scale-95 ml-3"><i class="fas fa-trash"></i></button>`;
+
+                html += `
+                <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                    <div class="flex-1">
+                        <p class="font-black text-sm text-slate-800">${m.descrizione||m.categoria}</p>
+                        <p class="text-[9px] text-slate-500 uppercase font-bold mt-1">${m.categoria} ${badge}</p>
+                        ${action}
+                    </div>
+                    <div class="flex items-center">
+                        <span class="font-black ${isEnt?'text-emerald-500':'text-slate-700'} text-lg">€ ${imp.toFixed(2)}</span>
+                        ${deleteBtn}
+                    </div>
+                </div>`;
             });
-            document.getElementById('finanza-list').innerHTML = html || '<p class="p-4 text-xs text-center text-slate-400 uppercase font-black">Nessun movimento.</p>';
+
+            document.getElementById('finanza-list').innerHTML = html || '<p class="p-8 text-xs text-center text-slate-400 uppercase font-black">Nessun movimento nel mese selezionato.</p>';
+            
+            // Aggiorna cruscotto
             document.getElementById('finanza-entrate').innerText = '€ '+totE.toFixed(2);
             document.getElementById('finanza-debiti').innerText = '€ '+totDeb.toFixed(2);
             document.getElementById('finanza-uscite-pagate').innerText = '€ '+totUPag.toFixed(2);
-            let liq = totE - totUPag; document.getElementById('finanza-saldo').innerText = '€ '+liq.toFixed(2);
-            document.getElementById('finanza-saldo').className = `text-4xl font-black ${liq>=0?'text-emerald-400':'text-red-400'}`;
+            
+            // Calcolo Saldo Reale e Segno
+            let liquidita = totE - totUPag; 
+            let UI_Segno = document.getElementById('finanza-saldo-segno');
+            
+            if (liquidita >= 0) {
+                UI_Segno.innerText = "Mese in Attivo (+)";
+                UI_Segno.className = "text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500 text-white shadow-sm";
+                document.getElementById('finanza-saldo').className = "text-4xl font-black text-emerald-400 relative z-10";
+            } else {
+                UI_Segno.innerText = "Mese in Passivo (-)";
+                UI_Segno.className = "text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-red-500 text-white shadow-sm";
+                document.getElementById('finanza-saldo').className = "text-4xl font-black text-red-400 relative z-10";
+            }
+            
+            document.getElementById('finanza-saldo').innerText = '€ '+Math.abs(liquidita).toFixed(2);
         }
 
         async function salvaMovimentoFinanza() {
             let s=document.getElementById('fin-stato').value, c=document.getElementById('fin-cat').value, d=document.getElementById('fin-desc').value, i=parseFloat(document.getElementById('fin-importo').value);
             if(i<=0) return alert("Inserisci importo valido"); let tipo = (c==='entrata' || c==='Entrata Extra (+)') ? 'entrata' : 'uscita';
-            let pay = { tipo: tipo, categoria: c, descrizione: d, importo: i, stato_pagamento: s };
-            if(s==='pagato') pay.data_pagamento = new Date().toISOString();
+            
+            let dataSelezionataStr = new Date().toISOString();
+            // Per far finire il movimento nel mese scelto, se l'utente sta visualizzando un mese passato, lo forziamo al 1° di quel mese
+            let meseSel = document.getElementById('finanza-mese-selettore').value;
+            let meseCorrente = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
+            if (meseSel && meseSel !== meseCorrente) {
+                dataSelezionataStr = meseSel + "-01T12:00:00.000Z";
+            }
+
+            let pay = { tipo: tipo, categoria: c, descrizione: d, importo: i, stato_pagamento: s, data: dataSelezionataStr };
+            if(s==='pagato') pay.data_pagamento = dataSelezionataStr;
+            
             await supabaseClient.from('finanza').insert([pay]); 
             document.getElementById('fin-desc').value=''; document.getElementById('fin-importo').value='0.00';
-            caricaFinanzaDaSupabase(); alert("Registrato!");
+            caricaFinanzaDaSupabase(); alert("Registrato nel mese selezionato!");
         }
 
         async function segnaPagata(id) {
-            if(confirm("Segnare come pagata oggi?")) {
+            if(confirm("Confermi di aver pagato questa scadenza?")) {
                 await supabaseClient.from('finanza').update({ stato_pagamento: 'pagato', data_pagamento: new Date().toISOString() }).eq('id', id);
                 caricaFinanzaDaSupabase();
+            }
+        }
+
+        async function eliminaMovimentoFinanza(id) {
+            if(confirm("Eliminare questa voce definitivamente? (L'operazione non è recuperabile)")) {
+                await supabaseClient.from('finanza').delete().eq('id', id);
+                caricaFinanzaDaSupabase(); // Ricarica e ricalcola
             }
         }
 
@@ -486,7 +582,7 @@
                                 fatturaItemsLetti = itemsTrovati;
                             } else {
                                 fatturaItemsLetti = [{ nome: "ERRORE OCR: Qualità Foto Bassa", qta: 0, costo_unit: 0.00 }];
-                                alert("Ho letto la foto ma il testo è troppo confuso per isolare i prezzi. Prova a ritagliare lo screenshot mostrando solo la colonna dei prodotti e dei prezzi.");
+                                alert("Testo troppo confuso. Prova a ritagliare lo screenshot mostrando solo la colonna dei prodotti e dei prezzi.");
                             }
                             
                             mostraFatturaItems();
@@ -514,10 +610,19 @@
                 }
             }
             
-            let pay = { tipo: 'uscita', categoria: (doc==='merce'?'Fornitori':'Utenze (Luce, Acqua)'), descrizione: 'Carico Documento App', importo: tot, stato_pagamento: stato };
-            if(stato==='pagato') pay.data_pagamento = new Date().toISOString();
+            // Assegna la data al mese correntemente visualizzato nel selettore in modo che appaia subito nella lista corretta
+            let dataFatturaStr = new Date().toISOString();
+            let meseSel = document.getElementById('finanza-mese-selettore').value;
+            let meseCorrente = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
+            if (meseSel && meseSel !== meseCorrente) {
+                dataFatturaStr = meseSel + "-01T12:00:00.000Z";
+            }
+
+            let pay = { tipo: 'uscita', categoria: (doc==='merce'?'Fornitori':'Utenze (Luce, Acqua)'), descrizione: 'Carico Documento App', importo: tot, stato_pagamento: stato, data: dataFatturaStr };
+            if(stato==='pagato') pay.data_pagamento = dataFatturaStr;
+            
             await supabaseClient.from('finanza').insert([pay]);
-            alert("Operazione completata con successo!"); nav('view-dashboard');
+            alert("Operazione completata con successo!"); nav('view-finanza'); // Naviga a finanza per vedere il risultato
         }
 
         // ==========================================
@@ -576,7 +681,11 @@
             menuRistorante.forEach(p => { if(p.venduti>0 && p.ingredienti) p.ingredienti.forEach(i => { daScaricare[i.id_supa] = (daScaricare[i.id_supa]||0) + (i.qta*p.venduti); }); });
             for(let id in daScaricare) { let {data} = await supabaseClient.from('inventario').select('quantita').eq('id',id).single(); if(data) await supabaseClient.from('inventario').update({quantita: data.quantita - daScaricare[id]}).eq('id',id); }
             
-            await supabaseClient.from('finanza').insert([{ tipo: 'entrata', categoria: 'Ristorante', descrizione: 'Chiusura Cassa', importo: incasso, stato_pagamento: 'pagato', data_pagamento: new Date().toISOString() }]);
+            let meseSel = document.getElementById('finanza-mese-selettore').value || new Date().toISOString().substring(0,7);
+            let dataIncassoStr = meseSel + "-01T12:00:00.000Z";
+            if (meseSel === new Date().toISOString().substring(0,7)) dataIncassoStr = new Date().toISOString();
+
+            await supabaseClient.from('finanza').insert([{ tipo: 'entrata', categoria: 'Ristorante', descrizione: 'Chiusura Cassa', importo: incasso, stato_pagamento: 'pagato', data_pagamento: dataIncassoStr, data: dataIncassoStr }]);
             
             alert("Incasso salvato e Magazzino scaricato!"); 
             resetMenuCassa(); document.getElementById('btn-conferma-cassa').innerHTML = 'Conferma & Scarica'; nav('view-dashboard');
