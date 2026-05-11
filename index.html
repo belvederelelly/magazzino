@@ -119,14 +119,8 @@
                         <div><label class="text-[9px] font-bold uppercase text-slate-400 ml-1">Stato</label><select id="fin-stato" class="w-full border p-2.5 rounded-xl font-bold bg-slate-50 text-xs"><option value="pagato">Già Pagato</option><option value="da_pagare">Da Pagare</option></select></div>
                         <div><label class="text-[9px] font-bold uppercase text-slate-400 ml-1">Categoria</label><select id="fin-cat" class="w-full border p-2.5 rounded-xl font-bold bg-slate-50 text-xs"><option>Utenze (Luce, Acqua)</option><option>Personale</option><option>Fornitori</option><option>Tasse</option><option value="entrata">Entrata Extra (+)</option></select></div>
                     </div>
-                    <div class="mb-4">
-                        <label class="text-[9px] font-bold uppercase text-slate-400 ml-1">Descrizione</label>
-                        <input type="text" id="fin-desc" placeholder="Es. Fattura Acqua" class="w-full border p-2.5 rounded-xl font-bold bg-slate-50 text-sm">
-                    </div>
-                    <div class="mb-4">
-                        <label class="text-[9px] font-bold uppercase text-slate-400 ml-1">Importo (€)</label>
-                        <input type="number" id="fin-importo" value="0.00" class="w-full border p-3 rounded-xl font-black text-slate-800 text-lg bg-slate-50 text-center">
-                    </div>
+                    <div class="mb-4"><label class="text-[9px] font-bold uppercase text-slate-400 ml-1">Descrizione</label><input type="text" id="fin-desc" placeholder="Es. Fattura Acqua" class="w-full border p-2.5 rounded-xl font-bold bg-slate-50 text-sm"></div>
+                    <div class="mb-4"><label class="text-[9px] font-bold uppercase text-slate-400 ml-1">Importo (€)</label><input type="number" id="fin-importo" value="0.00" class="w-full border p-3 rounded-xl font-black text-slate-800 text-lg bg-slate-50 text-center"></div>
                     <button onclick="salvaMovimentoFinanza()" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl shadow-md uppercase tracking-widest text-xs active:scale-95">Registra</button>
                 </div>
                 <h4 class="font-black text-sm text-slate-800 mt-2">Scadenze e Movimenti</h4>
@@ -137,22 +131,22 @@
                 <div class="bg-emerald-600 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
                     <i class="fas fa-bolt absolute -right-4 -bottom-4 text-7xl opacity-20"></i>
                     <h3 class="font-black text-lg">Caricamento Rapido</h3>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-100">Scegli tra File Digitale o Foto</p>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-100">Usa File Digitale o Foto</p>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4">
-                    <div class="bg-white border-2 border-dashed border-emerald-200 p-6 rounded-3xl text-center">
+                    <div class="bg-white border-2 border-dashed border-emerald-200 p-6 rounded-3xl text-center shadow-sm">
                         <i class="fas fa-file-code text-3xl text-emerald-500 mb-3"></i>
-                        <h4 class="font-bold text-sm">Fattura Elettronica (XML)</h4>
-                        <p class="text-[9px] text-slate-400 mb-4 uppercase">Istantaneo e senza errori</p>
+                        <h4 class="font-bold text-sm">File XML (Sportello Cloud)</h4>
+                        <p class="text-[9px] text-slate-400 mb-4 uppercase">Istantaneo, ignora l'errore .HTML</p>
                         <input type="file" accept=".xml, application/xml, text/xml, .html, .htm" id="file-xml" onchange="elaboraFatturaXML(this)" class="hidden">
-                        <button onclick="document.getElementById('file-xml').click()" class="bg-emerald-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition">Seleziona Documento</button>
+                        <button onclick="document.getElementById('file-xml').click()" class="bg-emerald-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition">Seleziona XML</button>
                     </div>
 
-                    <div class="bg-white border-2 border-dashed border-blue-200 p-6 rounded-3xl text-center">
+                    <div class="bg-white border-2 border-dashed border-blue-200 p-6 rounded-3xl text-center shadow-sm">
                         <i class="fas fa-camera text-3xl text-blue-500 mb-3"></i>
-                        <h4 class="font-bold text-sm">Foto Documento Cartaceo</h4>
-                        <p class="text-[9px] text-slate-400 mb-4 uppercase">L'A.I. estrarrà i prodotti dalla foto</p>
+                        <h4 class="font-bold text-sm">Foto o Screenshot</h4>
+                        <p class="text-[9px] text-slate-400 mb-4 uppercase">Lettura visiva tramite A.I.</p>
                         <input type="file" accept="image/*" id="file-foto" onchange="elaboraFatturaFoto(this)" class="hidden">
                         <button onclick="document.getElementById('file-foto').click()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition">Scatta Foto</button>
                     </div>
@@ -348,7 +342,7 @@
         }
 
         // ==========================================
-        // FATTURE: XML CORAZZATO + FOTO OCR
+        // FATTURE: XML CORAZZATO E OCR FOTOCAMERA
         // ==========================================
         function elaboraFatturaXML(input) {
             if(!input.files[0]) return;
@@ -367,19 +361,35 @@
             reader.onload = function(e) {
                 try {
                     let rawText = e.target.result;
-                    // Se il telefono ha impacchettato l'XML in un HTML, lo ritagliamo
+                    
+                    // Se Safari ha corrotto il file salvandolo come HTML
+                    if (file.name.toLowerCase().includes('.html') || file.name.toLowerCase().includes('.htm')) {
+                        const decodificatore = document.createElement('textarea');
+                        decodificatore.innerHTML = rawText;
+                        rawText = decodificatore.value; 
+                        
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = rawText;
+                        rawText = tempDiv.textContent || tempDiv.innerText || rawText;
+                    }
+
+                    // Regex per isolare il cuore della fattura
                     let estrazione = rawText.match(/(<[a-zA-Z0-9_:]*FatturaElettronica[\s\S]*<\/[a-zA-Z0-9_:]*FatturaElettronica>)/i);
-                    if(estrazione) rawText = estrazione[1]; 
+                    if(estrazione) {
+                        rawText = estrazione[1]; 
+                    } else {
+                        throw new Error("Non riesco a trovare il codice della fattura nel file.");
+                    }
 
                     const parser = new DOMParser(); 
                     const xmlDoc = parser.parseFromString(rawText, "text/xml");
                     
-                    if (xmlDoc.getElementsByTagName("parsererror").length > 0) throw new Error("Il file è danneggiato o non è una vera fattura elettronica.");
+                    if (xmlDoc.getElementsByTagName("parsererror").length > 0) throw new Error("Il file è troppo danneggiato o formattato male.");
 
                     const getTags = (nodo, n) => { let t = nodo.getElementsByTagName(n); return t.length === 0 ? nodo.getElementsByTagNameNS("*", n) : t; };
                     const linee = getTags(xmlDoc.documentElement, "DettaglioLinee");
                     
-                    if (linee.length === 0) throw new Error("Non ci sono prodotti ('DettaglioLinee' mancante).");
+                    if (linee.length === 0) throw new Error("Fattura senza prodotti ('DettaglioLinee' mancante).");
 
                     let items = [];
                     for(let i=0; i < linee.length; i++) {
@@ -388,13 +398,22 @@
                         let tagPrezzo = getTags(linee[i], "PrezzoUnitario")[0];
                         
                         if(tagDesc && tagPrezzo) {
-                            items.push({ nome: tagDesc.textContent.trim(), qta: tagQta ? parseFloat(tagQta.textContent) : 1, costo_unit: parseFloat(tagPrezzo.textContent) });
+                            items.push({ 
+                                nome: tagDesc.textContent.trim(), 
+                                qta: tagQta ? parseFloat(tagQta.textContent) : 1, 
+                                costo_unit: parseFloat(tagPrezzo.textContent) 
+                            });
                         }
                     }
                     if(items.length === 0) throw new Error("Nessun articolo estratto.");
 
-                    fatturaItemsLetti = items; mostraFatturaItems();
-                } catch(err) { alert("Errore: " + err.message); document.getElementById('fattura-loader').classList.add('hidden'); }
+                    fatturaItemsLetti = items; 
+                    mostraFatturaItems();
+                    
+                } catch(err) { 
+                    alert("Errore: " + err.message); 
+                    document.getElementById('fattura-loader').classList.add('hidden'); 
+                }
                 input.value = ''; 
             };
             reader.readAsText(file);
@@ -410,15 +429,12 @@
                 const img = new Image(); img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                    const MAX_DIM = 1200; 
-                    let w = img.width, h = img.height;
-                    if(w > h && w > MAX_DIM) { h *= MAX_DIM / w; w = MAX_DIM; }
-                    else if(h > MAX_DIM) { w *= MAX_DIM / h; h = MAX_DIM; }
-                    canvas.width = w; canvas.height = h;
-                    ctx.drawImage(img, 0, 0, w, h);
+                    const MAX_DIM = 1200; let w = img.width, h = img.height;
+                    if(w > h && w > MAX_DIM) { h *= MAX_DIM / w; w = MAX_DIM; } else if(h > MAX_DIM) { w *= MAX_DIM / h; h = MAX_DIM; }
+                    canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h);
                     canvas.toBlob(blob => {
                         Tesseract.recognize(blob, 'ita').then(({ data: { text } }) => {
-                            fatturaItemsLetti = [{ nome: "Prodotto Foto OCR (Esempio)", qta: 1, costo_unit: 10.00 }]; 
+                            fatturaItemsLetti = [{ nome: "Lettura Foto (Esempio)", qta: 1, costo_unit: 0.00 }]; 
                             mostraFatturaItems();
                         });
                     }, 'image/jpeg', 0.85);
@@ -451,7 +467,7 @@
         }
 
         // ==========================================
-        // CORE: MAGAZZINO, MENU E CASSA
+        // CORE: MAGAZZINO E CASSA
         // ==========================================
         async function caricaInventarioDaSupabase() {
             const { data } = await supabaseClient.from('inventario').select('*').order('nome', { ascending: true });
@@ -490,7 +506,7 @@
             document.getElementById('menu-builder-list').innerHTML = menuRistorante.map((p,idx) => `<div class="bg-white p-4 border rounded-2xl flex justify-between items-center shadow-sm"><div class="flex-1"><p class="font-black text-sm">${p.nome} <span class="text-emerald-500">€${p.prezzo}</span></p></div><button onclick="menuRistorante.splice(${idx},1); localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); aggiornaVistaRicettario();" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div>`).join('');
         }
 
-        // CASSA E SCARICO INVENTARIO
+        // CASSA SCARICO
         function popolaCassaMenu() {
             document.getElementById('cassa-piatti-list').innerHTML = menuRistorante.map((p,idx) => `<div class="flex justify-between items-center bg-white p-3 border rounded-2xl mb-2 shadow-sm"><p class="font-black text-sm">${p.nome}</p><div class="flex gap-2"><button onclick="aggiornaCassa(${idx},-1)" class="w-8 h-8 bg-slate-100 font-black">-</button><input id="cassa-qty-${idx}" value="${p.venduti||0}" readonly class="w-8 text-center font-black text-emerald-600 bg-transparent"><button onclick="aggiornaCassa(${idx},1)" class="w-8 h-8 bg-emerald-500 text-white font-black">+</button></div></div>`).join(''); calcolaTotCassa();
         }
@@ -512,7 +528,7 @@
             resetMenuCassa(); document.getElementById('btn-conferma-cassa').innerHTML = 'Conferma & Scarica'; nav('view-dashboard');
         }
 
-        // SCANNER FOTOCAMERA BARCODE
+        // SCANNER HARDWARE
         function startScanner() {
             document.getElementById('qr-reader').style.display='block'; document.getElementById('scan-result-box').classList.add('hidden');
             html5QrScanner = new Html5Qrcode("qr-reader"); 
