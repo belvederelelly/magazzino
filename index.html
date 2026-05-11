@@ -85,10 +85,10 @@
 
             <div id="view-cassa" class="view-panel space-y-4 titolare-only">
                 <div class="bg-emerald-600 text-white p-5 rounded-3xl shadow-lg relative overflow-hidden">
-                    <h3 class="font-black text-sm uppercase">Importa Report XStore (.xlsx)</h3>
-                    <p class="text-[9px] font-bold text-emerald-100 mb-4">L'app caricherà tutte le chiusure del file</p>
-                    <input type="file" accept=".xlsx, .xls" id="file-rch-excel" onchange="elaboraChiusuraRCHExcel(this)" class="hidden">
-                    <button onclick="document.getElementById('file-rch-excel').click()" class="bg-white text-emerald-600 px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95">Carica Elenco Chiusure</button>
+                    <h3 class="font-black text-sm uppercase">Importa Corrispettivi XStore</h3>
+                    <p class="text-[9px] font-bold text-emerald-100 mb-4">Seleziona il report Excel (.xlsx) con i corrispettivi</p>
+                    <input type="file" accept=".xlsx, .xls, .csv" id="file-rch-excel" onchange="elaboraChiusuraRCHExcel(this)" class="hidden">
+                    <button onclick="document.getElementById('file-rch-excel').click()" class="bg-white text-emerald-600 px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95">Carica Dati RCH</button>
                 </div>
                 <div id="cassa-piatti-list" class="space-y-2 bg-white p-4 rounded-3xl border shadow-sm"></div>
                 <div class="bg-slate-900 p-6 rounded-3xl shadow-xl mt-4 flex justify-between items-center">
@@ -255,7 +255,7 @@
         }
 
         // ==========================================
-        // IMPORTAZIONE RCH EXCEL MULTIPLA
+        // IMPORTAZIONE RCH EXCEL MULTIPLA (CON FIX CONTROLLO COLONNE)
         // ==========================================
         function elaboraChiusuraRCHExcel(input) {
             if(!input.files[0]) return;
@@ -267,6 +267,16 @@
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
 
+                    // Controllo di sicurezza: verifichiamo che ci siano colonne contenenti la parola Totale, Corrispettivo, Netto o Importo
+                    const headerRow = jsonData[0] || [];
+                    const isClosureListOnly = headerRow.includes('Terminale') && headerRow.includes('Progressive') && !headerRow.some(h => String(h).toLowerCase().includes('totale') || String(h).toLowerCase().includes('importo') || String(h).toLowerCase().includes('netto') || String(h).toLowerCase().includes('corrispettivo'));
+
+                    if(isClosureListOnly) {
+                        alert("ATTENZIONE!\nIl file che hai caricato (Elenco Chiusure) contiene solo le date e i terminali, ma NON GLI INCASSI.\n\nPer importare i dati, vai su XStore -> Statistiche/Report e scarica il file dei 'Corrispettivi' o 'Vendite Giornaliere' (che contiene la colonna del Totale).");
+                        input.value = '';
+                        return;
+                    }
+
                     let entriesToImport = [];
                     // Salta riga 0 (Titoli)
                     for(let i = 1; i < jsonData.length; i++) {
@@ -275,10 +285,11 @@
                             let lordo = 0; let iva = 0;
                             let dataOra = row[1]; // Es. "2026-05-09 20:15:39"
                             
-                            // Siccome a volte mancano le colonne, le cerchiamo nei dati della riga
+                            // Cerca importi validi nella riga
                             row.forEach(cell => {
                                 let n = parseFloat(String(cell).replace(',', '.'));
-                                if(!isNaN(n) && n > 0) {
+                                // Ignoriamo il numero progressivo (es. 1779) e gli anni (es. 2026) per non confonderli con l'incasso
+                                if(!isNaN(n) && n > 0 && n !== row[0] && n !== 2026) {
                                     if(n > lordo) { iva = lordo; lordo = n; } 
                                     else if(n > 0 && n < lordo) { iva = n; }
                                 }
@@ -311,6 +322,7 @@
                         nav('view-dashboard'); caricaFinanzaDaSupabase();
                     }
                 } catch(err) { alert("Attenzione: " + err.message); }
+                input.value = '';
             };
             reader.readAsArrayBuffer(input.files[0]);
         }
@@ -416,18 +428,19 @@
         }
 
         // ==========================================
-        // FINANZA, STAFF, CASSA
+        // FINANZA, STAFF E CASSA
         // ==========================================
         async function caricaFinanzaDaSupabase() {
             const { data, error } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false });
             if(error) return;
             let meseSel = document.getElementById('finanza-mese-selettore').value;
             let filtrati = data.filter(m => m.data && m.data.startsWith(meseSel));
-            let html = ''; let totE=0; let totUPag=0; let ivaD=0; let ivaC=0;
+            let html = ''; let totE=0; let totUPag=0; let ivaD=0; let ivaC=0; let totDeb=0;
             filtrati.forEach(m => {
                 let imp = parseFloat(m.importo||0); let iva = parseFloat(m.iva||0);
-                if(m.tipo==='entrata' || m.categoria==='Ristorante') { totE+=imp; ivaD+=iva; } else { if(m.stato_pagamento==='pagato') totUPag+=imp; ivaC+=iva; }
-                html += `<div class="p-4 border-b flex justify-between items-center"><div class="flex-1"><p class="font-black text-xs uppercase">${m.descrizione||m.categoria}</p><p class="text-[8px] text-slate-400 font-bold">${new Date(m.data).toLocaleDateString()} - ${m.stato_pagamento}</p></div><span class="font-black ${m.tipo==='entrata'?'text-emerald-500':'text-slate-700'}">€ ${imp.toFixed(2)}</span><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-200 p-2 ml-2"><i class="fas fa-trash"></i></button></div>`;
+                if(m.tipo==='entrata' || m.categoria==='Ristorante') { totE+=imp; ivaD+=iva; } else { if(m.stato_pagamento==='pagato') totUPag+=imp; else totDeb+=imp; ivaC+=iva; }
+                let badge = m.stato_pagamento === 'da_pagare' ? `<span class="bg-red-500 text-white status-badge ml-2">Debito</span>` : `<span class="bg-slate-200 text-slate-600 status-badge ml-2">Pagato</span>`;
+                html += `<div class="p-4 border-b flex justify-between items-center"><div class="flex-1"><p class="font-black text-xs uppercase">${m.descrizione||m.categoria}</p><p class="text-[8px] text-slate-400 font-bold">${new Date(m.data).toLocaleDateString()} ${badge}</p></div><span class="font-black ${m.tipo==='entrata'?'text-emerald-500':'text-slate-700'}">€ ${imp.toFixed(2)}</span><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-200 p-2 ml-2"><i class="fas fa-trash"></i></button></div>`;
             });
             document.getElementById('finanza-list').innerHTML = html || '<p class="p-8 text-center text-xs text-slate-400 uppercase">Nessun movimento nel mese</p>';
             let liq = totE - totUPag; document.getElementById('finanza-saldo').innerText = '€ '+Math.abs(liq).toFixed(2);
@@ -457,7 +470,7 @@
             alert("Magazzino scalato per i prodotti 'AUTO'."); resetMenuCassa(); nav('view-dashboard');
         }
 
-        // Funzioni helper rimaste
+        // Funzioni helper
         function popolaCassaMenu() { document.getElementById('cassa-piatti-list').innerHTML = menuRistorante.map((p,idx) => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border mb-2 shadow-sm"><p class="font-black text-sm uppercase">${p.nome}</p><div class="flex gap-2"><button onclick="updateV(${idx},-1)" class="w-8 h-8 bg-white rounded-lg font-black shadow-sm">-</button><input id="cassa-qty-${idx}" value="${p.venduti||0}" readonly class="w-6 text-center font-black text-emerald-600"><button onclick="updateV(${idx},1)" class="w-8 h-8 bg-emerald-500 text-white rounded-lg font-black shadow-sm">+</button></div></div>`).join(''); calcolaTotC(); }
         function updateV(i,d) { let n=(menuRistorante[i].venduti||0)+d; if(n>=0){menuRistorante[i].venduti=n; document.getElementById(`cassa-qty-${i}`).value=n; calcolaTotC();} }
         function calcolaTotC() { let t=0; menuRistorante.forEach(p=>t+=(p.prezzo*(p.venduti||0))); document.getElementById('cassa-total-display').innerText='€ '+t.toFixed(2); return t; }
