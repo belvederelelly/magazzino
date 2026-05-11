@@ -66,7 +66,7 @@
                     <button onclick="nav('view-inventory')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-boxes text-2xl text-slate-600 mb-2"></i><span class="block text-[10px] font-black uppercase">Magazzino</span></button>
                     <button onclick="nav('view-staff')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-users text-2xl text-blue-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Staff</span></button>
                     <button onclick="nav('view-fatture')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-file-invoice text-2xl text-amber-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Fatture</span></button>
-                    <button onclick="nav('view-cassa')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-cash-register text-2xl text-emerald-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Cassa</span></button>
+                    <button onclick="nav('view-cassa')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-cash-register text-2xl text-emerald-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Sincro Cassa</span></button>
                 </div>
             </div>
 
@@ -84,18 +84,22 @@
             </div>
 
             <div id="view-cassa" class="view-panel space-y-4 titolare-only">
-                <div class="bg-emerald-600 text-white p-5 rounded-3xl shadow-lg relative overflow-hidden">
-                    <h3 class="font-black text-sm uppercase">Importa Corrispettivi XStore</h3>
-                    <p class="text-[9px] font-bold text-emerald-100 mb-4">Seleziona il report Excel (.xlsx) con i corrispettivi</p>
-                    <input type="file" accept=".xlsx, .xls, .csv" id="file-rch-excel" onchange="elaboraChiusuraRCHExcel(this)" class="hidden">
-                    <button onclick="document.getElementById('file-rch-excel').click()" class="bg-white text-emerald-600 px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95">Carica Dati RCH</button>
+                <div class="bg-emerald-600 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
+                    <h3 class="font-black text-sm uppercase"><i class="fas fa-sync mr-2"></i>Sincronizza XStore</h3>
+                    <p class="text-[9px] font-bold text-emerald-100 mb-4 mt-1 leading-relaxed">Carica il file Excel "Statistiche/Vendite". L'app leggerà ogni singolo prodotto scaricando il magazzino e compilerà il bilancio esatto.</p>
+                    <input type="file" accept=".xlsx, .xls" id="file-rch-vendite" onchange="elaboraVenditeRCHExcel(this)" class="hidden">
+                    <button onclick="document.getElementById('file-rch-vendite').click()" class="w-full bg-white text-emerald-600 px-6 py-4 rounded-xl font-black text-xs uppercase shadow-md active:scale-95 transition">Carica Report Vendite</button>
                 </div>
-                <div id="cassa-piatti-list" class="space-y-2 bg-white p-4 rounded-3xl border shadow-sm"></div>
-                <div class="bg-slate-900 p-6 rounded-3xl shadow-xl mt-4 flex justify-between items-center">
-                    <span class="text-xs text-slate-400 uppercase font-black">Totale Cassa:</span>
-                    <span id="cassa-total-display" class="text-3xl font-black text-emerald-400">€ 0.00</span>
+                
+                <div class="bg-white p-4 rounded-3xl border shadow-sm">
+                    <h3 class="font-black text-slate-800 text-sm mb-3">Chiusura Emergenza (Manuale)</h3>
+                    <div id="cassa-piatti-list" class="space-y-2 mb-4"></div>
+                    <div class="flex justify-between items-center border-t pt-4 mt-2">
+                        <span class="text-xs text-slate-400 uppercase font-black">Totale Man:</span>
+                        <span id="cassa-total-display" class="text-xl font-black text-slate-700">€ 0.00</span>
+                    </div>
+                    <button onclick="eseguiScaricoMagazzino()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-black uppercase text-[10px] mt-3">Scarica Manualmente</button>
                 </div>
-                <button id="btn-conferma-cassa" onclick="eseguiScaricoMagazzino()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg active:scale-95 transition">Registra & Scarica</button>
             </div>
 
             <div id="view-fatture" class="view-panel space-y-4 titolare-only">
@@ -129,13 +133,13 @@
             <div id="view-add-product" class="view-panel space-y-4">
                 <div class="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
                     <h3 class="font-black text-lg border-b pb-2">Nuovo Prodotto</h3>
-                    <input type="text" id="new-nome" placeholder="NOME ARTICOLO" class="w-full border p-3 rounded-xl font-bold bg-slate-50 uppercase">
+                    <input type="text" id="new-nome" placeholder="NOME ARTICOLO (Esatto come RCH)" class="w-full border p-3 rounded-xl font-bold bg-slate-50 uppercase">
                     <div class="grid grid-cols-2 gap-4">
                         <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Giacenza</label><input type="number" id="new-qta" class="w-full border p-3 rounded-xl font-black text-center" value="1"></div>
                         <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Soglia Ordine</label><input type="number" id="new-soglia" class="w-full border p-3 rounded-xl font-black text-center" value="5"></div>
                     </div>
                     <div class="bg-slate-50 p-4 rounded-2xl border flex items-center justify-between">
-                        <div class="flex-1"><p class="text-xs font-black text-slate-800 uppercase">Scarico Automatico</p><p class="text-[8px] text-slate-500 font-bold uppercase">Sottrai quantità vendute in cassa</p></div>
+                        <div class="flex-1"><p class="text-xs font-black text-slate-800 uppercase">Scarico Automatico</p><p class="text-[8px] text-slate-500 font-bold uppercase">Sottrai via RCH/Cassa</p></div>
                         <input type="checkbox" id="new-auto-scalo" class="w-6 h-6 accent-emerald-600" checked>
                     </div>
                     <button onclick="salvaNuovoProdotto()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm mt-4 active:scale-95 transition">Salva in Stock</button>
@@ -143,11 +147,11 @@
             </div>
 
             <div id="view-ricettario" class="view-panel space-y-4 titolare-only">
-                <div class="flex justify-between items-center bg-emerald-50 p-4 rounded-2xl border border-emerald-200"><div><h3 class="font-black text-emerald-900">Il Mio Menu</h3><p class="text-[9px] text-emerald-600 uppercase font-black">Distinta Base</p></div><button onclick="apriCreaPiatto()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold">+ Piatto</button></div>
+                <div class="flex justify-between items-center bg-emerald-50 p-4 rounded-2xl border border-emerald-200"><div><h3 class="font-black text-emerald-900">Il Mio Menu</h3><p class="text-[9px] text-emerald-600 uppercase font-black">Distinta Base per RCH</p></div><button onclick="apriCreaPiatto()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold">+ Piatto</button></div>
                 <div id="menu-builder-list" class="space-y-3"></div>
                 <div id="form-crea-piatto" class="hidden bg-white p-6 rounded-3xl border shadow-xl space-y-5 mt-6 border-t-4 border-t-emerald-500 relative">
                     <button onclick="chiudiCreaPiatto()" class="absolute top-4 right-4 text-slate-400"><i class="fas fa-times text-xl"></i></button>
-                    <div class="grid grid-cols-2 gap-4"><div class="col-span-2"><input type="text" id="piatto-nome" placeholder="Nome Piatto" class="w-full border p-3 rounded-xl font-bold bg-slate-50 uppercase"></div><div class="col-span-2"><label class="text-[10px] font-bold uppercase ml-1">Prezzo Menu (€)</label><input type="number" id="piatto-prezzo" class="w-full border p-3 rounded-xl font-black text-emerald-600 bg-slate-50 text-xl" value="0.00"></div></div>
+                    <div class="grid grid-cols-2 gap-4"><div class="col-span-2"><label class="text-[10px] font-bold uppercase ml-1">Nome in Cassa RCH</label><input type="text" id="piatto-nome" placeholder="NOME ESATTO RCH" class="w-full border p-3 rounded-xl font-bold bg-slate-50 uppercase"></div><div class="col-span-2"><label class="text-[10px] font-bold uppercase ml-1">Prezzo Menu (€)</label><input type="number" id="piatto-prezzo" class="w-full border p-3 rounded-xl font-black text-emerald-600 bg-slate-50 text-xl" value="0.00"></div></div>
                     <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200"><div id="lista-ingredienti-piatto" class="space-y-2 mb-4"></div><div class="flex gap-2 items-end border-t pt-3"><div class="flex-1"><select id="select-ingrediente" class="w-full border p-2 rounded-lg font-bold text-[10px] bg-white"></select></div><div class="w-16"><input type="number" id="qta-ingrediente" class="w-full border p-2 rounded-lg font-bold text-xs text-center bg-white" value="1"></div><button onclick="aggiungiIngredienteRicetta()" class="bg-slate-900 text-white w-10 h-10 rounded-lg font-bold"><i class="fas fa-plus"></i></button></div></div>
                     <button onclick="salvaPiattoMenu()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-sm mt-4">Salva nel Menu</button>
                 </div>
@@ -172,7 +176,7 @@
             <button id="nav-menu" onclick="nav('view-ricettario')" class="titolare-only flex flex-col items-center w-1/5 text-slate-400 transition"><i class="fas fa-book-open text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Menu</span></button>
             <button id="nav-stock" onclick="nav('view-inventory')" class="flex flex-col items-center w-1/5 text-slate-400 transition"><i class="fas fa-boxes text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Stock</span></button>
             <button id="nav-staff" onclick="nav('view-staff')" class="titolare-only flex flex-col items-center w-1/5 text-slate-400 transition"><i class="fas fa-users text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Staff</span></button>
-            <button id="nav-cassa" onclick="nav('view-cassa')" class="titolare-only flex flex-col items-center w-1/5 text-slate-400 transition"><i class="fas fa-cash-register text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Cassa</span></button>
+            <button id="nav-cassa" onclick="nav('view-cassa')" class="titolare-only flex flex-col items-center w-1/5 text-slate-400 transition"><i class="fas fa-sync text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Sincro</span></button>
         </nav>
     </div>
 
@@ -210,42 +214,24 @@
             if (userRole === 'Staff') {
                 document.getElementById('role-badge').innerText = 'Staff Magazzino';
                 document.getElementById('role-badge').className = 'inline-block px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest mt-1 bg-slate-200 text-slate-700';
-                
-                // Nascondi elementi Titolare
                 document.querySelectorAll('.titolare-only').forEach(el => el.classList.add('hidden'));
-                
-                // Forza la vista sul magazzino e resetta il bottone nav
                 document.getElementById('nav-stock').classList.replace('text-slate-400', 'text-emerald-600');
-                nav('view-inventory'); 
-                caricaInventarioDaSupabase();
+                nav('view-inventory'); caricaInventarioDaSupabase();
             } else {
                 document.getElementById('role-badge').innerText = 'Titolare';
                 document.getElementById('role-badge').className = 'inline-block px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest mt-1 bg-amber-100 text-amber-700';
-                
-                // Mostra tutti gli elementi Titolare
                 document.querySelectorAll('.titolare-only').forEach(el => el.classList.remove('hidden'));
-                
-                nav('view-dashboard'); 
-                caricaInventarioDaSupabase(); caricaStaff(); caricaFinanzaDaSupabase(); aggiornaVistaRicettario();
+                nav('view-dashboard'); caricaInventarioDaSupabase(); caricaStaff(); caricaFinanzaDaSupabase(); aggiornaVistaRicettario();
             }
         }
 
         function logout() { localStorage.removeItem('belvedereAuthRole'); location.reload(); }
 
         function nav(id) {
-            // Blocco sicurezza: Se è staff, impedisci navigazione ad altre viste
-            if (userRole === 'Staff' && id !== 'view-inventory' && id !== 'view-add-product') {
-                id = 'view-inventory';
-            }
-
-            document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active')); 
-            document.getElementById(id).classList.add('active');
-            
-            // Update Menu Inferiore
+            if (userRole === 'Staff' && id !== 'view-inventory' && id !== 'view-add-product') { id = 'view-inventory'; }
+            document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active');
             document.querySelectorAll('#bottom-nav button').forEach(btn => btn.className = btn.className.replace('text-emerald-600', 'text-slate-400'));
-            if(event && event.currentTarget && event.currentTarget.tagName === 'BUTTON') {
-                event.currentTarget.className = event.currentTarget.className.replace('text-slate-400', 'text-emerald-600');
-            }
+            if(event && event.currentTarget && event.currentTarget.tagName === 'BUTTON') event.currentTarget.className = event.currentTarget.className.replace('text-slate-400', 'text-emerald-600');
             
             if(id==='view-shopping') generaListaSpesa();
             if(id==='view-cassa') popolaCassaMenu();
@@ -255,80 +241,131 @@
         }
 
         // ==========================================
-        // IMPORTAZIONE RCH EXCEL MULTIPLA (CON FIX CONTROLLO COLONNE)
+        // NUOVO MOTORE: IMPORT VENDITE DETTAGLIATE RCH
         // ==========================================
-        function elaboraChiusuraRCHExcel(input) {
+        function elaboraVenditeRCHExcel(input) {
             if(!input.files[0]) return;
             const reader = new FileReader();
             reader.onload = async function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, {type: 'array'});
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                    
+                    // 1. Cerca il foglio con i prodotti
+                    let sheetProdottiName = workbook.SheetNames.find(n => n.toLowerCase().includes('venduto prodotti') || n.toLowerCase().includes('prodotti'));
+                    let sheetIvaName = workbook.SheetNames.find(n => n.toLowerCase() === 'iva');
 
-                    // Controllo di sicurezza: verifichiamo che ci siano colonne contenenti la parola Totale, Corrispettivo, Netto o Importo
-                    const headerRow = jsonData[0] || [];
-                    const isClosureListOnly = headerRow.includes('Terminale') && headerRow.includes('Progressive') && !headerRow.some(h => String(h).toLowerCase().includes('totale') || String(h).toLowerCase().includes('importo') || String(h).toLowerCase().includes('netto') || String(h).toLowerCase().includes('corrispettivo'));
-
-                    if(isClosureListOnly) {
-                        alert("ATTENZIONE!\nIl file che hai caricato (Elenco Chiusure) contiene solo le date e i terminali, ma NON GLI INCASSI.\n\nPer importare i dati, vai su XStore -> Statistiche/Report e scarica il file dei 'Corrispettivi' o 'Vendite Giornaliere' (che contiene la colonna del Totale).");
-                        input.value = '';
-                        return;
+                    if(!sheetProdottiName) {
+                        alert("ERRORE: Hai caricato il file sbagliato.\nQuesto file non contiene le statistiche dei prodotti.\n\nVai su RCH XStore -> Statistiche -> ed esporta il file Excel con i dati di vendita dettagliati.");
+                        input.value = ''; return;
                     }
 
-                    let entriesToImport = [];
-                    // Salta riga 0 (Titoli)
-                    for(let i = 1; i < jsonData.length; i++) {
-                        let row = jsonData[i];
-                        if(row && row.length > 0 && row[0]) {
-                            let lordo = 0; let iva = 0;
-                            let dataOra = row[1]; // Es. "2026-05-09 20:15:39"
-                            
-                            // Cerca importi validi nella riga
-                            row.forEach(cell => {
-                                let n = parseFloat(String(cell).replace(',', '.'));
-                                // Ignoriamo il numero progressivo (es. 1779) e gli anni (es. 2026) per non confonderli con l'incasso
-                                if(!isNaN(n) && n > 0 && n !== row[0] && n !== 2026) {
-                                    if(n > lordo) { iva = lordo; lordo = n; } 
-                                    else if(n > 0 && n < lordo) { iva = n; }
-                                }
-                            });
+                    const jsonProdotti = XLSX.utils.sheet_to_json(workbook.Sheets[sheetProdottiName], {header: 1});
+                    let headerRow = jsonProdotti[0] || [];
+                    let idxProdotto = headerRow.findIndex(h => String(h).toLowerCase().includes('prodotto'));
+                    let idxVendite = headerRow.findIndex(h => String(h).toLowerCase() === 'vendite' || String(h).toLowerCase() === 'quantità');
+                    let idxImporto = headerRow.findIndex(h => String(h).toLowerCase().includes('importo'));
 
-                            if(lordo > 0) {
-                                if(iva === 0) iva = lordo - (lordo / 1.10); // Scorporo default se non trova la colonna
-                                entriesToImport.push({
-                                    tipo: 'entrata',
-                                    categoria: 'Ristorante',
-                                    descrizione: `Chiusura RCH #${row[0]}`,
-                                    importo: lordo,
-                                    iva: iva,
-                                    stato_pagamento: 'pagato',
-                                    data: new Date(dataOra).toISOString(),
-                                    data_pagamento: new Date(dataOra).toISOString()
-                                });
+                    if(idxProdotto === -1 || idxVendite === -1) throw new Error("Colonne essenziali non trovate nel report.");
+
+                    let venditeRaggruppate = {};
+                    let lordoCalcolato = 0;
+
+                    // Legge riga per riga
+                    for(let i=1; i<jsonProdotti.length; i++) {
+                        let row = jsonProdotti[i];
+                        if(row && row[idxProdotto]) {
+                            let nome = String(row[idxProdotto]).trim().toUpperCase();
+                            let qta = parseFloat(String(row[idxVendite]).replace(',', '.')) || 0;
+                            let importo = parseFloat(String(row[idxImporto]||'0').replace(/\./g, '').replace(',', '.')) || 0;
+
+                            // Escludiamo scarti o intestazioni false
+                            if(nome && nome !== "PRODOTTO" && qta !== 0) {
+                                if(!venditeRaggruppate[nome]) venditeRaggruppate[nome] = { qta: 0, importo: 0 };
+                                venditeRaggruppate[nome].qta += qta;
+                                venditeRaggruppate[nome].importo += importo;
+                                lordoCalcolato += importo;
                             }
                         }
                     }
 
-                    if(entriesToImport.length === 0) throw new Error("Il file non contiene importi numerici validi di incasso nelle righe analizzate.");
+                    let prodottiFinali = Object.keys(venditeRaggruppate).map(k => ({ nome: k, ...venditeRaggruppate[k] })).filter(p => p.qta > 0);
 
-                    if(confirm(`Trovate ${entriesToImport.length} chiusure con incassi.\nVuoi importarle tutte nel bilancio mensile?`)) {
-                        const { error } = await supabaseClient.from('finanza').insert(entriesToImport);
-                        if(error) throw error;
+                    // 2. Lettura Esatta IVA e Lordo (dal Foglio IVA se presente)
+                    let lordoEsatto = lordoCalcolato;
+                    let ivaEsatto = lordoEsatto - (lordoEsatto / 1.10);
+
+                    if(sheetIvaName) {
+                        const jsonIva = XLSX.utils.sheet_to_json(workbook.Sheets[sheetIvaName], {header: 1});
+                        let hIva = jsonIva[0] || [];
+                        let idxLordo = hIva.findIndex(h => String(h).toLowerCase().includes('lordo'));
+                        let idxTassa = hIva.findIndex(h => String(h).toLowerCase().includes('tassa'));
                         
-                        if(calcolaTotC() > 0) await eseguiScaricoMagazzino();
-                        alert("Chiusure caricate con successo nel bilancio!");
-                        nav('view-dashboard'); caricaFinanzaDaSupabase();
+                        if(idxLordo !== -1 && idxTassa !== -1) {
+                            let tLordo = 0; let tIva = 0;
+                            for(let i=1; i<jsonIva.length; i++) {
+                                let row = jsonIva[i];
+                                tLordo += parseFloat(String(row[idxLordo]||'0').replace(/\./g, '').replace(',', '.')) || 0;
+                                tIva += parseFloat(String(row[idxTassa]||'0').replace(/\./g, '').replace(',', '.')) || 0;
+                            }
+                            if(tLordo > 0) { lordoEsatto = tLordo; ivaEsatto = tIva; }
+                        }
                     }
-                } catch(err) { alert("Attenzione: " + err.message); }
+
+                    let previewTesto = prodottiFinali.slice(0, 5).map(p => `${p.qta}x ${p.nome}`).join('\n') + (prodottiFinali.length > 5 ? '\n...e altri articoli.' : '');
+
+                    if(confirm(`RILEVAMENTO XSTORE COMPLETATO!\n\nIncasso Totale: € ${lordoEsatto.toFixed(2)}\nIVA Calcolata: € ${ivaEsatto.toFixed(2)}\nTrovati ${prodottiFinali.length} prodotti venduti.\n\nEsempi venduto:\n${previewTesto}\n\nConfermi la sincronizzazione? L'app scaricherà il magazzino e aggiornerà il bilancio in automatico.`)) {
+                        
+                        // 3. LOGICA DI SCARICO INTELLIGENTE
+                        let daScaricare = {};
+
+                        prodottiFinali.forEach(venduto => {
+                            // Cerca nel Menu (piatti composti)
+                            let menuItem = menuRistorante.find(m => m.nome.toUpperCase() === venduto.nome);
+                            if(menuItem && menuItem.ingredienti) {
+                                menuItem.ingredienti.forEach(ing => {
+                                    let prodInv = inventarioLocale.find(inv => inv.id === ing.id_supa);
+                                    if(prodInv && prodInv.scalo_automatico) {
+                                        daScaricare[ing.id_supa] = (daScaricare[ing.id_supa] || 0) + (ing.qta * venduto.qta);
+                                    }
+                                });
+                            } else {
+                                // Cerca direttamente nello Stock
+                                let invItem = inventarioLocale.find(inv => inv.nome.toUpperCase() === venduto.nome);
+                                if(invItem && invItem.scalo_automatico) {
+                                    daScaricare[invItem.id] = (daScaricare[invItem.id] || 0) + venduto.qta;
+                                }
+                            }
+                        });
+
+                        // Aggiorna Magazzino Supabase
+                        for(let id in daScaricare) { 
+                            let {data} = await supabaseClient.from('inventario').select('quantita').eq('id',id).single();
+                            if(data) await supabaseClient.from('inventario').update({quantita: data.quantita - daScaricare[id]}).eq('id',id); 
+                        }
+
+                        // Aggiorna Finanza
+                        let dataOggi = new Date().toISOString();
+                        let meseSel = document.getElementById('finanza-mese-selettore').value;
+                        if (meseSel && !dataOggi.startsWith(meseSel)) dataOggi = meseSel + "-01T12:00:00.000Z";
+
+                        await supabaseClient.from('finanza').insert([{ 
+                            tipo: 'entrata', categoria: 'Ristorante', descrizione: 'Sincro Vendite RCH XStore', 
+                            importo: lordoEsatto, iva: ivaEsatto, stato_pagamento: 'pagato', data: dataOggi, data_pagamento: dataOggi 
+                        }]);
+
+                        alert("Boom! Magazzino e Bilancio sincronizzati con successo.");
+                        nav('view-dashboard'); caricaInventarioDaSupabase(); caricaFinanzaDaSupabase();
+                    }
+
+                } catch(err) { alert("Si è verificato un errore: " + err.message); }
                 input.value = '';
             };
             reader.readAsArrayBuffer(input.files[0]);
         }
 
         // ==========================================
-        // STOCK & GIACENZE
+        // STOCK E MODIFICHE (CON RBAC)
         // ==========================================
         async function caricaInventarioDaSupabase() {
             const { data } = await supabaseClient.from('inventario').select('*').order('nome');
@@ -339,9 +376,9 @@
                 let badge = p.scalo_automatico ? '<span class="text-[7px] bg-emerald-100 text-emerald-700 px-1 rounded ml-1 font-black">AUTO</span>' : '<span class="text-[7px] bg-slate-100 text-slate-500 px-1 rounded ml-1 font-black">MANUAL</span>';
                 return `<tr><td class="p-4"><p class="font-black text-xs uppercase">${p.nome}</p>${badge}</td><td class="p-4 text-center font-bold">${p.quantita}</td><td class="p-4 text-right"><button onclick="apriModificaStock('${p.id}')" class="bg-slate-100 p-2 rounded-xl text-blue-500 active:scale-90"><i class="fas fa-pencil"></i></button></td></tr>`;
             }).join('');
-            document.getElementById('dash-total-value').innerText = '€ ' + valTot.toFixed(2);
             
             if (userRole === 'Titolare') {
+                document.getElementById('dash-total-value').innerText = '€ ' + valTot.toFixed(2);
                 let bC = document.getElementById('alert-shopping-count');
                 if(shoppingCount > 0) { bC.innerText = shoppingCount; bC.classList.remove('hidden'); } else { bC.classList.add('hidden'); }
             }
@@ -354,10 +391,8 @@
             if(nQ === null) return;
             
             let updatePayload = { quantita: parseFloat(nQ) };
-            
-            // Il titolare può anche cambiare l'impostazione AUTO/MANUAL
             if (userRole === 'Titolare') {
-                let nAuto = confirm(`MANTENERE LO SCARICO AUTOMATICO IN CASSA PER QUESTO PRODOTTO?\n\nOK = SI (Es. Bibite)\nANNULLA = NO (Es. Olio/Spezie)`);
+                let nAuto = confirm(`MANTENERE LO SCARICO AUTOMATICO IN CASSA PER QUESTO PRODOTTO?\n\nOK = SI (Viene scalato vendendo in cassa)\nANNULLA = NO (Come olio e spezie)`);
                 updatePayload.scalo_automatico = nAuto;
             }
             
@@ -366,23 +401,13 @@
         }
 
         async function salvaNuovoProdotto() { 
-            let pay = { 
-                nome: document.getElementById('new-nome').value.trim().toUpperCase(), 
-                quantita: parseFloat(document.getElementById('new-qta').value), 
-                soglia_minima: parseFloat(document.getElementById('new-soglia').value), 
-                scalo_automatico: document.getElementById('new-auto-scalo').checked, 
-                prezzo: 0, 
-                categoria: 'Generale' 
-            }; 
+            let pay = { nome: document.getElementById('new-nome').value.trim().toUpperCase(), quantita: parseFloat(document.getElementById('new-qta').value), soglia_minima: parseFloat(document.getElementById('new-soglia').value), scalo_automatico: document.getElementById('new-auto-scalo').checked, prezzo: 0, categoria: 'Generale' }; 
             if(!pay.nome) return alert("Inserisci il nome del prodotto"); 
-            await supabaseClient.from('inventario').insert([pay]); 
-            alert("Prodotto aggiunto allo stock!");
-            nav('view-inventory'); 
-            caricaInventarioDaSupabase(); 
+            await supabaseClient.from('inventario').insert([pay]); alert("Prodotto aggiunto allo stock!"); nav('view-inventory'); caricaInventarioDaSupabase(); 
         }
 
         // ==========================================
-        // FATTURE SPORTELLO CLOUD (HTML/XML)
+        // FATTURE SPORTELLO CLOUD
         // ==========================================
         function elaboraFatturaXML(input) {
             if(!input.files[0]) return; document.getElementById('fattura-loader').classList.remove('hidden'); document.getElementById('fattura-result').classList.add('hidden');
@@ -397,10 +422,7 @@
                             tabellaP.querySelectorAll('tbody tr').forEach(riga => {
                                 const celle = riga.querySelectorAll('td');
                                 if (celle.length >= 8) {
-                                    let desc = celle[1].innerText.split('Periodo')[0].trim();
-                                    let qta = parseFloat(celle[2].innerText.replace(/\./g,'').replace(',','.'))||0;
-                                    let p = parseFloat(celle[3].innerText.replace(/\./g,'').replace(',','.'))||0;
-                                    let percIva = parseFloat(celle[6].innerText.replace(',','.'))||0;
+                                    let desc = celle[1].innerText.split('Periodo')[0].trim(), qta = parseFloat(celle[2].innerText.replace(/\./g,'').replace(',','.'))||0, p = parseFloat(celle[3].innerText.replace(/\./g,'').replace(',','.'))||0, percIva = parseFloat(celle[6].innerText.replace(',','.'))||0;
                                     if (desc && qta > 0) { items.push({ nome: desc.substring(0,30), qta, costo_unit: p }); ivaT += (qta*p)*(percIva/100); }
                                 }
                             });
@@ -428,7 +450,7 @@
         }
 
         // ==========================================
-        // FINANZA, STAFF E CASSA
+        // FINANZA, STAFF, CASSA MANUALE
         // ==========================================
         async function caricaFinanzaDaSupabase() {
             const { data, error } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false });
@@ -453,7 +475,13 @@
         }
         async function eliminaMovimentoFinanza(id) { if(confirm("Eliminare movimento?")) { await supabaseClient.from('finanza').delete().eq('id', id); caricaFinanzaDaSupabase(); } }
 
+        function popolaCassaMenu() { document.getElementById('cassa-piatti-list').innerHTML = menuRistorante.map((p,idx) => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border mb-2 shadow-sm"><p class="font-black text-sm uppercase">${p.nome}</p><div class="flex gap-2"><button onclick="updateV(${idx},-1)" class="w-8 h-8 bg-white rounded-lg font-black shadow-sm">-</button><input id="cassa-qty-${idx}" value="${p.venduti||0}" readonly class="w-6 text-center font-black text-emerald-600"><button onclick="updateV(${idx},1)" class="w-8 h-8 bg-emerald-500 text-white rounded-lg font-black shadow-sm">+</button></div></div>`).join(''); calcolaTotC(); }
+        function updateV(i,d) { let n=(menuRistorante[i].venduti||0)+d; if(n>=0){menuRistorante[i].venduti=n; document.getElementById(`cassa-qty-${i}`).value=n; calcolaTotC();} }
+        function calcolaTotC() { let t=0; menuRistorante.forEach(p=>t+=(p.prezzo*(p.venduti||0))); document.getElementById('cassa-total-display').innerText='€ '+t.toFixed(2); return t; }
+        function resetMenuCassa() { menuRistorante.forEach(p=>p.venduti=0); popolaCassaMenu(); }
+
         async function eseguiScaricoMagazzino() {
+            let incasso = calcolaTotC(); if(incasso===0) return;
             let daScaricare = {};
             menuRistorante.forEach(p => { 
                 if(p.venduti > 0 && p.ingredienti) {
@@ -467,14 +495,10 @@
                 let {data} = await supabaseClient.from('inventario').select('quantita').eq('id',id).single();
                 if(data) await supabaseClient.from('inventario').update({quantita: data.quantita - daScaricare[id]}).eq('id',id); 
             }
-            alert("Magazzino scalato per i prodotti 'AUTO'."); resetMenuCassa(); nav('view-dashboard');
+            let ivaV = incasso - (incasso / 1.10);
+            await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione:'Chiusura Cassa', importo:incasso, iva:ivaV, stato_pagamento:'pagato', data: new Date().toISOString(), data_pagamento: new Date().toISOString() }]);
+            alert("Incasso Manuale registrato e Magazzino AUTO aggiornato!"); resetMenuCassa(); nav('view-dashboard'); caricaInventarioDaSupabase();
         }
-
-        // Funzioni helper
-        function popolaCassaMenu() { document.getElementById('cassa-piatti-list').innerHTML = menuRistorante.map((p,idx) => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border mb-2 shadow-sm"><p class="font-black text-sm uppercase">${p.nome}</p><div class="flex gap-2"><button onclick="updateV(${idx},-1)" class="w-8 h-8 bg-white rounded-lg font-black shadow-sm">-</button><input id="cassa-qty-${idx}" value="${p.venduti||0}" readonly class="w-6 text-center font-black text-emerald-600"><button onclick="updateV(${idx},1)" class="w-8 h-8 bg-emerald-500 text-white rounded-lg font-black shadow-sm">+</button></div></div>`).join(''); calcolaTotC(); }
-        function updateV(i,d) { let n=(menuRistorante[i].venduti||0)+d; if(n>=0){menuRistorante[i].venduti=n; document.getElementById(`cassa-qty-${i}`).value=n; calcolaTotC();} }
-        function calcolaTotC() { let t=0; menuRistorante.forEach(p=>t+=(p.prezzo*(p.venduti||0))); document.getElementById('cassa-total-display').innerText='€ '+t.toFixed(2); return t; }
-        function resetMenuCassa() { menuRistorante.forEach(p=>p.venduti=0); popolaCassaMenu(); }
         
         async function caricaStaff() { const { data } = await supabaseClient.from('staff').select('*').order('nome'); staffLocale = data || []; document.getElementById('staff-select').innerHTML = staffLocale.map(s => `<option value="${s.nome}">${s.nome}</option>`).join(''); let html = ''; for(let s of staffLocale) { let mese = document.getElementById('finanza-mese-selettore').value; const { data: ant } = await supabaseClient.from('finanza').select('importo').eq('categoria', 'Personale').ilike('descrizione', `%Anticipo ${s.nome}%`).filter('data', 'gte', mese+'-01'); let totA = (ant || []).reduce((acc, curr) => acc + parseFloat(curr.importo), 0); html += `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-sm uppercase">${s.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">Anticipi Mese</p></div><span class="font-black text-red-500 text-lg">€ ${totA.toFixed(2)}</span></div>`; } document.getElementById('staff-list-container').innerHTML = html || '<p class="p-6 text-center text-xs text-slate-400 uppercase">Nessuno staff</p>'; }
         async function salvaAnticipoStaff() { let n = document.getElementById('staff-select').value, i = parseFloat(document.getElementById('staff-anticipo-val').value); if(i>0) { await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria:'Personale', descrizione:`Anticipo ${n}`, importo:i, stato_pagamento:'pagato', data:new Date().toISOString(), data_pagamento:new Date().toISOString() }]); alert("Erogato!"); document.getElementById('staff-anticipo-val').value='0.00'; caricaStaff(); caricaFinanzaDaSupabase(); } }
