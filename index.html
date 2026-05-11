@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belvedere Smart - Gestione Totale</title>
+    <title>Belvedere Smart - Gestione Magazzino</title>
     <!-- Librerie -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,6 +16,8 @@
         .view-panel { display: none; }
         .view-panel.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Nascondi freccette input numerico */
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans text-slate-900 h-screen overflow-hidden flex flex-col">
@@ -65,7 +67,6 @@
             
             <!-- VISTA: DASHBOARD -->
             <div id="view-dashboard" class="view-panel active space-y-6">
-                <!-- Statistiche veloci -->
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
                         <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Entrate (Oggi)</p>
@@ -84,7 +85,7 @@
                         <span class="text-xs font-bold uppercase">Carico Merce</span>
                     </button>
                     <button onclick="nav('view-ocr')" class="bg-white p-6 rounded-3xl border border-slate-200 flex flex-col items-center gap-3 active:scale-95 transition shadow-sm">
-                        <i class="fas fa-receipt text-2xl text-amber-500"></i>
+                        <i class="fas fa-cash-register text-2xl text-amber-500"></i>
                         <span class="text-xs font-bold uppercase">Chiusura</span>
                     </button>
                 </div>
@@ -102,55 +103,134 @@
 
             <!-- VISTA: SCANNER BARCODE -->
             <div id="view-barcode" class="view-panel space-y-4">
-                <div id="qr-reader" class="rounded-3xl overflow-hidden bg-black aspect-square"></div>
-                <div id="scan-feedback" class="bg-emerald-500 text-white p-4 rounded-2xl hidden text-center font-bold">
-                    Prodotto Rilevato!
+                <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl flex justify-between items-center mb-4">
+                    <div>
+                        <h4 class="font-bold text-emerald-800 text-sm">Destinazione</h4>
+                        <p class="text-xs text-emerald-600">Seleziona dove stoccare la merce</p>
+                    </div>
+                    <select class="p-2 rounded-lg border border-emerald-200 text-sm bg-white font-bold text-emerald-700 outline-none">
+                        <option>Cella Frigo</option>
+                        <option>Freezer</option>
+                        <option>Secco / Dispensa</option>
+                        <option>Cantina</option>
+                    </select>
+                </div>
+                <div id="qr-reader" class="rounded-3xl overflow-hidden bg-black aspect-square shadow-inner"></div>
+                <div id="scan-feedback" class="bg-emerald-500 text-white p-4 rounded-2xl hidden text-center font-bold shadow-lg">
+                    Prodotto Caricato!
                 </div>
             </div>
 
-            <!-- VISTA: CHIUSURA (OCR) -->
+            <!-- VISTA: GESTIONE SCORTE (CATEGORIE MAGAZZINO) -->
+            <div id="view-scorte" class="view-panel space-y-6">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Aree di Stoccaggio</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Cella Frigo -->
+                    <div class="bg-blue-50 p-5 rounded-3xl border border-blue-100 shadow-sm active:scale-95 transition cursor-pointer">
+                        <i class="fas fa-snowflake text-3xl text-blue-400 mb-3 block text-center"></i>
+                        <h4 class="font-black text-blue-900 text-center text-sm uppercase">Cella Frigo</h4>
+                        <p class="text-xs text-blue-600 text-center font-medium mt-1">120 Prodotti</p>
+                    </div>
+                    <!-- Freezer -->
+                    <div class="bg-cyan-50 p-5 rounded-3xl border border-cyan-100 shadow-sm active:scale-95 transition cursor-pointer">
+                        <i class="fas fa-icicles text-3xl text-cyan-500 mb-3 block text-center"></i>
+                        <h4 class="font-black text-cyan-900 text-center text-sm uppercase">Freezer</h4>
+                        <p class="text-xs text-cyan-600 text-center font-medium mt-1">45 Prodotti</p>
+                    </div>
+                    <!-- Dispensa Secco -->
+                    <div class="bg-amber-50 p-5 rounded-3xl border border-amber-100 shadow-sm active:scale-95 transition cursor-pointer">
+                        <i class="fas fa-boxes-stacked text-3xl text-amber-500 mb-3 block text-center"></i>
+                        <h4 class="font-black text-amber-900 text-center text-sm uppercase">Secco</h4>
+                        <p class="text-xs text-amber-600 text-center font-medium mt-1">310 Prodotti</p>
+                    </div>
+                    <!-- Cantina -->
+                    <div class="bg-purple-50 p-5 rounded-3xl border border-purple-100 shadow-sm active:scale-95 transition cursor-pointer">
+                        <i class="fas fa-wine-bottle text-3xl text-purple-500 mb-3 block text-center"></i>
+                        <h4 class="font-black text-purple-900 text-center text-sm uppercase">Cantina</h4>
+                        <p class="text-xs text-purple-600 text-center font-medium mt-1">85 Etichette</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA: CHIUSURA (OCR + MANUALE) -->
             <div id="view-ocr" class="view-panel space-y-6">
-                <div class="text-center py-8">
-                    <div class="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-camera text-3xl text-amber-600"></i>
-                    </div>
-                    <h3 class="font-bold text-lg">Scansiona Resoconto</h3>
-                    <p class="text-xs text-slate-500 px-10">Carica la foto della chiusura di cassa per calcolare entrate e scaricare scorte.</p>
-                </div>
-                
-                <label class="block w-full">
-                    <span class="sr-only">Scegli foto</span>
-                    <input type="file" accept="image/*" onchange="runOCR(this)" class="block w-full text-sm text-slate-500 file:mr-4 file:py-4 file:px-8 file:rounded-2xl file:border-0 file:text-sm file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 transition cursor-pointer">
-                </label>
-
-                <div id="ocr-loader" class="hidden text-center">
-                    <i class="fas fa-circle-notch fa-spin text-emerald-600 text-2xl"></i>
-                    <p class="text-xs font-bold mt-2 text-slate-400">Analisi scontrino in corso...</p>
+                <!-- Tabs Selector -->
+                <div class="flex bg-slate-200 p-1 rounded-2xl mb-6">
+                    <button onclick="switchChiusuraTab('manual')" id="tab-btn-manual" class="flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-white text-slate-800 shadow">Inserimento Manuale</button>
+                    <button onclick="switchChiusuraTab('photo')" id="tab-btn-photo" class="flex-1 py-3 text-sm font-bold rounded-xl transition-all text-slate-500 hover:text-slate-700">Foto Resoconto</button>
                 </div>
 
-                <div id="ocr-result" class="hidden bg-white p-6 rounded-3xl border-2 border-emerald-100 shadow-xl space-y-4">
-                    <div class="flex justify-between items-center border-b pb-4">
-                        <span class="font-bold text-slate-500 text-sm">TOTALE RILEVATO:</span>
-                        <input type="number" id="final-total" class="text-2xl font-black text-emerald-600 w-32 text-right focus:outline-none">
+                <!-- TAB 1: MANUALE (Piatti Venduti) -->
+                <div id="tab-manual" class="space-y-4">
+                    <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm">
+                        <div class="flex justify-between items-center mb-4 border-b pb-2">
+                            <h3 class="font-bold text-slate-700 text-sm">Piatti del Menu</h3>
+                            <button onclick="resetMenu()" class="text-xs text-red-500 font-bold"><i class="fas fa-trash-alt mr-1"></i>Azzera</button>
+                        </div>
+                        
+                        <!-- Lista Piatti (Generata via JS) -->
+                        <div id="menu-list" class="space-y-3">
+                            <!-- Esempio di riga piatto -->
+                        </div>
                     </div>
-                    <button onclick="confirmClosure()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs">Registra Chiusura</button>
+
+                    <div class="bg-slate-900 p-6 rounded-3xl shadow-lg mt-6">
+                        <div class="flex justify-between items-center mb-4 text-white">
+                            <span class="text-sm text-slate-400 uppercase font-bold">Totale Calcolato:</span>
+                            <span id="manual-total-display" class="text-2xl font-black text-emerald-400">€ 0.00</span>
+                        </div>
+                        <button onclick="confirmManualClosure()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs active:scale-95 transition">Conferma Vendite</button>
+                    </div>
                 </div>
+
+                <!-- TAB 2: FOTO SCONTRINO (OCR) -->
+                <div id="tab-photo" class="hidden space-y-6">
+                    <div class="text-center py-6">
+                        <div class="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-camera text-3xl text-amber-600"></i>
+                        </div>
+                        <p class="text-xs text-slate-500 px-10 mb-6">Carica la foto del totalizzatore di cassa per leggere automaticamente l'incasso.</p>
+                        
+                        <label class="block w-full">
+                            <span class="sr-only">Scegli foto</span>
+                            <input type="file" accept="image/*" onchange="runOCR(this)" class="block w-full text-sm text-slate-500 file:mr-4 file:py-4 file:px-8 file:rounded-2xl file:border-0 file:text-sm file:font-bold file:bg-amber-500 file:text-white hover:file:bg-amber-600 transition cursor-pointer">
+                        </label>
+                    </div>
+
+                    <div id="ocr-loader" class="hidden text-center">
+                        <i class="fas fa-circle-notch fa-spin text-amber-600 text-2xl"></i>
+                        <p class="text-xs font-bold mt-2 text-slate-400">Analisi scontrino in corso...</p>
+                    </div>
+
+                    <div id="ocr-result" class="hidden bg-white p-6 rounded-3xl border-2 border-amber-100 shadow-xl space-y-4">
+                        <div class="flex justify-between items-center border-b pb-4">
+                            <span class="font-bold text-slate-500 text-sm">TOTALE RILEVATO:</span>
+                            <input type="number" id="final-total" class="text-2xl font-black text-emerald-600 w-32 text-right focus:outline-none">
+                        </div>
+                        <button onclick="confirmClosureFromOCR()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs">Registra Chiusura</button>
+                    </div>
+                </div>
+
             </div>
 
         </main>
 
-        <!-- Navbar -->
+        <!-- Navbar Inferiore -->
         <nav class="bg-white border-t fixed bottom-0 w-full flex justify-around py-3 pb-safe z-50">
             <button onclick="nav('view-dashboard')" class="flex flex-col items-center gap-1 text-emerald-600">
                 <i class="fas fa-home text-xl"></i>
                 <span class="text-[10px] font-bold uppercase">Home</span>
             </button>
-            <button onclick="nav('view-barcode')" class="flex flex-col items-center gap-1 text-slate-400">
+            <button onclick="nav('view-barcode')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-emerald-500 transition">
                 <i class="fas fa-barcode text-xl"></i>
                 <span class="text-[10px] font-bold uppercase">Carico</span>
             </button>
-            <button onclick="nav('view-ocr')" class="flex flex-col items-center gap-1 text-slate-400">
-                <i class="fas fa-receipt text-xl"></i>
+            <button onclick="nav('view-scorte')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-blue-500 transition">
+                <i class="fas fa-boxes-stacked text-xl"></i>
+                <span class="text-[10px] font-bold uppercase">Scorte</span>
+            </button>
+            <button onclick="nav('view-ocr')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition">
+                <i class="fas fa-cash-register text-xl"></i>
                 <span class="text-[10px] font-bold uppercase">Cassa</span>
             </button>
         </nav>
@@ -160,24 +240,28 @@
         // Configurazione
         const SB_URL = 'https://nizktofcamulygzszydw.supabase.co';
         const SB_KEY = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
-        // ERRORE PRECEDENTE CORRETTO QUI: rinominata la variabile in supabaseClient
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
         let userRole = '';
         let html5QrScanner = null;
 
-        // Rileva il tasto "Invio" sulla tastiera
+        // --- DATI MENU PER INSERIMENTO MANUALE ---
+        let menuRistorante = [
+            { id: 1, nome: "Carbonara", prezzo: 14.00, quantita: 0 },
+            { id: 2, nome: "Amatriciana", prezzo: 13.00, quantita: 0 },
+            { id: 3, nome: "Tagliata di Manzo", prezzo: 22.00, quantita: 0 },
+            { id: 4, nome: "Tiramisù", prezzo: 6.00, quantita: 0 },
+            { id: 5, nome: "Acqua Minerale", prezzo: 2.50, quantita: 0 },
+            { id: 6, nome: "Vino della Casa (L)", prezzo: 10.00, quantita: 0 }
+        ];
+
         document.getElementById('pass-field').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                handleAuth();
-            }
+            if (e.key === 'Enter') handleAuth();
         });
 
         // LOGIN
         function handleAuth() {
-            let rawPass = document.getElementById('pass-field').value;
-            let pass = rawPass.trim().toLowerCase();
-            
+            let pass = document.getElementById('pass-field').value.trim().toLowerCase();
             const error = document.getElementById('login-error');
             
             if (pass === 'staff' || pass === 'belvedere59') {
@@ -186,7 +270,6 @@
                 document.getElementById('app-interface').classList.remove('hidden');
                 
                 error.classList.add('hidden');
-                
                 const badge = document.getElementById('role-badge');
                 badge.innerText = userRole;
                 badge.className = (userRole === 'titolare') ? 
@@ -194,11 +277,10 @@
                     'inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1 bg-emerald-100 text-emerald-700';
                 
                 nav('view-dashboard');
+                renderMenu(); // Disegna il menu manuale
             } else {
                 error.classList.remove('hidden');
-                setTimeout(() => {
-                    error.classList.add('hidden');
-                }, 3000);
+                setTimeout(() => error.classList.add('hidden'), 3000);
             }
         }
 
@@ -207,7 +289,12 @@
             document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             
-            const titles = { 'view-dashboard': 'Dashboard', 'view-barcode': 'Scanner Barcode', 'view-ocr': 'Chiusura Cassa' };
+            const titles = { 
+                'view-dashboard': 'Dashboard', 
+                'view-barcode': 'Carico Merci', 
+                'view-scorte': 'Mappa Magazzino',
+                'view-ocr': 'Chiusura di Cassa' 
+            };
             document.getElementById('header-title').innerText = titles[id];
 
             if (id === 'view-barcode') {
@@ -222,12 +309,97 @@
             html5QrScanner = new Html5Qrcode("qr-reader");
             html5QrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
                 document.getElementById('scan-feedback').classList.remove('hidden');
-                alert("Prodotto " + text + " scansionato!");
+                alert("Prodotto " + text + " scansionato e stoccato!");
                 nav('view-dashboard');
             });
         }
 
-        // OCR CHIUSURA
+        // --- GESTIONE TABS CHIUSURA SERALE ---
+        function switchChiusuraTab(tab) {
+            const btnManual = document.getElementById('tab-btn-manual');
+            const btnPhoto = document.getElementById('tab-btn-photo');
+            const contentManual = document.getElementById('tab-manual');
+            const contentPhoto = document.getElementById('tab-photo');
+
+            if (tab === 'manual') {
+                btnManual.className = "flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-white text-slate-800 shadow";
+                btnPhoto.className = "flex-1 py-3 text-sm font-bold rounded-xl transition-all text-slate-500 hover:text-slate-700";
+                contentManual.classList.remove('hidden');
+                contentPhoto.classList.add('hidden');
+            } else {
+                btnPhoto.className = "flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-white text-slate-800 shadow";
+                btnManual.className = "flex-1 py-3 text-sm font-bold rounded-xl transition-all text-slate-500 hover:text-slate-700";
+                contentPhoto.classList.remove('hidden');
+                contentManual.classList.add('hidden');
+            }
+        }
+
+        // --- FUNZIONI MENU MANUALE ---
+        function renderMenu() {
+            const list = document.getElementById('menu-list');
+            list.innerHTML = '';
+            
+            menuRistorante.forEach((piatto, index) => {
+                list.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100">
+                        <div class="flex-1">
+                            <p class="font-bold text-slate-800 text-sm leading-tight">${piatto.nome}</p>
+                            <p class="text-[10px] font-bold text-emerald-600">€ ${piatto.prezzo.toFixed(2)}</p>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white rounded-lg border border-slate-200 p-1 shadow-sm">
+                            <button onclick="updateDish(${index}, -1)" class="w-8 h-8 rounded-md bg-slate-100 hover:bg-red-100 text-slate-600 hover:text-red-600 font-bold flex items-center justify-center transition active:scale-95"><i class="fas fa-minus"></i></button>
+                            <input type="number" id="dish-qty-${index}" value="${piatto.quantita}" class="w-10 text-center font-bold text-slate-800 focus:outline-none" onchange="manualInputDish(${index}, this.value)">
+                            <button onclick="updateDish(${index}, 1)" class="w-8 h-8 rounded-md bg-emerald-500 hover:bg-emerald-400 text-white font-bold flex items-center justify-center transition active:scale-95"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            calculateManualTotal();
+        }
+
+        function updateDish(index, delta) {
+            let newQty = menuRistorante[index].quantita + delta;
+            if (newQty >= 0) {
+                menuRistorante[index].quantita = newQty;
+                document.getElementById(`dish-qty-${index}`).value = newQty;
+                calculateManualTotal();
+            }
+        }
+
+        function manualInputDish(index, value) {
+            let num = parseInt(value) || 0;
+            if (num < 0) num = 0;
+            menuRistorante[index].quantita = num;
+            document.getElementById(`dish-qty-${index}`).value = num;
+            calculateManualTotal();
+        }
+
+        function resetMenu() {
+            if(confirm("Sei sicuro di voler azzerare tutte le quantità?")) {
+                menuRistorante.forEach(p => p.quantita = 0);
+                renderMenu();
+            }
+        }
+
+        function calculateManualTotal() {
+            let totale = 0;
+            menuRistorante.forEach(p => totale += (p.prezzo * p.quantita));
+            document.getElementById('manual-total-display').innerText = '€ ' + totale.toFixed(2);
+            return totale;
+        }
+
+        function confirmManualClosure() {
+            let incasso = calculateManualTotal();
+            if (incasso === 0) {
+                alert("Non hai inserito nessun piatto venduto.");
+                return;
+            }
+            // Qui in futuro diremo a Supabase di scaricare gli ingredienti
+            registraEntrataDashboard(incasso, "Chiusura (Manuale)");
+            resetMenu();
+        }
+
+        // --- OCR CHIUSURA (FOTO) ---
         async function runOCR(input) {
             if (!input.files[0]) return;
             const loader = document.getElementById('ocr-loader');
@@ -249,27 +421,34 @@
             });
         }
 
-        function confirmClosure() {
-            const val = document.getElementById('final-total').value;
-            document.getElementById('dash-income').innerText = '€ ' + val;
+        function confirmClosureFromOCR() {
+            const val = parseFloat(document.getElementById('final-total').value) || 0;
+            registraEntrataDashboard(val, "Chiusura (Foto OCR)");
+        }
+
+        // --- SALVATAGGIO GLOBALE DASHBOARD ---
+        function registraEntrataDashboard(valore, tipo) {
+            // Aggiorna cruscotto
+            let incassoPrecedente = parseFloat(document.getElementById('dash-income').innerText.replace('€ ', '')) || 0;
+            let nuovoIncasso = incassoPrecedente + valore;
+            document.getElementById('dash-income').innerText = '€ ' + nuovoIncasso.toFixed(2);
             
+            // Aggiungi allo storico
             const list = document.getElementById('history-list');
-            if(list.innerText.includes("Nessun movimento oggi")) {
-                list.innerHTML = "";
-            }
+            if(list.innerText.includes("Nessun movimento")) list.innerHTML = "";
 
             const item = `
-                <div class="p-4 flex justify-between items-center">
+                <div class="p-4 flex justify-between items-center bg-white">
                     <div>
-                        <p class="text-xs font-bold text-slate-700">Chiusura Cassa</p>
+                        <p class="text-xs font-bold text-slate-700">${tipo}</p>
                         <p class="text-[10px] text-slate-400">${new Date().toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'})}</p>
                     </div>
-                    <span class="text-sm font-black text-emerald-600">+ € ${val}</span>
+                    <span class="text-sm font-black text-emerald-600">+ € ${valore.toFixed(2)}</span>
                 </div>
             `;
             list.innerHTML = item + list.innerHTML;
             
-            alert("Entrata registrata con successo!");
+            alert("Incasso e scarico merci registrato con successo!");
             nav('view-dashboard');
         }
 
