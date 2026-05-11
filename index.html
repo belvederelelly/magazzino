@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Belvedere Smart - Gestione Totale</title>
+    <!-- Librerie -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -19,6 +20,9 @@
 </head>
 <body class="bg-gray-50 font-sans text-slate-900 h-screen overflow-hidden flex flex-col">
 
+    <!-- ========================================== -->
+    <!-- SCHERMATA LOGIN                            -->
+    <!-- ========================================== -->
     <div id="view-login" class="view-panel active h-full flex flex-col justify-center items-center bg-slate-900 px-6 fixed inset-0 z-[100]">
         <div class="text-center mb-8">
             <div class="bg-emerald-500 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4 rotate-3 shadow-xl">
@@ -31,17 +35,21 @@
         <div class="w-full max-w-sm space-y-4">
             <div class="relative">
                 <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                <input type="password" id="pass-field" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all" placeholder="Password di accesso">
+                <input type="password" id="pass-field" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all" placeholder="Inserisci password...">
             </div>
             <button onclick="handleAuth()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 uppercase tracking-widest text-sm">
                 Accedi al Sistema
             </button>
-            <p id="login-error" class="text-red-400 text-center text-xs hidden">Password errata. Riprova.</p>
+            <p id="login-error" class="text-red-400 text-center text-xs hidden font-bold"><i class="fas fa-exclamation-triangle mr-1"></i> Password errata.</p>
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- APP MAIN INTERFACE                         -->
+    <!-- ========================================== -->
     <div id="app-interface" class="hidden h-full flex flex-col">
         
+        <!-- Header Dinamico -->
         <header class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
             <div>
                 <h2 id="header-title" class="text-xl font-black text-slate-800">Dashboard</h2>
@@ -52,9 +60,12 @@
             </button>
         </header>
 
+        <!-- Contenuto Scorrevole -->
         <main class="flex-1 overflow-y-auto p-6 pb-32">
             
+            <!-- VISTA: DASHBOARD -->
             <div id="view-dashboard" class="view-panel active space-y-6">
+                <!-- Statistiche veloci -->
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
                         <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Entrate (Oggi)</p>
@@ -78,6 +89,7 @@
                     </button>
                 </div>
 
+                <!-- Storico Recente -->
                 <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
                     <div class="p-4 bg-slate-50 border-b">
                         <h4 class="text-xs font-bold uppercase tracking-widest text-slate-500">Movimenti Recenti</h4>
@@ -88,6 +100,7 @@
                 </div>
             </div>
 
+            <!-- VISTA: SCANNER BARCODE -->
             <div id="view-barcode" class="view-panel space-y-4">
                 <div id="qr-reader" class="rounded-3xl overflow-hidden bg-black aspect-square"></div>
                 <div id="scan-feedback" class="bg-emerald-500 text-white p-4 rounded-2xl hidden text-center font-bold">
@@ -95,6 +108,7 @@
                 </div>
             </div>
 
+            <!-- VISTA: CHIUSURA (OCR) -->
             <div id="view-ocr" class="view-panel space-y-6">
                 <div class="text-center py-8">
                     <div class="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -125,6 +139,7 @@
 
         </main>
 
+        <!-- Navbar -->
         <nav class="bg-white border-t fixed bottom-0 w-full flex justify-around py-3 pb-safe z-50">
             <button onclick="nav('view-dashboard')" class="flex flex-col items-center gap-1 text-emerald-600">
                 <i class="fas fa-home text-xl"></i>
@@ -150,26 +165,50 @@
         let userRole = '';
         let html5QrScanner = null;
 
-        // LOGIN
+        // AGGIUNTA: Rileva il tasto "Invio" sulla tastiera per fare login più in fretta
+        document.getElementById('pass-field').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                handleAuth();
+            }
+        });
+
+        // LOGIN MIGLIORATO
         function handleAuth() {
-            const pass = document.getElementById('pass-field').value;
+            // Prendiamo il valore inserito
+            let rawPass = document.getElementById('pass-field').value;
+            
+            // "Puliamo" la password: 
+            // .trim() toglie gli spazi iniziali e finali inseriti per sbaglio
+            // .toLowerCase() rende tutte le lettere minuscole (se il telefono scrive "Staff" o "STAFF" o " staff ")
+            let pass = rawPass.trim().toLowerCase();
+            
             const error = document.getElementById('login-error');
             
+            // Ora il controllo non fallirà per uno spazio in più o una maiuscola automatica
             if (pass === 'staff' || pass === 'belvedere59') {
                 userRole = (pass === 'belvedere59') ? 'titolare' : 'staff';
                 document.getElementById('view-login').style.display = 'none';
                 document.getElementById('app-interface').classList.remove('hidden');
+                
+                // Nascondo l'errore se prima c'era
+                error.classList.add('hidden');
                 
                 // Personalizza interfaccia
                 const badge = document.getElementById('role-badge');
                 badge.innerText = userRole;
                 badge.className = (userRole === 'titolare') ? 
                     'inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1 bg-amber-100 text-amber-700' : 
-                    'inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1 bg-blue-100 text-blue-700';
+                    'inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1 bg-emerald-100 text-emerald-700';
                 
                 nav('view-dashboard');
             } else {
+                // Password davvero sbagliata
                 error.classList.remove('hidden');
+                
+                // Nascondi l'errore dopo 3 secondi
+                setTimeout(() => {
+                    error.classList.add('hidden');
+                }, 3000);
             }
         }
 
@@ -229,18 +268,24 @@
             
             // Aggiungi allo storico
             const list = document.getElementById('history-list');
+            
+            // Rimuovo il testo "Nessun movimento" se è la prima entrata
+            if(list.innerText.includes("Nessun movimento oggi")) {
+                list.innerHTML = "";
+            }
+
             const item = `
                 <div class="p-4 flex justify-between items-center">
                     <div>
-                        <p class="text-xs font-bold">Chiusura Cassa</p>
-                        <p class="text-[10px] text-slate-400">${new Date().toLocaleTimeString()}</p>
+                        <p class="text-xs font-bold text-slate-700">Chiusura Cassa</p>
+                        <p class="text-[10px] text-slate-400">${new Date().toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'})}</p>
                     </div>
                     <span class="text-sm font-black text-emerald-600">+ € ${val}</span>
                 </div>
             `;
             list.innerHTML = item + list.innerHTML;
             
-            alert("Entrata registrata!");
+            alert("Entrata registrata con successo!");
             nav('view-dashboard');
         }
 
