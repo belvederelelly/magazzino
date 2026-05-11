@@ -66,7 +66,7 @@
                     <button onclick="nav('view-inventory')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-boxes text-2xl text-slate-600 mb-2"></i><span class="block text-[10px] font-black uppercase">Magazzino</span></button>
                     <button onclick="nav('view-staff')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-users text-2xl text-blue-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Staff</span></button>
                     <button onclick="nav('view-fatture')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-file-invoice text-2xl text-amber-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Fatture</span></button>
-                    <button onclick="nav('view-cassa')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-cash-register text-2xl text-emerald-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Sincro Cassa</span></button>
+                    <button onclick="nav('view-cassa')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-sync text-2xl text-emerald-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Sincro RCH</span></button>
                 </div>
             </div>
 
@@ -85,20 +85,20 @@
 
             <div id="view-cassa" class="view-panel space-y-4 titolare-only">
                 <div class="bg-emerald-600 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
-                    <h3 class="font-black text-sm uppercase"><i class="fas fa-sync mr-2"></i>Sincronizza XStore</h3>
-                    <p class="text-[9px] font-bold text-emerald-100 mb-4 mt-1 leading-relaxed">Carica il file Excel "Statistiche/Vendite". L'app leggerà ogni singolo prodotto scaricando il magazzino e compilerà il bilancio esatto.</p>
+                    <h3 class="font-black text-lg uppercase"><i class="fas fa-bolt mr-2"></i>Chiusura Serale</h3>
+                    <p class="text-[10px] font-bold text-emerald-100 mb-4 mt-2 leading-relaxed">Carica il file Excel "Statistiche" di XStore. L'app creerà i nuovi prodotti, scaricherà lo stock e compilerà il bilancio automaticamente.</p>
                     <input type="file" accept=".xlsx, .xls" id="file-rch-vendite" onchange="elaboraVenditeRCHExcel(this)" class="hidden">
-                    <button onclick="document.getElementById('file-rch-vendite').click()" class="w-full bg-white text-emerald-600 px-6 py-4 rounded-xl font-black text-xs uppercase shadow-md active:scale-95 transition">Carica Report Vendite</button>
+                    <button onclick="document.getElementById('file-rch-vendite').click()" class="w-full bg-white text-emerald-600 px-6 py-4 rounded-xl font-black text-xs uppercase shadow-md active:scale-95 transition">Carica Statistiche RCH (.xlsx)</button>
                 </div>
                 
-                <div class="bg-white p-4 rounded-3xl border shadow-sm">
-                    <h3 class="font-black text-slate-800 text-sm mb-3">Chiusura Emergenza (Manuale)</h3>
+                <div class="bg-white p-4 rounded-3xl border shadow-sm mt-6">
+                    <h3 class="font-black text-slate-800 text-sm mb-3">Chiusura Manuale (Emergenza)</h3>
                     <div id="cassa-piatti-list" class="space-y-2 mb-4"></div>
                     <div class="flex justify-between items-center border-t pt-4 mt-2">
                         <span class="text-xs text-slate-400 uppercase font-black">Totale Man:</span>
                         <span id="cassa-total-display" class="text-xl font-black text-slate-700">€ 0.00</span>
                     </div>
-                    <button onclick="eseguiScaricoMagazzino()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-black uppercase text-[10px] mt-3">Scarica Manualmente</button>
+                    <button onclick="eseguiScaricoMagazzinoManuale()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-black uppercase text-[10px] mt-3">Registra Manualmente</button>
                 </div>
             </div>
 
@@ -201,16 +201,13 @@
                 userRole = (pass === 'belvedere59') ? 'Titolare' : 'Staff';
                 localStorage.setItem('belvedereAuthRole', userRole); 
                 avviaApp();
-            } else {
-                alert("Password errata.");
-            }
+            } else { alert("Password errata."); }
         }
 
         function avviaApp() {
             document.getElementById('view-login').style.display = 'none'; 
             document.getElementById('app-interface').classList.remove('hidden');
             
-            // GESTIONE PERMESSI (RBAC)
             if (userRole === 'Staff') {
                 document.getElementById('role-badge').innerText = 'Staff Magazzino';
                 document.getElementById('role-badge').className = 'inline-block px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest mt-1 bg-slate-200 text-slate-700';
@@ -241,7 +238,7 @@
         }
 
         // ==========================================
-        // NUOVO MOTORE: IMPORT VENDITE DETTAGLIATE RCH
+        // NUOVO MOTORE: IMPORT VENDITE DETTAGLIATE RCH & CHIUSURA
         // ==========================================
         function elaboraVenditeRCHExcel(input) {
             if(!input.files[0]) return;
@@ -251,12 +248,12 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, {type: 'array'});
                     
-                    // 1. Cerca il foglio con i prodotti
-                    let sheetProdottiName = workbook.SheetNames.find(n => n.toLowerCase().includes('venduto prodotti') || n.toLowerCase().includes('prodotti'));
-                    let sheetIvaName = workbook.SheetNames.find(n => n.toLowerCase() === 'iva');
+                    // 1. Individua i fogli corretti (Venduto prodotti e IVA)
+                    let sheetProdottiName = workbook.SheetNames.find(n => String(n).toLowerCase().includes('venduto prodotti'));
+                    let sheetIvaName = workbook.SheetNames.find(n => String(n).toLowerCase().includes('iva'));
 
                     if(!sheetProdottiName) {
-                        alert("ERRORE: Hai caricato il file sbagliato.\nQuesto file non contiene le statistiche dei prodotti.\n\nVai su RCH XStore -> Statistiche -> ed esporta il file Excel con i dati di vendita dettagliati.");
+                        alert("ERRORE: Questo file Excel non contiene il dettaglio dei prodotti.\nVai su RCH XStore -> Statistiche ed esporta il file con le Vendite dettagliate.");
                         input.value = ''; return;
                     }
 
@@ -271,7 +268,7 @@
                     let venditeRaggruppate = {};
                     let lordoCalcolato = 0;
 
-                    // Legge riga per riga
+                    // Legge i prodotti venduti e raggruppa le quantità
                     for(let i=1; i<jsonProdotti.length; i++) {
                         let row = jsonProdotti[i];
                         if(row && row[idxProdotto]) {
@@ -279,8 +276,8 @@
                             let qta = parseFloat(String(row[idxVendite]).replace(',', '.')) || 0;
                             let importo = parseFloat(String(row[idxImporto]||'0').replace(/\./g, '').replace(',', '.')) || 0;
 
-                            // Escludiamo scarti o intestazioni false
-                            if(nome && nome !== "PRODOTTO" && qta !== 0) {
+                            // Escludiamo false intestazioni e valori a zero
+                            if(nome && nome !== "PRODOTTO" && qta > 0) {
                                 if(!venditeRaggruppate[nome]) venditeRaggruppate[nome] = { qta: 0, importo: 0 };
                                 venditeRaggruppate[nome].qta += qta;
                                 venditeRaggruppate[nome].importo += importo;
@@ -289,9 +286,9 @@
                         }
                     }
 
-                    let prodottiFinali = Object.keys(venditeRaggruppate).map(k => ({ nome: k, ...venditeRaggruppate[k] })).filter(p => p.qta > 0);
+                    let prodottiFinali = Object.keys(venditeRaggruppate).map(k => ({ nome: k, ...venditeRaggruppate[k] }));
 
-                    // 2. Lettura Esatta IVA e Lordo (dal Foglio IVA se presente)
+                    // 2. Lettura Finanziaria Esatta (Foglio IVA)
                     let lordoEsatto = lordoCalcolato;
                     let ivaEsatto = lordoEsatto - (lordoEsatto / 1.10);
 
@@ -312,15 +309,42 @@
                         }
                     }
 
-                    let previewTesto = prodottiFinali.slice(0, 5).map(p => `${p.qta}x ${p.nome}`).join('\n') + (prodottiFinali.length > 5 ? '\n...e altri articoli.' : '');
+                    // 3. Verifica Prodotti Nuovi da Auto-Creare
+                    let nuoviDaCreare = [];
+                    prodottiFinali.forEach(venduto => {
+                        let inMenu = menuRistorante.find(m => m.nome.toUpperCase() === venduto.nome);
+                        let inInv = inventarioLocale.find(inv => inv.nome.toUpperCase() === venduto.nome);
+                        if(!inMenu && !inInv) {
+                            nuoviDaCreare.push({
+                                nome: venduto.nome,
+                                quantita: 0, // Parte da 0 e andrà in negativo con lo scarico
+                                soglia_minima: 5,
+                                scalo_automatico: true, // Li mettiamo in scarico automatico di default
+                                prezzo: 0,
+                                categoria: 'Nuovi da RCH'
+                            });
+                        }
+                    });
 
-                    if(confirm(`RILEVAMENTO XSTORE COMPLETATO!\n\nIncasso Totale: € ${lordoEsatto.toFixed(2)}\nIVA Calcolata: € ${ivaEsatto.toFixed(2)}\nTrovati ${prodottiFinali.length} prodotti venduti.\n\nEsempi venduto:\n${previewTesto}\n\nConfermi la sincronizzazione? L'app scaricherà il magazzino e aggiornerà il bilancio in automatico.`)) {
+                    let msg = `RILEVAMENTO XSTORE COMPLETATO!\n\nIncasso Serale: € ${lordoEsatto.toFixed(2)}\nIVA Calcolata: € ${ivaEsatto.toFixed(2)}\nArticoli Riconosciuti: ${prodottiFinali.length}\n`;
+                    if(nuoviDaCreare.length > 0) {
+                        msg += `\n⚠️ ATTENZIONE: ${nuoviDaCreare.length} prodotti sono nuovi (Es. ${nuoviDaCreare[0].nome}) e verranno creati automaticamente in Magazzino.\n`;
+                    }
+                    msg += `\nConfermi la Chiusura di Cassa? L'app aggiornerà Bilancio e Giacenze.`;
+
+                    if(confirm(msg)) {
                         
-                        // 3. LOGICA DI SCARICO INTELLIGENTE
-                        let daScaricare = {};
+                        // FASE A: Creazione prodotti mancanti
+                        if(nuoviDaCreare.length > 0) {
+                            await supabaseClient.from('inventario').insert(nuoviDaCreare);
+                            const { data } = await supabaseClient.from('inventario').select('*').order('nome');
+                            inventarioLocale = data || [];
+                        }
 
+                        // FASE B: Logica di Scarico Intelligente
+                        let daScaricare = {};
                         prodottiFinali.forEach(venduto => {
-                            // Cerca nel Menu (piatti composti)
+                            // Cerca nel Menu (piatti composti, es. "LASAGNA")
                             let menuItem = menuRistorante.find(m => m.nome.toUpperCase() === venduto.nome);
                             if(menuItem && menuItem.ingredienti) {
                                 menuItem.ingredienti.forEach(ing => {
@@ -330,7 +354,7 @@
                                     }
                                 });
                             } else {
-                                // Cerca direttamente nello Stock
+                                // Cerca direttamente in Magazzino (es. "ACQUA NAT")
                                 let invItem = inventarioLocale.find(inv => inv.nome.toUpperCase() === venduto.nome);
                                 if(invItem && invItem.scalo_automatico) {
                                     daScaricare[invItem.id] = (daScaricare[invItem.id] || 0) + venduto.qta;
@@ -338,23 +362,23 @@
                             }
                         });
 
-                        // Aggiorna Magazzino Supabase
+                        // Sottrazione in blocco su Supabase
                         for(let id in daScaricare) { 
                             let {data} = await supabaseClient.from('inventario').select('quantita').eq('id',id).single();
                             if(data) await supabaseClient.from('inventario').update({quantita: data.quantita - daScaricare[id]}).eq('id',id); 
                         }
 
-                        // Aggiorna Finanza
+                        // FASE C: Registrazione Bilancio Mensile
                         let dataOggi = new Date().toISOString();
                         let meseSel = document.getElementById('finanza-mese-selettore').value;
                         if (meseSel && !dataOggi.startsWith(meseSel)) dataOggi = meseSel + "-01T12:00:00.000Z";
 
                         await supabaseClient.from('finanza').insert([{ 
-                            tipo: 'entrata', categoria: 'Ristorante', descrizione: 'Sincro Vendite RCH XStore', 
+                            tipo: 'entrata', categoria: 'Ristorante', descrizione: 'Chiusura RCH Automatica', 
                             importo: lordoEsatto, iva: ivaEsatto, stato_pagamento: 'pagato', data: dataOggi, data_pagamento: dataOggi 
                         }]);
 
-                        alert("Boom! Magazzino e Bilancio sincronizzati con successo.");
+                        alert("Chiusura Serale Registrata con Successo!");
                         nav('view-dashboard'); caricaInventarioDaSupabase(); caricaFinanzaDaSupabase();
                     }
 
@@ -374,7 +398,7 @@
                 valTot += (parseFloat(p.prezzo||0) * parseFloat(p.quantita||0));
                 if(parseFloat(p.quantita) <= parseFloat(p.soglia_minima)) shoppingCount++;
                 let badge = p.scalo_automatico ? '<span class="text-[7px] bg-emerald-100 text-emerald-700 px-1 rounded ml-1 font-black">AUTO</span>' : '<span class="text-[7px] bg-slate-100 text-slate-500 px-1 rounded ml-1 font-black">MANUAL</span>';
-                return `<tr><td class="p-4"><p class="font-black text-xs uppercase">${p.nome}</p>${badge}</td><td class="p-4 text-center font-bold">${p.quantita}</td><td class="p-4 text-right"><button onclick="apriModificaStock('${p.id}')" class="bg-slate-100 p-2 rounded-xl text-blue-500 active:scale-90"><i class="fas fa-pencil"></i></button></td></tr>`;
+                return `<tr><td class="p-4"><p class="font-black text-xs uppercase">${p.nome}</p>${badge}</td><td class="p-4 text-center font-bold ${parseFloat(p.quantita)<0?'text-red-500':''}">${p.quantita}</td><td class="p-4 text-right"><button onclick="apriModificaStock('${p.id}')" class="bg-slate-100 p-2 rounded-xl text-blue-500 active:scale-90"><i class="fas fa-pencil"></i></button></td></tr>`;
             }).join('');
             
             if (userRole === 'Titolare') {
@@ -450,7 +474,7 @@
         }
 
         // ==========================================
-        // FINANZA, STAFF, CASSA MANUALE
+        // FINANZA E CASSA MANUALE
         // ==========================================
         async function caricaFinanzaDaSupabase() {
             const { data, error } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false });
@@ -480,7 +504,7 @@
         function calcolaTotC() { let t=0; menuRistorante.forEach(p=>t+=(p.prezzo*(p.venduti||0))); document.getElementById('cassa-total-display').innerText='€ '+t.toFixed(2); return t; }
         function resetMenuCassa() { menuRistorante.forEach(p=>p.venduti=0); popolaCassaMenu(); }
 
-        async function eseguiScaricoMagazzino() {
+        async function eseguiScaricoMagazzinoManuale() {
             let incasso = calcolaTotC(); if(incasso===0) return;
             let daScaricare = {};
             menuRistorante.forEach(p => { 
@@ -496,10 +520,13 @@
                 if(data) await supabaseClient.from('inventario').update({quantita: data.quantita - daScaricare[id]}).eq('id',id); 
             }
             let ivaV = incasso - (incasso / 1.10);
-            await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione:'Chiusura Cassa', importo:incasso, iva:ivaV, stato_pagamento:'pagato', data: new Date().toISOString(), data_pagamento: new Date().toISOString() }]);
-            alert("Incasso Manuale registrato e Magazzino AUTO aggiornato!"); resetMenuCassa(); nav('view-dashboard'); caricaInventarioDaSupabase();
+            await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione:'Chiusura Cassa Manuale', importo:incasso, iva:ivaV, stato_pagamento:'pagato', data: new Date().toISOString(), data_pagamento: new Date().toISOString() }]);
+            alert("Incasso Manuale registrato e Magazzino aggiornato!"); resetMenuCassa(); nav('view-dashboard'); caricaInventarioDaSupabase();
         }
         
+        // ==========================================
+        // STAFF E ALTRO
+        // ==========================================
         async function caricaStaff() { const { data } = await supabaseClient.from('staff').select('*').order('nome'); staffLocale = data || []; document.getElementById('staff-select').innerHTML = staffLocale.map(s => `<option value="${s.nome}">${s.nome}</option>`).join(''); let html = ''; for(let s of staffLocale) { let mese = document.getElementById('finanza-mese-selettore').value; const { data: ant } = await supabaseClient.from('finanza').select('importo').eq('categoria', 'Personale').ilike('descrizione', `%Anticipo ${s.nome}%`).filter('data', 'gte', mese+'-01'); let totA = (ant || []).reduce((acc, curr) => acc + parseFloat(curr.importo), 0); html += `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-sm uppercase">${s.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">Anticipi Mese</p></div><span class="font-black text-red-500 text-lg">€ ${totA.toFixed(2)}</span></div>`; } document.getElementById('staff-list-container').innerHTML = html || '<p class="p-6 text-center text-xs text-slate-400 uppercase">Nessuno staff</p>'; }
         async function salvaAnticipoStaff() { let n = document.getElementById('staff-select').value, i = parseFloat(document.getElementById('staff-anticipo-val').value); if(i>0) { await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria:'Personale', descrizione:`Anticipo ${n}`, importo:i, stato_pagamento:'pagato', data:new Date().toISOString(), data_pagamento:new Date().toISOString() }]); alert("Erogato!"); document.getElementById('staff-anticipo-val').value='0.00'; caricaStaff(); caricaFinanzaDaSupabase(); } }
         async function aggiungiDipendente() { let n = document.getElementById('new-staff-name').value.trim(); if(n) { await supabaseClient.from('staff').insert([{ nome:n }]); document.getElementById('new-staff-name').value=''; caricaStaff(); } }
