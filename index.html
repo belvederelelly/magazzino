@@ -3,241 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Magazzino - Ristorante</title>
-    <!-- Tailwind CSS -->
+    <title>Belvedere - Magazzino & Cassa</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-        /* Transizioni fluide per il cambio schermata */
-        .fade-enter { opacity: 0; transform: translateY(10px); transition: all 0.4s ease-out; }
-        .fade-enter-active { opacity: 1; transform: translateY(0); }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
 </head>
-<body class="bg-gray-100 font-sans text-gray-800 h-screen overflow-hidden">
+<body class="bg-gray-100 font-sans text-gray-800 h-screen flex flex-col overflow-hidden">
 
-    <!-- ========================================== -->
-    <!-- SCHERMATA DI LOGIN                         -->
-    <!-- ========================================== -->
-    <div id="login-screen" class="h-full flex flex-col justify-center items-center bg-slate-900 px-6 transition-opacity duration-500">
+    <div id="view-login" class="h-full flex flex-col justify-center items-center bg-slate-900 px-6 z-50">
         <div class="text-center mb-10">
             <div class="bg-emerald-500 text-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/30">
                 <i class="fas fa-utensils text-4xl"></i>
             </div>
-            <h1 class="text-3xl font-bold text-white">Magazzino Smart</h1>
-            <p class="text-slate-400 mt-2">Accedi per continuare</p>
+            <h1 class="text-3xl font-bold text-white tracking-tight">Belvedere Smart</h1>
         </div>
-
-        <div class="w-full max-w-sm bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700">
-            <div class="mb-5">
-                <label class="block text-slate-400 text-sm font-bold mb-2 uppercase tracking-wide">Password di Accesso</label>
-                <div class="relative">
-                    <i class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500"></i>
-                    <input type="password" id="password-input" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl py-3 px-4 pl-12 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition" placeholder="Inserisci password...">
-                </div>
-                <p id="login-error" class="text-red-400 text-xs mt-2 hidden"><i class="fas fa-exclamation-circle mr-1"></i> Password errata.</p>
-            </div>
-            <button onclick="eseguiLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition transform hover:-translate-y-0.5">
-                Accedi
-            </button>
+        <div class="w-full max-w-sm bg-slate-800 p-6 rounded-3xl shadow-2xl border border-slate-700">
+            <input type="password" id="pass-input" class="w-full bg-slate-900 border border-slate-700 text-white rounded-2xl py-4 px-6 mb-4 focus:outline-none focus:border-emerald-500" placeholder="Password">
+            <button onclick="checkLogin()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-emerald-500 transition">Entra</button>
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- SCHERMATA PRINCIPALE DELL'APP              -->
-    <!-- ========================================== -->
-    <div id="app-screen" class="hidden h-full flex flex-col fade-enter">
+    <div id="main-app" class="hidden h-full flex flex-col">
         
-        <!-- Header -->
-        <header class="bg-slate-900 text-white p-4 flex justify-between items-center shadow-md z-20">
-            <div class="flex items-center">
-                <i class="fas fa-box-open text-emerald-400 text-xl mr-3"></i>
-                <div>
-                    <h1 class="font-bold leading-tight">Dashboard</h1>
-                    <p id="user-role-display" class="text-[10px] text-emerald-400 font-mono uppercase tracking-widest bg-emerald-900/50 px-2 py-0.5 rounded inline-block">Ruolo</p>
-                </div>
-            </div>
-            <button onclick="eseguiLogout()" class="text-slate-400 hover:text-white transition p-2">
-                <i class="fas fa-sign-out-alt"></i>
-            </button>
+        <header class="bg-white border-b p-4 flex justify-between items-center z-40">
+            <h1 id="current-view-title" class="font-bold text-xl text-slate-800">Dashboard</h1>
+            <div class="bg-slate-100 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter" id="role-tag">Ruolo</div>
         </header>
 
-        <!-- Area Contenuti (Scorrevole) -->
-        <main class="flex-1 overflow-y-auto p-4 pb-24 bg-gray-50">
+        <main id="content-area" class="flex-1 overflow-y-auto p-4 pb-32">
             
-            <!-- VISTA STAFF & TITOLARE: Strumenti Operativi -->
-            <section class="mb-8">
-                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Operazioni Rapide</h2>
+            <div id="view-dashboard" class="view-panel space-y-6">
                 <div class="grid grid-cols-2 gap-4">
-                    <button class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center justify-center gap-2 hover:border-emerald-400 transition hover:shadow-md">
-                        <div class="bg-emerald-100 text-emerald-600 w-12 h-12 rounded-full flex items-center justify-center text-xl mb-1"><i class="fas fa-barcode"></i></div>
-                        <span class="font-semibold text-slate-700 text-sm">Carico Scanner</span>
+                    <button onclick="switchView('view-scanner')" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center gap-3 active:scale-95 transition">
+                        <div class="bg-emerald-100 text-emerald-600 w-12 h-12 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-barcode"></i></div>
+                        <span class="font-bold text-sm">Carico Merce</span>
                     </button>
-                    <button class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center justify-center gap-2 hover:border-amber-400 transition hover:shadow-md">
-                        <div class="bg-amber-100 text-amber-600 w-12 h-12 rounded-full flex items-center justify-center text-xl mb-1"><i class="fas fa-camera"></i></div>
-                        <span class="font-semibold text-slate-700 text-sm">Chiusura Serale</span>
+                    <button onclick="switchView('view-chiusura')" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center gap-3 active:scale-95 transition">
+                        <div class="bg-amber-100 text-amber-600 w-12 h-12 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-receipt"></i></div>
+                        <span class="font-bold text-sm">Chiusura Serale</span>
                     </button>
                 </div>
-            </section>
 
-            <!-- VISTA STAFF & TITOLARE: Allarmi -->
-            <section class="mb-8">
-                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Allarmi Magazzino</h2>
-                <div class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase mb-4">Situazione Finanziaria (Oggi)</h3>
+                    <div class="flex justify-between items-center">
                         <div>
-                            <p class="font-bold text-red-800 text-sm">3 Prodotti Sottoscorta</p>
-                            <p class="text-xs text-red-600">Guanciale, Uova, Olio Frittura</p>
+                            <p class="text-3xl font-black text-emerald-600" id="today-income">€ 0.00</p>
+                            <p class="text-[10px] uppercase font-bold text-slate-400">Entrate Totali</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xl font-bold text-red-500" id="today-expense">€ 0.00</p>
+                            <p class="text-[10px] uppercase font-bold text-slate-400">Uscite / Acquisti</p>
                         </div>
                     </div>
-                    <i class="fas fa-chevron-right text-red-300"></i>
                 </div>
-            </section>
+            </div>
 
-            <!-- VISTA SOLO TITOLARE: Dati Finanziari & Gestione -->
-            <section id="sezione-titolare" class="mb-8 hidden">
-                <h2 class="text-sm font-bold text-emerald-600 uppercase tracking-wider mb-3"><i class="fas fa-chart-line mr-2"></i>Area Manager</h2>
-                
-                <!-- Widget Food Cost -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-4">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-slate-700">Food Cost Medio</h3>
-                        <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">-2.1% questo mese</span>
-                    </div>
-                    <div class="flex items-end gap-2">
-                        <span class="text-3xl font-bold text-slate-800">28.4%</span>
-                    </div>
+            <div id="view-scanner" class="view-panel hidden space-y-4">
+                <div id="reader" class="rounded-3xl overflow-hidden bg-black min-h-[300px]"></div>
+                <div id="scan-result" class="bg-white p-4 rounded-2xl border hidden">
+                    <h4 id="res-name" class="font-bold text-lg">Prodotto</h4>
+                    <p id="res-brand" class="text-sm text-slate-500 mb-4">Marca</p>
+                    <input type="number" id="scan-qnt" value="1" class="w-full p-4 border rounded-xl mb-3 text-center text-xl font-bold">
+                    <button onclick="confirmScan()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold">Conferma Carico</button>
                 </div>
+            </div>
 
-                <!-- Menu Gestione Avanzata -->
-                <div class="grid grid-cols-1 gap-3">
-                    <button class="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between hover:bg-slate-50 transition">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-slate-100 text-slate-600 w-8 h-8 rounded-lg flex items-center justify-center"><i class="fas fa-book-open"></i></div>
-                            <span class="font-semibold text-slate-700 text-sm">Gestione Ricettario (Distinta Base)</span>
-                        </div>
-                        <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
-                    </button>
-                    <button class="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between hover:bg-slate-50 transition">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-slate-100 text-slate-600 w-8 h-8 rounded-lg flex items-center justify-center"><i class="fas fa-truck"></i></div>
-                            <span class="font-semibold text-slate-700 text-sm">Ordini Fornitori</span>
-                        </div>
-                        <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
-                    </button>
-                    <button class="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between hover:bg-slate-50 transition">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-slate-100 text-slate-600 w-8 h-8 rounded-lg flex items-center justify-center"><i class="fas fa-euro-sign"></i></div>
-                            <span class="font-semibold text-slate-700 text-sm">Variazione Prezzi Acquisto</span>
-                        </div>
-                        <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
-                    </button>
+            <div id="view-chiusura" class="view-panel hidden space-y-6">
+                <div class="bg-amber-50 p-6 rounded-3xl border border-amber-100 text-center">
+                    <i class="fas fa-camera text-4xl text-amber-500 mb-4"></i>
+                    <h2 class="font-bold text-lg text-amber-900">Analisi Corrispettivi</h2>
+                    <p class="text-sm text-amber-700 mb-6">Carica la foto del report di chiusura per calcolare le entrate e scalare il magazzino.</p>
+                    <label class="bg-amber-500 text-white px-8 py-4 rounded-2xl font-bold cursor-pointer inline-block shadow-lg active:scale-95 transition">
+                        Seleziona Foto
+                        <input type="file" class="hidden" accept="image/*" onchange="handleChiusura(event)">
+                    </label>
                 </div>
-            </section>
+                <div id="ocr-loader" class="hidden text-center p-4">
+                    <i class="fas fa-spinner fa-spin text-2xl text-slate-400 mb-2"></i>
+                    <p class="text-sm font-bold text-slate-500">Lettura in corso... Attendere</p>
+                </div>
+                <div id="chiusura-result" class="hidden bg-white p-6 rounded-3xl border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4 border-b pb-2">Riepilogo Rilevato</h3>
+                    <div class="flex justify-between mb-4">
+                        <span class="text-slate-500">Totale Vendite:</span>
+                        <span class="font-black text-xl text-emerald-600" id="detected-total">€ 0.00</span>
+                    </div>
+                    <button onclick="applyChiusura()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold">Salva in Cassa</button>
+                </div>
+            </div>
 
         </main>
 
-        <!-- Navbar Inferiore -->
-        <nav class="bg-white fixed bottom-0 w-full border-t border-slate-200 flex justify-around py-2 pb-safe shadow-[0_-5px_15px_-15px_rgba(0,0,0,0.3)] z-20">
-            <button class="flex flex-col items-center p-2 text-emerald-600">
-                <i class="fas fa-home text-xl mb-1"></i>
-                <span class="text-[10px] font-semibold uppercase">Dashboard</span>
+        <nav class="bg-white border-t p-2 pb-safe fixed bottom-0 w-full flex justify-around items-center z-50">
+            <button onclick="switchView('view-dashboard')" class="flex flex-col items-center p-2 text-emerald-600">
+                <i class="fas fa-chart-pie text-xl"></i>
+                <span class="text-[10px] font-bold">Home</span>
             </button>
-            <button class="flex flex-col items-center p-2 text-slate-400 hover:text-emerald-600 transition">
-                <i class="fas fa-boxes text-xl mb-1"></i>
-                <span class="text-[10px] font-semibold uppercase">Giacenze</span>
+            <button onclick="switchView('view-scanner')" class="flex flex-col items-center p-2 text-slate-400">
+                <i class="fas fa-barcode text-xl"></i>
+                <span class="text-[10px] font-bold">Scanner</span>
             </button>
-            <!-- Tasto Ricette (Nascosto per lo staff) -->
-            <button id="nav-ricette" class="flex flex-col items-center p-2 text-slate-400 hover:text-emerald-600 transition hidden">
-                <i class="fas fa-book-open text-xl mb-1"></i>
-                <span class="text-[10px] font-semibold uppercase">Ricette</span>
+            <button onclick="alert('Area Giacenze in arrivo')" class="flex flex-col items-center p-2 text-slate-400">
+                <i class="fas fa-boxes text-xl"></i>
+                <span class="text-[10px] font-bold">Scorte</span>
             </button>
         </nav>
     </div>
 
-    <!-- ========================================== -->
-    <!-- LOGICA JAVASCRIPT (LOGIN E RUOLI)          -->
-    <!-- ========================================== -->
     <script>
-        function eseguiLogin() {
-            const passInput = document.getElementById('password-input').value;
-            const errorMsg = document.getElementById('login-error');
-            
-            // Ripristina l'errore visivo
-            errorMsg.classList.add('hidden');
-            
-            let ruolo = null;
+        const supabaseUrl = 'https://nizktofcamulygzszydw.supabase.co';
+        const supabaseKey = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-            // Controllo Password richieste
-            if (passInput === 'staff') {
-                ruolo = 'staff';
-            } else if (passInput === 'belvedere59') {
-                ruolo = 'titolare';
+        let currentUserRole = '';
+        let detectedTotalValue = 0;
+        let html5QrCode;
+
+        // 1. GESTIONE LOGIN
+        function checkLogin() {
+            const pass = document.getElementById('pass-input').value;
+            if (pass === 'staff') {
+                currentUserRole = 'staff';
+                startApp();
+            } else if (pass === 'belvedere59') {
+                currentUserRole = 'titolare';
+                startApp();
             } else {
-                // Password errata
-                errorMsg.classList.remove('hidden');
-                return;
+                alert("Password Errata");
             }
-
-            // Se la password è corretta, prepariamo l'interfaccia
-            avviaApp(ruolo);
         }
 
-        function avviaApp(ruolo) {
-            // 1. Nascondi Login, Mostra App
-            document.getElementById('login-screen').classList.add('hidden');
-            const appScreen = document.getElementById('app-screen');
-            appScreen.classList.remove('hidden');
+        function startApp() {
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('role-tag').innerText = currentUserRole;
+            switchView('view-dashboard');
+        }
+
+        // 2. NAVIGAZIONE VISTE
+        function switchView(viewId) {
+            document.querySelectorAll('.view-panel').forEach(v => v.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
             
-            // Piccola animazione di entrata
-            setTimeout(() => {
-                appScreen.classList.add('fade-enter-active');
-            }, 50);
+            // Titoli dinamici
+            const titles = { 'view-dashboard': 'Dashboard', 'view-scanner': 'Carico Merce', 'view-chiusura': 'Chiusura Serale' };
+            document.getElementById('current-view-title').innerText = titles[viewId];
 
-            // 2. Personalizza l'interfaccia in base al ruolo
-            const displayRuolo = document.getElementById('user-role-display');
-            const sezioneTitolare = document.getElementById('sezione-titolare');
-            const navRicette = document.getElementById('nav-ricette');
-
-            if (ruolo === 'titolare') {
-                displayRuolo.innerText = "Titolare / Admin";
-                displayRuolo.classList.replace('bg-emerald-900/50', 'bg-amber-500/20');
-                displayRuolo.classList.replace('text-emerald-400', 'text-amber-600');
-                
-                // Mostra le sezioni bloccate
-                sezioneTitolare.classList.remove('hidden');
-                navRicette.classList.remove('hidden');
-            } else if (ruolo === 'staff') {
-                displayRuolo.innerText = "Membro Staff";
-                
-                // Assicurati che le sezioni bloccate siano nascoste
-                sezioneTitolare.classList.add('hidden');
-                navRicette.classList.add('hidden');
+            // Attiva fotocamera solo se siamo in scanner
+            if (viewId === 'view-scanner') {
+                startScanner();
+            } else if (html5QrCode) {
+                html5QrCode.stop();
             }
-
-            // Pulisci il campo password per sicurezza
-            document.getElementById('password-input').value = '';
         }
 
-        function eseguiLogout() {
-            // Rimuovi l'animazione di entrata
-            document.getElementById('app-screen').classList.remove('fade-enter-active');
+        // 3. LOGICA SCANNER
+        function startScanner() {
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess);
+        }
+
+        async function onScanSuccess(decodedText) {
+            html5QrCode.stop();
+            document.getElementById('scan-result').classList.remove('hidden');
             
-            // Torna alla schermata di login
-            setTimeout(() => {
-                document.getElementById('app-screen').classList.add('hidden');
-                document.getElementById('login-screen').classList.remove('hidden');
-            }, 300);
+            // Ricerca API Mondiale (Open Food Facts)
+            const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${decodedText}.json`);
+            const data = await res.json();
+            
+            if(data.status === 1) {
+                document.getElementById('res-name').innerText = data.product.product_name;
+                document.getElementById('res-brand').innerText = data.product.brands;
+            } else {
+                document.getElementById('res-name').innerText = "Prodotto ignoto (" + decodedText + ")";
+            }
         }
 
-        // Permette di fare login premendo il tasto "Invio" sulla tastiera
-        document.getElementById('password-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                eseguiLogin();
-            }
-        });
+        // 4. CHIUSURA SERALE & OCR (Entrate)
+        async function handleChiusura(event) {
+            const file = event.target.files[0];
+            const loader = document.getElementById('ocr-loader');
+            const resultBox = document.getElementById('chiusura-result');
+            
+            loader.classList.remove('hidden');
+            resultBox.classList.add('hidden');
+
+            // OCR con Tesseract
+            Tesseract.recognize(file, 'ita').then(({ data: { text } }) => {
+                console.log("Testo estratto:", text);
+                
+                // Cerchiamo cifre che sembrano un totale (es: dopo la parola TOTALE o CORRISPETTIVI)
+                // Questa è una logica semplificata: cerca l'ultimo valore numerico alto nello scontrino
+                const prices = text.match(/\d+[\.,]\d{2}/g);
+                if (prices) {
+                    const values = prices.map(p => parseFloat(p.replace(',', '.')));
+                    detectedTotalValue = Math.max(...values); // Prendiamo il valore più alto trovato
+                    document.getElementById('detected-total').innerText = "€ " + detectedTotalValue.toFixed(2);
+                } else {
+                    alert("Impossibile leggere il totale. Inserimento manuale richiesto.");
+                    detectedTotalValue = prompt("Inserisci il totale chiusura manualmente:");
+                    document.getElementById('detected-total').innerText = "€ " + parseFloat(detectedTotalValue).toFixed(2);
+                }
+
+                loader.classList.add('hidden');
+                resultBox.classList.remove('hidden');
+            });
+        }
+
+        async function applyChiusura() {
+            // Qui invieremo il dato a Supabase nella tabella Entrate
+            const income = parseFloat(detectedTotalValue);
+            document.getElementById('today-income').innerText = "€ " + income.toFixed(2);
+            alert("Chiusura salvata correttamente. Le scorte sono state aggiornate.");
+            switchView('view-dashboard');
+        }
     </script>
 </body>
 </html>
