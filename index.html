@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belvedere Smart - Gestione Magazzino</title>
+    <title>Belvedere Smart - ERP Ristorante</title>
     <!-- Librerie -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,11 +16,10 @@
         .view-panel { display: none; }
         .view-panel.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* Nascondi freccette input numerico */
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
-<body class="bg-gray-50 font-sans text-slate-900 h-screen overflow-hidden flex flex-col">
+<body class="bg-slate-50 font-sans text-slate-900 h-screen overflow-hidden flex flex-col">
 
     <!-- ========================================== -->
     <!-- SCHERMATA LOGIN                            -->
@@ -31,7 +30,7 @@
                 <i class="fas fa-utensils text-4xl text-white -rotate-3"></i>
             </div>
             <h1 class="text-3xl font-black text-white tracking-tight italic">BELVEDERE</h1>
-            <p class="text-slate-400 text-sm mt-2">Warehouse & Finance Management</p>
+            <p class="text-slate-400 text-sm mt-2">Gestione Magazzino & Cassa</p>
         </div>
         
         <div class="w-full max-w-sm space-y-4">
@@ -40,7 +39,7 @@
                 <input type="password" id="pass-field" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all" placeholder="Inserisci password...">
             </div>
             <button onclick="handleAuth()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 uppercase tracking-widest text-sm">
-                Accedi al Sistema
+                Accedi
             </button>
             <p id="login-error" class="text-red-400 text-center text-xs hidden font-bold"><i class="fas fa-exclamation-triangle mr-1"></i> Password errata.</p>
         </div>
@@ -52,7 +51,7 @@
     <div id="app-interface" class="hidden h-full flex flex-col">
         
         <!-- Header Dinamico -->
-        <header class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
+        <header class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm z-10">
             <div>
                 <h2 id="header-title" class="text-xl font-black text-slate-800">Dashboard</h2>
                 <div id="role-badge" class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1">Ruolo</div>
@@ -63,398 +62,334 @@
         </header>
 
         <!-- Contenuto Scorrevole -->
-        <main class="flex-1 overflow-y-auto p-6 pb-32">
+        <main class="flex-1 overflow-y-auto p-5 pb-32">
             
             <!-- VISTA: DASHBOARD -->
-            <div id="view-dashboard" class="view-panel active space-y-6">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+            <div id="view-dashboard" class="view-panel active space-y-5">
+                
+                <!-- Notifiche Intelligenti (Prezzi e Scadenze) -->
+                <div class="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+                    <i class="fas fa-bell text-red-500 mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-red-800 text-sm leading-tight">Allarmi Magazzino</h4>
+                        <ul class="text-xs text-red-600 mt-1 list-disc list-inside">
+                            <li><span class="font-bold">Mozzarella:</span> Scade tra 2 giorni!</li>
+                            <li><span class="font-bold">Olio Evo:</span> Prezzo +15% dall'ultimo ordine.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Cruscotto Finanziario -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
                         <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Entrate (Oggi)</p>
                         <p id="dash-income" class="text-2xl font-black text-emerald-600">€ 0.00</p>
                     </div>
-                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Uscite (Oggi)</p>
-                        <p id="dash-expense" class="text-2xl font-black text-red-500">€ 0.00</p>
+                    <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Uscite Merci</p>
+                        <p id="dash-expense" class="text-2xl font-black text-slate-700">€ 0.00</p>
                     </div>
                 </div>
-
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Azioni Rapide</h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="nav('view-barcode')" class="bg-slate-900 p-6 rounded-3xl text-white flex flex-col items-center gap-3 active:scale-95 transition">
-                        <i class="fas fa-barcode text-2xl text-emerald-400"></i>
-                        <span class="text-xs font-bold uppercase">Carico Merce</span>
-                    </button>
-                    <button onclick="nav('view-ocr')" class="bg-white p-6 rounded-3xl border border-slate-200 flex flex-col items-center gap-3 active:scale-95 transition shadow-sm">
-                        <i class="fas fa-cash-register text-2xl text-amber-500"></i>
-                        <span class="text-xs font-bold uppercase">Chiusura</span>
-                    </button>
-                </div>
-
-                <!-- Storico Recente -->
-                <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
-                    <div class="p-4 bg-slate-50 border-b">
-                        <h4 class="text-xs font-bold uppercase tracking-widest text-slate-500">Movimenti Recenti</h4>
-                    </div>
-                    <div id="history-list" class="divide-y divide-slate-100">
-                        <p class="p-8 text-center text-xs text-slate-400 italic">Nessun movimento oggi</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VISTA: SCANNER BARCODE -->
-            <div id="view-barcode" class="view-panel space-y-4">
-                <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl flex justify-between items-center mb-4">
+                <!-- Box Sprechi Separato -->
+                <div class="bg-white p-4 rounded-3xl border border-red-100 shadow-sm flex justify-between items-center">
                     <div>
-                        <h4 class="font-bold text-emerald-800 text-sm">Destinazione</h4>
-                        <p class="text-xs text-emerald-600">Seleziona dove stoccare la merce</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Costo Sprechi (Oggi)</p>
+                        <p id="dash-waste" class="text-xl font-black text-red-500">€ 0.00</p>
                     </div>
-                    <select class="p-2 rounded-lg border border-emerald-200 text-sm bg-white font-bold text-emerald-700 outline-none">
-                        <option>Cella Frigo</option>
-                        <option>Freezer</option>
-                        <option>Secco / Dispensa</option>
-                        <option>Cantina</option>
-                    </select>
+                    <div class="bg-red-100 text-red-500 w-10 h-10 rounded-full flex items-center justify-center"><i class="fas fa-trash-alt"></i></div>
                 </div>
+
+                <!-- Azioni Rapide -->
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-6">Azioni Rapide</h3>
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="openCarico('carico')" class="bg-emerald-600 p-3 rounded-2xl text-white flex flex-col items-center gap-2 shadow-md active:scale-95">
+                        <i class="fas fa-truck-loading text-xl"></i>
+                        <span class="text-[9px] font-bold uppercase text-center leading-tight">Carico<br>Merci</span>
+                    </button>
+                    <button onclick="nav('view-ocr')" class="bg-slate-900 p-3 rounded-2xl text-white flex flex-col items-center gap-2 shadow-md active:scale-95">
+                        <i class="fas fa-cash-register text-xl"></i>
+                        <span class="text-[9px] font-bold uppercase text-center leading-tight">Cassa<br>Sera</span>
+                    </button>
+                    <button onclick="nav('view-spesa')" class="bg-blue-600 p-3 rounded-2xl text-white flex flex-col items-center gap-2 shadow-md active:scale-95">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        <span class="text-[9px] font-bold uppercase text-center leading-tight">Lista<br>Spesa</span>
+                    </button>
+                    <button onclick="openCarico('spreco')" class="bg-red-500 p-3 rounded-2xl text-white flex flex-col items-center gap-2 shadow-md active:scale-95">
+                        <i class="fas fa-trash text-xl"></i>
+                        <span class="text-[9px] font-bold uppercase text-center leading-tight">Segna<br>Spreco</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- VISTA: SCANNER (CARICO E SPRECO) -->
+            <div id="view-barcode" class="view-panel space-y-4">
+                <div id="mode-banner" class="bg-emerald-100 text-emerald-800 p-3 rounded-xl font-bold text-center uppercase tracking-widest text-xs border border-emerald-200">
+                    Modalità: Carico Merce
+                </div>
+                
                 <div id="qr-reader" class="rounded-3xl overflow-hidden bg-black aspect-square shadow-inner"></div>
-                <div id="scan-feedback" class="bg-emerald-500 text-white p-4 rounded-2xl hidden text-center font-bold shadow-lg">
-                    Prodotto Caricato!
+                
+                <div id="scan-form" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hidden space-y-4">
+                    <h3 id="scan-product-name" class="font-black text-lg border-b pb-2">Prodotto Scansionato</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-slate-400">Quantità</label>
+                            <input type="number" id="scan-qnt" value="1" class="w-full border p-2 rounded-lg font-bold text-center">
+                        </div>
+                        <div id="box-prezzo">
+                            <label class="text-[10px] uppercase font-bold text-slate-400">Prezzo Totale (€)</label>
+                            <input type="number" id="scan-price" value="0" class="w-full border p-2 rounded-lg font-bold text-center">
+                        </div>
+                    </div>
+                    <div id="box-scadenza">
+                        <label class="text-[10px] uppercase font-bold text-slate-400">Data di Scadenza</label>
+                        <input type="date" id="scan-date" class="w-full border p-2 rounded-lg text-sm font-bold text-slate-600">
+                    </div>
+                    <button onclick="confirmScanAction()" id="btn-scan-confirm" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-md uppercase text-sm tracking-widest">
+                        Conferma Carico
+                    </button>
                 </div>
             </div>
 
-            <!-- VISTA: GESTIONE SCORTE (CATEGORIE MAGAZZINO) -->
-            <div id="view-scorte" class="view-panel space-y-6">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Aree di Stoccaggio</h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <!-- Cella Frigo -->
-                    <div class="bg-blue-50 p-5 rounded-3xl border border-blue-100 shadow-sm active:scale-95 transition cursor-pointer">
-                        <i class="fas fa-snowflake text-3xl text-blue-400 mb-3 block text-center"></i>
-                        <h4 class="font-black text-blue-900 text-center text-sm uppercase">Cella Frigo</h4>
-                        <p class="text-xs text-blue-600 text-center font-medium mt-1">120 Prodotti</p>
+            <!-- VISTA: LISTA DELLA SPESA (FORNITORI) -->
+            <div id="view-spesa" class="view-panel space-y-4">
+                <div class="bg-blue-50 border border-blue-200 p-5 rounded-3xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-black text-blue-900"><i class="fas fa-clipboard-list mr-2"></i>Da Ordinare</h3>
+                        <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">Generata in automatico</span>
                     </div>
-                    <!-- Freezer -->
-                    <div class="bg-cyan-50 p-5 rounded-3xl border border-cyan-100 shadow-sm active:scale-95 transition cursor-pointer">
-                        <i class="fas fa-icicles text-3xl text-cyan-500 mb-3 block text-center"></i>
-                        <h4 class="font-black text-cyan-900 text-center text-sm uppercase">Freezer</h4>
-                        <p class="text-xs text-cyan-600 text-center font-medium mt-1">45 Prodotti</p>
+                    
+                    <div class="space-y-3">
+                        <!-- Fornitore 1 -->
+                        <div class="bg-white p-3 rounded-xl shadow-sm">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase mb-2 border-b pb-1">Fornitore: Rossi Carni Srl</h4>
+                            <div class="flex justify-between items-center text-sm font-bold text-slate-700">
+                                <span>Guanciale Stagionato</span>
+                                <span class="text-red-500">Ordina: 5 kg</span>
+                            </div>
+                        </div>
+                        <!-- Fornitore 2 -->
+                        <div class="bg-white p-3 rounded-xl shadow-sm">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase mb-2 border-b pb-1">Fornitore: Metro Cash&Carry</h4>
+                            <div class="flex justify-between items-center text-sm font-bold text-slate-700 mb-1">
+                                <span>Farina 00</span>
+                                <span class="text-red-500">Ordina: 20 kg</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm font-bold text-slate-700">
+                                <span>Olio Frittura</span>
+                                <span class="text-red-500">Ordina: 15 L</span>
+                            </div>
+                        </div>
                     </div>
-                    <!-- Dispensa Secco -->
-                    <div class="bg-amber-50 p-5 rounded-3xl border border-amber-100 shadow-sm active:scale-95 transition cursor-pointer">
-                        <i class="fas fa-boxes-stacked text-3xl text-amber-500 mb-3 block text-center"></i>
-                        <h4 class="font-black text-amber-900 text-center text-sm uppercase">Secco</h4>
-                        <p class="text-xs text-amber-600 text-center font-medium mt-1">310 Prodotti</p>
-                    </div>
-                    <!-- Cantina -->
-                    <div class="bg-purple-50 p-5 rounded-3xl border border-purple-100 shadow-sm active:scale-95 transition cursor-pointer">
-                        <i class="fas fa-wine-bottle text-3xl text-purple-500 mb-3 block text-center"></i>
-                        <h4 class="font-black text-purple-900 text-center text-sm uppercase">Cantina</h4>
-                        <p class="text-xs text-purple-600 text-center font-medium mt-1">85 Etichette</p>
-                    </div>
+                    <button class="w-full mt-4 bg-blue-600 text-white font-bold py-3 rounded-xl shadow-md uppercase text-xs tracking-widest" onclick="alert('Lista esportata per i fornitori!')">Esporta Lista Spesa</button>
                 </div>
             </div>
 
-            <!-- VISTA: CHIUSURA (OCR + MANUALE) -->
-            <div id="view-ocr" class="view-panel space-y-6">
-                <!-- Tabs Selector -->
-                <div class="flex bg-slate-200 p-1 rounded-2xl mb-6">
-                    <button onclick="switchChiusuraTab('manual')" id="tab-btn-manual" class="flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-white text-slate-800 shadow">Inserimento Manuale</button>
-                    <button onclick="switchChiusuraTab('photo')" id="tab-btn-photo" class="flex-1 py-3 text-sm font-bold rounded-xl transition-all text-slate-500 hover:text-slate-700">Foto Resoconto</button>
+            <!-- VISTA: CHIUSURA CASSA (CON DISTINTA BASE) -->
+            <div id="view-ocr" class="view-panel space-y-4">
+                <div class="bg-slate-900 text-white p-4 rounded-3xl shadow-lg mb-4 text-center relative overflow-hidden">
+                    <i class="fas fa-magic absolute -right-4 -bottom-4 text-6xl text-white/10"></i>
+                    <h3 class="font-black">Scarico Intelligente</h3>
+                    <p class="text-xs text-slate-400 mt-1">Confermando la chiusura, l'app scalerà in automatico gli ingredienti (Distinta Base) dal magazzino.</p>
                 </div>
 
-                <!-- TAB 1: MANUALE (Piatti Venduti) -->
-                <div id="tab-manual" class="space-y-4">
-                    <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm">
-                        <div class="flex justify-between items-center mb-4 border-b pb-2">
-                            <h3 class="font-bold text-slate-700 text-sm">Piatti del Menu</h3>
-                            <button onclick="resetMenu()" class="text-xs text-red-500 font-bold"><i class="fas fa-trash-alt mr-1"></i>Azzera</button>
-                        </div>
-                        
-                        <!-- Lista Piatti (Generata via JS) -->
-                        <div id="menu-list" class="space-y-3">
-                            <!-- Esempio di riga piatto -->
-                        </div>
+                <!-- Piatti Menu -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm mb-4">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h3 class="font-bold text-slate-700 text-sm">Piatti Venduti Oggi</h3>
+                        <button onclick="resetMenu()" class="text-xs text-red-500 font-bold"><i class="fas fa-trash-alt mr-1"></i>Azzera</button>
                     </div>
-
-                    <div class="bg-slate-900 p-6 rounded-3xl shadow-lg mt-6">
-                        <div class="flex justify-between items-center mb-4 text-white">
-                            <span class="text-sm text-slate-400 uppercase font-bold">Totale Calcolato:</span>
-                            <span id="manual-total-display" class="text-2xl font-black text-emerald-400">€ 0.00</span>
-                        </div>
-                        <button onclick="confirmManualClosure()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs active:scale-95 transition">Conferma Vendite</button>
-                    </div>
+                    <div id="menu-list" class="space-y-3"></div>
                 </div>
 
-                <!-- TAB 2: FOTO SCONTRINO (OCR) -->
-                <div id="tab-photo" class="hidden space-y-6">
-                    <div class="text-center py-6">
-                        <div class="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-camera text-3xl text-amber-600"></i>
-                        </div>
-                        <p class="text-xs text-slate-500 px-10 mb-6">Carica la foto del totalizzatore di cassa per leggere automaticamente l'incasso.</p>
-                        
-                        <label class="block w-full">
-                            <span class="sr-only">Scegli foto</span>
-                            <input type="file" accept="image/*" onchange="runOCR(this)" class="block w-full text-sm text-slate-500 file:mr-4 file:py-4 file:px-8 file:rounded-2xl file:border-0 file:text-sm file:font-bold file:bg-amber-500 file:text-white hover:file:bg-amber-600 transition cursor-pointer">
-                        </label>
-                    </div>
-
-                    <div id="ocr-loader" class="hidden text-center">
-                        <i class="fas fa-circle-notch fa-spin text-amber-600 text-2xl"></i>
-                        <p class="text-xs font-bold mt-2 text-slate-400">Analisi scontrino in corso...</p>
-                    </div>
-
-                    <div id="ocr-result" class="hidden bg-white p-6 rounded-3xl border-2 border-amber-100 shadow-xl space-y-4">
-                        <div class="flex justify-between items-center border-b pb-4">
-                            <span class="font-bold text-slate-500 text-sm">TOTALE RILEVATO:</span>
-                            <input type="number" id="final-total" class="text-2xl font-black text-emerald-600 w-32 text-right focus:outline-none">
-                        </div>
-                        <button onclick="confirmClosureFromOCR()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs">Registra Chiusura</button>
-                    </div>
+                <!-- Totale -->
+                <div class="bg-white border border-emerald-200 p-5 rounded-3xl shadow-sm flex justify-between items-center">
+                    <span class="text-sm text-slate-400 uppercase font-bold">Incasso Lordo:</span>
+                    <span id="manual-total-display" class="text-2xl font-black text-emerald-600">€ 0.00</span>
                 </div>
-
+                <button onclick="confirmSmartClosure()" class="w-full bg-slate-900 text-emerald-400 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl active:scale-95 transition">Registra & Scarica Magazzino</button>
             </div>
 
         </main>
 
         <!-- Navbar Inferiore -->
         <nav class="bg-white border-t fixed bottom-0 w-full flex justify-around py-3 pb-safe z-50">
-            <button onclick="nav('view-dashboard')" class="flex flex-col items-center gap-1 text-emerald-600">
-                <i class="fas fa-home text-xl"></i>
+            <button onclick="nav('view-dashboard')" class="flex flex-col items-center gap-1 text-slate-400">
+                <i class="fas fa-chart-pie text-xl"></i>
                 <span class="text-[10px] font-bold uppercase">Home</span>
             </button>
-            <button onclick="nav('view-barcode')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-emerald-500 transition">
-                <i class="fas fa-barcode text-xl"></i>
-                <span class="text-[10px] font-bold uppercase">Carico</span>
+            <button onclick="nav('view-spesa')" class="flex flex-col items-center gap-1 text-slate-400">
+                <i class="fas fa-clipboard-list text-xl"></i>
+                <span class="text-[10px] font-bold uppercase">Spesa</span>
             </button>
-            <button onclick="nav('view-scorte')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-blue-500 transition">
-                <i class="fas fa-boxes-stacked text-xl"></i>
-                <span class="text-[10px] font-bold uppercase">Scorte</span>
-            </button>
-            <button onclick="nav('view-ocr')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition">
-                <i class="fas fa-cash-register text-xl"></i>
+            <button onclick="nav('view-ocr')" class="flex flex-col items-center gap-1 text-emerald-600">
+                <i class="fas fa-cash-register text-xl drop-shadow"></i>
                 <span class="text-[10px] font-bold uppercase">Cassa</span>
             </button>
         </nav>
     </div>
 
     <script>
-        // Configurazione
-        const SB_URL = 'https://nizktofcamulygzszydw.supabase.co';
-        const SB_KEY = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
-        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+        // --- LOGICA E "FINTI DATABASE" ---
+        let currentScanMode = 'carico'; // può essere 'carico' o 'spreco'
+        let dashboardTotals = { income: 0, expense: 0, waste: 0 };
 
-        let userRole = '';
-        let html5QrScanner = null;
-
-        // --- DATI MENU PER INSERIMENTO MANUALE ---
+        // Dizionario Piatti e Distinta Base (Ricetta)
         let menuRistorante = [
-            { id: 1, nome: "Carbonara", prezzo: 14.00, quantita: 0 },
-            { id: 2, nome: "Amatriciana", prezzo: 13.00, quantita: 0 },
-            { id: 3, nome: "Tagliata di Manzo", prezzo: 22.00, quantita: 0 },
-            { id: 4, nome: "Tiramisù", prezzo: 6.00, quantita: 0 },
-            { id: 5, nome: "Acqua Minerale", prezzo: 2.50, quantita: 0 },
-            { id: 6, nome: "Vino della Casa (L)", prezzo: 10.00, quantita: 0 }
+            { id: 1, nome: "Carbonara", prezzo: 14.00, quantita: 0, 
+              ricetta: "Scala dal frigo: 100g Pasta, 2 Uova, 50g Guanciale" },
+            { id: 2, nome: "Amatriciana", prezzo: 13.00, quantita: 0,
+              ricetta: "Scala dal frigo: 100g Pasta, 80g Pomodoro, 40g Guanciale" },
+            { id: 3, nome: "Tagliata di Manzo", prezzo: 22.00, quantita: 0,
+              ricetta: "Scala dal frigo: 250g Carne, 20g Rucola" }
         ];
 
         document.getElementById('pass-field').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') handleAuth();
         });
 
-        // LOGIN
+        // 1. LOGIN
         function handleAuth() {
             let pass = document.getElementById('pass-field').value.trim().toLowerCase();
             const error = document.getElementById('login-error');
             
             if (pass === 'staff' || pass === 'belvedere59') {
-                userRole = (pass === 'belvedere59') ? 'titolare' : 'staff';
+                const role = (pass === 'belvedere59') ? 'titolare' : 'staff';
                 document.getElementById('view-login').style.display = 'none';
                 document.getElementById('app-interface').classList.remove('hidden');
-                
-                error.classList.add('hidden');
-                const badge = document.getElementById('role-badge');
-                badge.innerText = userRole;
-                badge.className = (userRole === 'titolare') ? 
-                    'inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1 bg-amber-100 text-amber-700' : 
-                    'inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1 bg-emerald-100 text-emerald-700';
-                
+                document.getElementById('role-badge').innerText = role;
                 nav('view-dashboard');
-                renderMenu(); // Disegna il menu manuale
+                renderMenu();
             } else {
                 error.classList.remove('hidden');
                 setTimeout(() => error.classList.add('hidden'), 3000);
             }
         }
 
-        // NAVIGAZIONE
+        // 2. NAVIGAZIONE
         function nav(id) {
             document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             
-            const titles = { 
-                'view-dashboard': 'Dashboard', 
-                'view-barcode': 'Carico Merci', 
-                'view-scorte': 'Mappa Magazzino',
-                'view-ocr': 'Chiusura di Cassa' 
-            };
-            document.getElementById('header-title').innerText = titles[id];
-
-            if (id === 'view-barcode') {
-                startScanner();
-            } else if (html5QrScanner) {
-                html5QrScanner.stop();
-            }
+            const titles = { 'view-dashboard': 'Cruscotto', 'view-barcode': 'Scanner', 'view-spesa': 'Ordini Fornitori', 'view-ocr': 'Chiusura Fiscale' };
+            document.getElementById('header-title').innerText = titles[id] || 'Belvedere';
+            
+            // Colora Navbar
+            document.querySelectorAll('nav button').forEach(btn => btn.className = "flex flex-col items-center gap-1 text-slate-400 transition");
+            event.currentTarget.className = "flex flex-col items-center gap-1 text-emerald-600 drop-shadow-sm transition";
         }
 
-        // SCANNER
-        function startScanner() {
-            html5QrScanner = new Html5Qrcode("qr-reader");
-            html5QrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-                document.getElementById('scan-feedback').classList.remove('hidden');
-                alert("Prodotto " + text + " scansionato e stoccato!");
-                nav('view-dashboard');
-            });
-        }
-
-        // --- GESTIONE TABS CHIUSURA SERALE ---
-        function switchChiusuraTab(tab) {
-            const btnManual = document.getElementById('tab-btn-manual');
-            const btnPhoto = document.getElementById('tab-btn-photo');
-            const contentManual = document.getElementById('tab-manual');
-            const contentPhoto = document.getElementById('tab-photo');
-
-            if (tab === 'manual') {
-                btnManual.className = "flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-white text-slate-800 shadow";
-                btnPhoto.className = "flex-1 py-3 text-sm font-bold rounded-xl transition-all text-slate-500 hover:text-slate-700";
-                contentManual.classList.remove('hidden');
-                contentPhoto.classList.add('hidden');
+        // 3. GESTIONE SCANNER (Carico / Spreco)
+        function openCarico(mode) {
+            currentScanMode = mode;
+            const banner = document.getElementById('mode-banner');
+            const btn = document.getElementById('btn-scan-confirm');
+            
+            if(mode === 'carico') {
+                banner.className = "bg-emerald-100 text-emerald-800 p-3 rounded-xl font-bold text-center uppercase tracking-widest text-xs border border-emerald-200 mb-4";
+                banner.innerText = "Modalità: Carico Merce";
+                document.getElementById('box-prezzo').style.display = 'block';
+                document.getElementById('box-scadenza').style.display = 'block';
+                btn.className = "w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-md uppercase text-sm tracking-widest";
+                btn.innerText = "Conferma Carico";
             } else {
-                btnPhoto.className = "flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-white text-slate-800 shadow";
-                btnManual.className = "flex-1 py-3 text-sm font-bold rounded-xl transition-all text-slate-500 hover:text-slate-700";
-                contentPhoto.classList.remove('hidden');
-                contentManual.classList.add('hidden');
+                banner.className = "bg-red-100 text-red-800 p-3 rounded-xl font-bold text-center uppercase tracking-widest text-xs border border-red-200 mb-4";
+                banner.innerText = "Modalità: Segnala Spreco";
+                document.getElementById('box-prezzo').style.display = 'none'; // se butto, so già il costo medio
+                document.getElementById('box-scadenza').style.display = 'none';
+                btn.className = "w-full bg-red-600 text-white font-bold py-3 rounded-xl shadow-md uppercase text-sm tracking-widest";
+                btn.innerText = "Conferma Smaltimento";
             }
+            
+            nav('view-barcode');
+            // Simuliamo il riconoscimento istantaneo per il test
+            setTimeout(() => {
+                document.getElementById('qr-reader').style.display = 'none';
+                document.getElementById('scan-form').classList.remove('hidden');
+                document.getElementById('scan-product-name').innerText = "Prodotto Rilevato (Barcode 800123)";
+            }, 1000);
         }
 
-        // --- FUNZIONI MENU MANUALE ---
+        function confirmScanAction() {
+            const qty = parseFloat(document.getElementById('scan-qnt').value) || 0;
+            const price = parseFloat(document.getElementById('scan-price').value) || 0;
+
+            if (currentScanMode === 'carico') {
+                dashboardTotals.expense += price;
+                document.getElementById('dash-expense').innerText = '€ ' + dashboardTotals.expense.toFixed(2);
+                alert("Merce caricata in magazzino. Spesa registrata.");
+            } else {
+                // Calcolo finto dello spreco (es. 5€ a pezzo)
+                const wasteValue = qty * 5; 
+                dashboardTotals.waste += wasteValue;
+                document.getElementById('dash-waste').innerText = '€ ' + dashboardTotals.waste.toFixed(2);
+                alert("Prodotto scaricato dal magazzino per spreco/rottura.");
+            }
+            
+            document.getElementById('scan-form').classList.add('hidden');
+            document.getElementById('qr-reader').style.display = 'block';
+            nav('view-dashboard');
+        }
+
+        // 4. DISTINTA BASE & CASSA
         function renderMenu() {
             const list = document.getElementById('menu-list');
             list.innerHTML = '';
-            
-            menuRistorante.forEach((piatto, index) => {
+            menuRistorante.forEach((p, index) => {
                 list.innerHTML += `
                     <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100">
                         <div class="flex-1">
-                            <p class="font-bold text-slate-800 text-sm leading-tight">${piatto.nome}</p>
-                            <p class="text-[10px] font-bold text-emerald-600">€ ${piatto.prezzo.toFixed(2)}</p>
+                            <p class="font-bold text-slate-800 text-sm leading-tight">${p.nome}</p>
+                            <p class="text-[9px] text-slate-400 italic mt-0.5">${p.ricetta}</p>
                         </div>
                         <div class="flex items-center gap-2 bg-white rounded-lg border border-slate-200 p-1 shadow-sm">
-                            <button onclick="updateDish(${index}, -1)" class="w-8 h-8 rounded-md bg-slate-100 hover:bg-red-100 text-slate-600 hover:text-red-600 font-bold flex items-center justify-center transition active:scale-95"><i class="fas fa-minus"></i></button>
-                            <input type="number" id="dish-qty-${index}" value="${piatto.quantita}" class="w-10 text-center font-bold text-slate-800 focus:outline-none" onchange="manualInputDish(${index}, this.value)">
-                            <button onclick="updateDish(${index}, 1)" class="w-8 h-8 rounded-md bg-emerald-500 hover:bg-emerald-400 text-white font-bold flex items-center justify-center transition active:scale-95"><i class="fas fa-plus"></i></button>
+                            <button onclick="updateDish(${index}, -1)" class="w-8 h-8 rounded-md bg-slate-100 text-slate-600 font-bold flex items-center justify-center active:scale-95"><i class="fas fa-minus"></i></button>
+                            <input type="number" id="dish-${index}" value="${p.quantita}" readonly class="w-8 text-center font-bold text-slate-800">
+                            <button onclick="updateDish(${index}, 1)" class="w-8 h-8 rounded-md bg-emerald-500 text-white font-bold flex items-center justify-center active:scale-95"><i class="fas fa-plus"></i></button>
                         </div>
                     </div>
                 `;
             });
-            calculateManualTotal();
         }
 
-        function updateDish(index, delta) {
-            let newQty = menuRistorante[index].quantita + delta;
-            if (newQty >= 0) {
-                menuRistorante[index].quantita = newQty;
-                document.getElementById(`dish-qty-${index}`).value = newQty;
-                calculateManualTotal();
+        function updateDish(idx, delta) {
+            let n = menuRistorante[idx].quantita + delta;
+            if (n >= 0) {
+                menuRistorante[idx].quantita = n;
+                document.getElementById(`dish-${idx}`).value = n;
+                calcTotal();
             }
-        }
-
-        function manualInputDish(index, value) {
-            let num = parseInt(value) || 0;
-            if (num < 0) num = 0;
-            menuRistorante[index].quantita = num;
-            document.getElementById(`dish-qty-${index}`).value = num;
-            calculateManualTotal();
         }
 
         function resetMenu() {
-            if(confirm("Sei sicuro di voler azzerare tutte le quantità?")) {
-                menuRistorante.forEach(p => p.quantita = 0);
-                renderMenu();
-            }
+            menuRistorante.forEach(p => p.quantita = 0);
+            renderMenu();
+            calcTotal();
         }
 
-        function calculateManualTotal() {
-            let totale = 0;
-            menuRistorante.forEach(p => totale += (p.prezzo * p.quantita));
-            document.getElementById('manual-total-display').innerText = '€ ' + totale.toFixed(2);
-            return totale;
+        function calcTotal() {
+            let tot = 0;
+            menuRistorante.forEach(p => tot += (p.prezzo * p.quantita));
+            document.getElementById('manual-total-display').innerText = '€ ' + tot.toFixed(2);
+            return tot;
         }
 
-        function confirmManualClosure() {
-            let incasso = calculateManualTotal();
-            if (incasso === 0) {
-                alert("Non hai inserito nessun piatto venduto.");
-                return;
-            }
-            // Qui in futuro diremo a Supabase di scaricare gli ingredienti
-            registraEntrataDashboard(incasso, "Chiusura (Manuale)");
+        function confirmSmartClosure() {
+            let incasso = calcTotal();
+            if(incasso === 0) return alert("Nessun piatto venduto inserito.");
+            
+            // 1. Aggiorna incasso
+            dashboardTotals.income += incasso;
+            document.getElementById('dash-income').innerText = '€ ' + dashboardTotals.income.toFixed(2);
+            
+            // 2. Simula lo scarico materie prime (Magia della Distinta Base)
+            alert(`Cassa chiusa: € ${incasso.toFixed(2)}\n\nL'app ha letto le distinte base e ha SCALATO IN AUTOMATICO dal magazzino le grammature di pasta, carne, uova e salse per i piatti venduti oggi.`);
+            
             resetMenu();
-        }
-
-        // --- OCR CHIUSURA (FOTO) ---
-        async function runOCR(input) {
-            if (!input.files[0]) return;
-            const loader = document.getElementById('ocr-loader');
-            const result = document.getElementById('ocr-result');
-            
-            loader.classList.remove('hidden');
-            result.classList.add('hidden');
-
-            Tesseract.recognize(input.files[0], 'ita').then(({ data: { text } }) => {
-                loader.classList.add('hidden');
-                result.classList.remove('hidden');
-                
-                const matches = text.match(/\d+[\.,]\d{2}/g);
-                if (matches) {
-                    const values = matches.map(m => parseFloat(m.replace(',', '.')));
-                    const max = Math.max(...values);
-                    document.getElementById('final-total').value = max.toFixed(2);
-                }
-            });
-        }
-
-        function confirmClosureFromOCR() {
-            const val = parseFloat(document.getElementById('final-total').value) || 0;
-            registraEntrataDashboard(val, "Chiusura (Foto OCR)");
-        }
-
-        // --- SALVATAGGIO GLOBALE DASHBOARD ---
-        function registraEntrataDashboard(valore, tipo) {
-            // Aggiorna cruscotto
-            let incassoPrecedente = parseFloat(document.getElementById('dash-income').innerText.replace('€ ', '')) || 0;
-            let nuovoIncasso = incassoPrecedente + valore;
-            document.getElementById('dash-income').innerText = '€ ' + nuovoIncasso.toFixed(2);
-            
-            // Aggiungi allo storico
-            const list = document.getElementById('history-list');
-            if(list.innerText.includes("Nessun movimento")) list.innerHTML = "";
-
-            const item = `
-                <div class="p-4 flex justify-between items-center bg-white">
-                    <div>
-                        <p class="text-xs font-bold text-slate-700">${tipo}</p>
-                        <p class="text-[10px] text-slate-400">${new Date().toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'})}</p>
-                    </div>
-                    <span class="text-sm font-black text-emerald-600">+ € ${valore.toFixed(2)}</span>
-                </div>
-            `;
-            list.innerHTML = item + list.innerHTML;
-            
-            alert("Incasso e scarico merci registrato con successo!");
             nav('view-dashboard');
         }
 
-        function logout() {
-            location.reload();
-        }
+        function logout() { location.reload(); }
     </script>
 </body>
 </html>
