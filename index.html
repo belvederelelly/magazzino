@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Magazzino - Scanner</title>
+    <title>Magazzino Smart - Scanner</title>
+    <!-- Tailwind CSS per il design -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome per le icone -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-        /* Animazione per il laser dello scanner */
         @keyframes scan-line {
             0% { top: 0%; opacity: 0; }
             10% { opacity: 1; }
@@ -19,7 +23,7 @@
             position: absolute;
             width: 100%;
             height: 2px;
-            background-color: #10b981; /* Emerald-500 */
+            background-color: #10b981;
             box-shadow: 0 0 10px #10b981;
             animation: scan-line 2.5s infinite linear;
         }
@@ -31,107 +35,94 @@
     <header class="bg-slate-800 text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-10">
         <button class="text-slate-300 hover:text-white transition"><i class="fas fa-arrow-left text-xl"></i></button>
         <h1 class="text-lg font-bold">Carico Merci</h1>
-        <div class="w-6"></div> <!-- Spaziatore per centrare il titolo -->
+        <div class="w-6"></div>
     </header>
 
     <main class="mb-24 max-w-2xl mx-auto">
         
-        <!-- AREA SCANNER (Simulazione Fotocamera) -->
+        <!-- AREA SCANNER (Simulazione) -->
         <section class="bg-black relative h-64 overflow-hidden shadow-inner flex flex-col justify-between">
-            <!-- Overlay opaco con foro trasparente centrale per guidare l'utente -->
             <div class="absolute inset-0 bg-black/40 pointer-events-none border-[40px] border-black/40"></div>
-            
-            <!-- Mirino -->
             <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-32 border-2 border-emerald-500 rounded-lg pointer-events-none">
-                <!-- Laser Animato -->
                 <div class="laser"></div>
-                <!-- Angoli mirino -->
                 <div class="absolute -top-1 -left-1 w-4 h-4 border-t-4 border-l-4 border-emerald-400"></div>
                 <div class="absolute -top-1 -right-1 w-4 h-4 border-t-4 border-r-4 border-emerald-400"></div>
                 <div class="absolute -bottom-1 -left-1 w-4 h-4 border-b-4 border-l-4 border-emerald-400"></div>
                 <div class="absolute -bottom-1 -right-1 w-4 h-4 border-b-4 border-r-4 border-emerald-400"></div>
             </div>
-
-            <!-- Testi sopra la fotocamera -->
             <div class="relative z-10 text-center p-3">
                 <p class="text-white text-sm font-semibold tracking-wide drop-shadow-md">Inquadra Barcode o Etichetta</p>
             </div>
-            
-            <!-- Controlli fotocamera -->
             <div class="relative z-10 p-4 flex justify-between items-center text-white">
                 <button class="bg-slate-800/80 p-3 rounded-full hover:bg-slate-700 backdrop-blur-sm transition"><i class="fas fa-bolt"></i></button>
                 <button class="bg-slate-800/80 px-4 py-2 rounded-full hover:bg-slate-700 text-sm font-bold backdrop-blur-sm transition border border-slate-600">Inserisci Manualmente</button>
             </div>
         </section>
 
-        <!-- AREA RISULTATO SCANSIONE (Esempio Database Mondiale) -->
+        <!-- AREA DATI CARICO -->
         <section class="p-4 mt-2">
             <h3 class="text-slate-500 font-bold mb-3 uppercase text-xs tracking-wider">Risultato Scansione</h3>
             
-            <!-- Card Prodotto Trovato -->
             <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 overflow-hidden">
-                <!-- Intestazione Card: Foto e Titolo (Dati dal Web) -->
                 <div class="p-4 flex items-center bg-emerald-50/50">
                     <div class="bg-white p-2 rounded-lg border border-emerald-100 mr-4 shadow-sm flex-shrink-0">
-                        <i class="fas fa-bottle-water text-3xl text-slate-400"></i> <!-- Immagina qui la foto reale -->
+                        <i class="fas fa-bottle-water text-3xl text-slate-400"></i>
                     </div>
                     <div>
                         <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-100 px-2 py-0.5 rounded-full mb-1 inline-block"><i class="fas fa-globe text-xs mr-1"></i>Trovato sul web</span>
-                        <h2 class="text-lg font-bold text-slate-800 leading-tight">Passata di Pomodoro Rustica</h2>
-                        <p class="text-sm text-slate-500 font-medium">Mutti • 700g in Vetro</p>
+                        <h2 class="text-lg font-bold text-slate-800 leading-tight" id="nomeProdottoTesto">Passata di Pomodoro Rustica</h2>
+                        <p class="text-sm text-slate-500 font-medium">Mutti • 700g (Codice: <span id="barcodeTesto">8005110170905</span>)</p>
                     </div>
                 </div>
 
-                <!-- Form di Carico (I tuoi dati) -->
                 <div class="p-4 border-t border-slate-100">
                     <div class="grid grid-cols-2 gap-4 mb-4">
-                        <!-- Quantità -->
+                        <!-- Input Quantità -->
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Quantità Caricata</label>
                             <div class="flex items-center border border-slate-300 rounded-lg overflow-hidden focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-                                <button class="px-3 py-2 bg-slate-50 text-slate-600 hover:bg-slate-100 border-r border-slate-300"><i class="fas fa-minus"></i></button>
-                                <input type="number" value="12" class="w-full text-center font-bold text-lg py-2 focus:outline-none" style="-moz-appearance: textfield;">
-                                <button class="px-3 py-2 bg-slate-50 text-slate-600 hover:bg-slate-100 border-l border-slate-300"><i class="fas fa-plus"></i></button>
+                                <button type="button" onclick="modificaQuantita(-1)" class="px-3 py-2 bg-slate-50 text-slate-600 hover:bg-slate-100 border-r border-slate-300"><i class="fas fa-minus"></i></button>
+                                <input type="number" id="quantitaInput" value="12" class="w-full text-center font-bold text-lg py-2 focus:outline-none" style="-moz-appearance: textfield;">
+                                <button type="button" onclick="modificaQuantita(1)" class="px-3 py-2 bg-slate-50 text-slate-600 hover:bg-slate-100 border-l border-slate-300"><i class="fas fa-plus"></i></button>
                             </div>
                         </div>
                         
-                        <!-- Costo -->
+                        <!-- Input Costo -->
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Costo Unitario</label>
                             <div class="relative">
                                 <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">€</span>
-                                <input type="number" value="1.25" step="0.01" class="w-full border border-slate-300 rounded-lg py-2 pl-7 pr-3 font-semibold focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                                <input type="number" id="costoInput" value="1.25" step="0.01" class="w-full border border-slate-300 rounded-lg py-2 pl-7 pr-3 font-semibold focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Destinazione -->
+                    <!-- Selezione Destinazione -->
                     <div class="mb-5">
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Destinazione</label>
-                        <select class="w-full border border-slate-300 rounded-lg py-2 px-3 font-medium bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
-                            <option value="secco">Magazzino Secco (Scaffale A)</option>
-                            <option value="cucina">Cucina (Dispensa a vista)</option>
-                            <option value="cantina">Cantina</option>
+                        <select id="destinazioneInput" class="w-full border border-slate-300 rounded-lg py-2 px-3 font-medium bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                            <option value="Magazzino Secco">Magazzino Secco</option>
+                            <option value="Cella Frigo">Cella Frigo</option>
+                            <option value="Cantina">Cantina</option>
                         </select>
                     </div>
 
-                    <!-- Tasto Conferma -->
-                    <button class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition transform hover:scale-[1.02] flex items-center justify-center">
-                        <i class="fas fa-check-circle mr-2"></i> Conferma Carico (+12)
+                    <!-- Bottone Salvataggio -->
+                    <button onclick="eseguiCarico()" id="btnConferma" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition transform hover:scale-[1.02] flex items-center justify-center">
+                        <i class="fas fa-check-circle mr-2"></i> Conferma Carico
                     </button>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Navigation Bar -->
+    <!-- Barra Navigazione Inferiore -->
     <nav class="bg-white fixed bottom-0 w-full border-t border-slate-200 flex justify-around py-2 pb-safe shadow-[0_-5px_15px_-15px_rgba(0,0,0,0.3)] z-10">
         <a href="#" class="flex flex-col items-center p-2 text-slate-400 hover:text-emerald-600 transition">
             <i class="fas fa-home text-xl mb-1"></i>
             <span class="text-[10px] font-semibold uppercase">Dashboard</span>
         </a>
         <a href="#" class="flex flex-col items-center p-2 text-emerald-600">
-            <!-- Icona Centrale Messa in Evidenza per il Carico -->
             <div class="bg-emerald-100 p-2 rounded-full -mt-6 border-4 border-gray-100 shadow-sm">
                 <i class="fas fa-barcode text-xl"></i>
             </div>
@@ -143,5 +134,111 @@
         </a>
     </nav>
 
+    <!-- LOGICA JAVASCRIPT E DATABASE -->
+    <script>
+        // 1. Inizializzazione Supabase con le tue credenziali
+        const supabaseUrl = 'https://nizktofcamulygzszydw.supabase.co';
+        const supabaseKey = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Funzione per i tastini + e - della quantità
+        function modificaQuantita(valore) {
+            let input = document.getElementById('quantitaInput');
+            let quantitaAttuale = parseInt(input.value) || 0;
+            if(quantitaAttuale + valore > 0) {
+                input.value = quantitaAttuale + valore;
+            }
+        }
+
+        // Funzione Principale di Salvataggio
+        async function eseguiCarico() {
+            const btn = document.getElementById('btnConferma');
+            const testoOriginaleBtn = btn.innerHTML;
+            
+            // Dati finti letti dallo scanner per questo test
+            const nomeProdotto = "Passata di Pomodoro Rustica Mutti";
+            const barcodeProdotto = "8005110170905";
+            const unitaMisura = "pz";
+            
+            // Dati reali presi dai campi inseriti dall'utente
+            const quantita = parseFloat(document.getElementById('quantitaInput').value);
+            const destinazione = document.getElementById('destinazioneInput').value;
+
+            // Feedback visivo
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Salvataggio...';
+            btn.disabled = true;
+
+            try {
+                // FASE 1: Inserisci o aggiorna il prodotto nell'anagrafica
+                const { data: prodotto, error: errProd } = await supabaseClient
+                    .from('prodotti')
+                    .upsert({ 
+                        nome_prodotto: nomeProdotto, 
+                        codice_a_barre: barcodeProdotto, 
+                        unita_misura: unitaMisura 
+                    }, { onConflict: 'codice_a_barre' })
+                    .select()
+                    .single();
+
+                if (errProd) throw errProd;
+
+                // FASE 2: Registra il movimento (Storico Carico)
+                const { error: errMov } = await supabaseClient
+                    .from('movimenti')
+                    .insert({
+                        prodotto_id: prodotto.id,
+                        tipo: 'carico',
+                        quantita: quantita,
+                        note: 'Scansione manuale dal web'
+                    });
+
+                if (errMov) throw errMov;
+
+                // FASE 3: Aggiorna la giacenza attuale
+                // Prima controlliamo se esiste già una giacenza per questo prodotto
+                const { data: giacenzaEsistente, error: errGiacCheck } = await supabaseClient
+                    .from('giacenze')
+                    .select('quantita_attuale')
+                    .eq('prodotto_id', prodotto.id)
+                    .single();
+
+                let nuovaQuantita = quantita;
+                if (giacenzaEsistente) {
+                    nuovaQuantita += parseFloat(giacenzaEsistente.quantita_attuale);
+                }
+
+                // Inseriamo o aggiorniamo la giacenza
+                const { error: errGiac } = await supabaseClient
+                    .from('giacenze')
+                    .upsert({
+                        prodotto_id: prodotto.id,
+                        quantita_attuale: nuovaQuantita,
+                        posizione: destinazione
+                    });
+
+                if (errGiac) throw errGiac;
+
+                // Successo!
+                btn.innerHTML = '<i class="fas fa-check mr-2"></i> Salvato con successo!';
+                btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+                btn.classList.add('bg-green-500');
+                
+                setTimeout(() => {
+                    btn.innerHTML = testoOriginaleBtn;
+                    btn.disabled = false;
+                    btn.classList.remove('bg-green-500');
+                    btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+                }, 2000);
+
+                console.log("Operazione completata con successo sul database!");
+
+            } catch (errore) {
+                console.error("Si è verificato un errore:", errore);
+                alert("Errore durante il salvataggio: " + errore.message);
+                btn.innerHTML = testoOriginaleBtn;
+                btn.disabled = false;
+            }
+        }
+    </script>
 </body>
 </html>
