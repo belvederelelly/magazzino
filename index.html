@@ -3,76 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belvedere Smart - ERP Completo</title>
+    <title>Belvedere Smart - ERP Definitivo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase Ufficiale -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
-    
     <style>
         .view-panel { display: none; }
         .view-panel.active { display: block; animation: fadeIn 0.2s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .hide-scroll::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 h-screen overflow-hidden flex flex-col">
 
+    <!-- LOGIN -->
     <div id="view-login" class="view-panel active h-full flex flex-col justify-center items-center bg-slate-900 px-6 fixed inset-0 z-[100]">
         <div class="text-center mb-8">
-            <div class="bg-emerald-500 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 rotate-3 shadow-xl">
-                <i class="fas fa-utensils text-3xl text-white"></i>
-            </div>
-            <h1 class="text-2xl font-black text-white italic tracking-tighter uppercase">Belvedere Smart</h1>
+            <h1 class="text-3xl font-black text-white italic tracking-tighter uppercase mb-2">Belvedere</h1>
+            <p class="text-emerald-400 text-sm font-bold">App Operativa V1.0</p>
         </div>
         <div class="w-full max-w-sm space-y-4">
-            <input type="password" id="pass-field" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Password">
+            <input type="password" id="pass-field" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Password (staff o belvedere59)">
             <button onclick="handleAuth()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl active:scale-95 transition uppercase tracking-widest text-sm">Accedi</button>
+            <p id="login-error" class="text-red-400 text-center text-xs hidden font-bold">Password errata.</p>
         </div>
     </div>
 
+    <!-- MAIN APP -->
     <div id="app-interface" class="hidden h-full flex flex-col">
         <header class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm z-10">
-            <div>
-                <h2 id="header-title" class="text-lg font-black text-slate-800">Dashboard</h2>
-                <div id="role-badge" class="inline-block px-2 py-0.5 rounded text-[8px] font-bold uppercase mt-1 bg-slate-100">Ruolo</div>
-            </div>
-            <button onclick="location.reload()" class="text-slate-400 hover:text-red-500"><i class="fas fa-power-off"></i></button>
+            <h2 id="header-title" class="text-lg font-black text-slate-800">Dashboard</h2>
+            <button onclick="location.reload()" class="text-red-500 font-bold text-xs uppercase"><i class="fas fa-sign-out-alt mr-1"></i>Esci</button>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-4 pb-32 hide-scroll">
+        <main class="flex-1 overflow-y-auto p-4 pb-32">
             
-            <div id="view-dashboard" class="view-panel active space-y-4">
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-white p-4 rounded-3xl border shadow-sm">
-                        <p class="text-[9px] font-bold text-slate-400 uppercase">Incasso (Oggi)</p>
-                        <p id="dash-income" class="text-xl font-black text-emerald-600">€ 0.00</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-3xl border shadow-sm">
-                        <p class="text-[9px] font-bold text-slate-400 uppercase">Valore Stock</p>
-                        <p class="text-xl font-black text-slate-700">€ 1.450</p>
-                    </div>
+            <!-- VISTA: DASHBOARD -->
+            <div id="view-dashboard" class="view-panel active space-y-6">
+                <div class="bg-slate-900 p-6 rounded-3xl text-white shadow-lg text-center">
+                    <h3 class="font-bold text-slate-400 uppercase text-xs mb-2">Valore Magazzino Totale</h3>
+                    <p class="text-4xl font-black text-emerald-400" id="dash-total-value">€ 0.00</p>
                 </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="nav('view-scanner')" class="bg-slate-900 text-white p-6 rounded-3xl flex flex-col items-center gap-2">
-                        <i class="fas fa-file-invoice text-2xl text-emerald-400"></i>
-                        <span class="text-[10px] font-bold uppercase">Carico Fattura</span>
+                
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Menu Rapido</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="nav('view-inventory')" class="bg-white border p-6 rounded-3xl flex flex-col items-center gap-3 shadow-sm active:scale-95">
+                        <i class="fas fa-boxes text-3xl text-blue-500"></i>
+                        <span class="text-[11px] font-bold uppercase">Gestione Scorte</span>
                     </button>
-                    <button onclick="nav('view-ocr')" class="bg-white border p-6 rounded-3xl flex flex-col items-center gap-2">
-                        <i class="fas fa-cash-register text-2xl text-amber-500"></i>
-                        <span class="text-[10px] font-bold uppercase">Chiusura</span>
+                    <button onclick="apriNuovoProdotto()" class="bg-white border p-6 rounded-3xl flex flex-col items-center gap-3 shadow-sm active:scale-95">
+                        <i class="fas fa-plus-circle text-3xl text-emerald-500"></i>
+                        <span class="text-[11px] font-bold uppercase">Aggiungi Prodotto</span>
                     </button>
                 </div>
             </div>
 
+            <!-- VISTA: INVENTARIO REALE -->
             <div id="view-inventory" class="view-panel space-y-4">
-                <div class="flex gap-2 overflow-x-auto pb-2 hide-scroll">
-                    <button class="bg-slate-900 text-white px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">Tutto</button>
-                    <button class="bg-white border px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">Cella Frigo</button>
-                    <button class="bg-white border px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">Freezer</button>
-                    <button class="bg-white border px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">Secco</button>
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold">Magazzino Attuale</h3>
+                    <button onclick="caricaInventarioDaSupabase()" class="text-emerald-600 text-xs font-bold"><i class="fas fa-sync-alt mr-1"></i>Aggiorna</button>
+                </div>
+
+                <div id="loading-spinner" class="text-center py-10 hidden">
+                    <i class="fas fa-spinner fa-spin text-2xl text-emerald-600"></i>
+                    <p class="text-xs text-slate-500 mt-2">Caricamento dal database...</p>
                 </div>
 
                 <div class="bg-white rounded-3xl border overflow-hidden shadow-sm">
@@ -80,113 +75,201 @@
                         <thead class="bg-slate-50 border-b">
                             <tr>
                                 <th class="p-3 text-[10px] font-bold text-slate-400 uppercase">Prodotto</th>
-                                <th class="p-3 text-[10px] font-bold text-slate-400 uppercase">Q.tà</th>
+                                <th class="p-3 text-[10px] font-bold text-slate-400 uppercase text-center">Q.tà</th>
                                 <th class="p-3"></th>
                             </tr>
                         </thead>
                         <tbody id="inventory-table-body" class="divide-y">
-                            </tbody>
+                            <!-- Righe generate dal Database -->
+                        </tbody>
                     </table>
                 </div>
             </div>
 
-            <div id="view-suppliers" class="view-panel space-y-4">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-bold">Anagrafica Fornitori</h3>
-                    <button class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-bold">+ Aggiungi</button>
-                </div>
-                <div id="suppliers-list" class="space-y-2">
-                    <div class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm">
-                        <div>
-                            <p class="font-bold text-sm">Rossi Carni Srl</p>
-                            <p class="text-[10px] text-slate-400">Carne, Salumi</p>
-                        </div>
-                        <i class="fas fa-chevron-right text-slate-300"></i>
+            <!-- VISTA: AGGIUNGI NUOVO PRODOTTO -->
+            <div id="view-add-product" class="view-panel space-y-4">
+                <div class="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Nome Prodotto</label>
+                        <input type="text" id="new-nome" class="w-full border p-3 rounded-xl font-bold bg-slate-50" placeholder="Es. Guanciale Stagionato">
                     </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-bold uppercase text-slate-400">Quantità</label>
+                            <input type="number" id="new-qta" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-center" value="1">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold uppercase text-slate-400">Prezzo (€)</label>
+                            <input type="number" id="new-prezzo" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-center" value="0.00">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Categoria</label>
+                        <select id="new-cat" class="w-full border p-3 rounded-xl font-bold bg-slate-50">
+                            <option value="Cella Frigo">Cella Frigo</option>
+                            <option value="Freezer">Freezer</option>
+                            <option value="Secco">Secco</option>
+                            <option value="Cantina">Cantina</option>
+                        </select>
+                    </div>
+                    <button onclick="salvaNuovoProdotto()" id="btn-salva-prod" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-md uppercase tracking-widest text-sm mt-4">
+                        Salva nel Database
+                    </button>
                 </div>
             </div>
 
         </main>
 
-        <nav class="bg-white border-t fixed bottom-0 w-full flex justify-around py-3 pb-safe z-50 shadow-lg">
-            <button onclick="nav('view-dashboard')" class="flex flex-col items-center text-slate-400 hover:text-emerald-600">
-                <i class="fas fa-home text-lg"></i>
+        <!-- BOTTOM NAV -->
+        <nav class="bg-white border-t fixed bottom-0 w-full flex justify-around py-3 z-50 shadow-[0_-5px_15px_-15px_rgba(0,0,0,0.3)]">
+            <button onclick="nav('view-dashboard')" class="flex flex-col items-center text-slate-400 hover:text-emerald-600 w-1/3">
+                <i class="fas fa-home text-xl"></i>
                 <span class="text-[9px] font-bold uppercase mt-1">Home</span>
             </button>
-            <button onclick="nav('view-inventory')" class="flex flex-col items-center text-slate-400 hover:text-emerald-600">
-                <i class="fas fa-boxes text-lg"></i>
+            <button onclick="nav('view-inventory')" class="flex flex-col items-center text-slate-400 hover:text-emerald-600 w-1/3 border-l border-r">
+                <i class="fas fa-boxes text-xl"></i>
                 <span class="text-[9px] font-bold uppercase mt-1">Stock</span>
             </button>
-            <button onclick="nav('view-suppliers')" class="flex flex-col items-center text-slate-400 hover:text-emerald-600">
-                <i class="fas fa-truck text-lg"></i>
-                <span class="text-[9px] font-bold uppercase mt-1">Fornitori</span>
+            <button onclick="apriNuovoProdotto()" class="flex flex-col items-center text-slate-400 hover:text-emerald-600 w-1/3">
+                <i class="fas fa-plus-circle text-xl"></i>
+                <span class="text-[9px] font-bold uppercase mt-1">Aggiungi</span>
             </button>
         </nav>
     </div>
 
     <script>
+        // CONNESSIONE REALE A SUPABASE
         const SB_URL = 'https://nizktofcamulygzszydw.supabase.co';
         const SB_KEY = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-        // DATABASE LOCALE PER TEST
-        let mockProducts = [
-            { id: 1, nome: "Guanciale", qta: 5.5, cat: "Cella Frigo", fornitore: "Rossi Carni" },
-            { id: 2, nome: "Farina 00", qta: 25, cat: "Secco", fornitore: "Metro" },
-            { id: 3, nome: "Gamberoni", qta: 2, cat: "Freezer", fornitore: "Ittica Mare" }
-        ];
+        // LOGIN
+        document.getElementById('pass-field').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') handleAuth();
+        });
 
         function handleAuth() {
             let pass = document.getElementById('pass-field').value.trim().toLowerCase();
             if (pass === 'staff' || pass === 'belvedere59') {
                 document.getElementById('view-login').style.display = 'none';
                 document.getElementById('app-interface').classList.remove('hidden');
-                document.getElementById('role-badge').innerText = (pass === 'belvedere59') ? 'Titolare' : 'Staff';
-                renderInventory();
                 nav('view-dashboard');
-            } else { alert("Password Errata"); }
-        }
-
-        function nav(id) {
-            document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            const titles = { 'view-dashboard': 'Dashboard', 'view-inventory': 'Gestione Stock', 'view-suppliers': 'Fornitori' };
-            document.getElementById('header-title').innerText = titles[id];
-        }
-
-        function renderInventory() {
-            const body = document.getElementById('inventory-table-body');
-            body.innerHTML = '';
-            mockProducts.forEach(p => {
-                body.innerHTML += `
-                    <tr>
-                        <td class="p-3">
-                            <p class="font-bold text-xs">${p.nome}</p>
-                            <p class="text-[9px] text-slate-400 uppercase">${p.cat}</p>
-                        </td>
-                        <td class="p-3 font-black text-slate-700">${p.qta}</td>
-                        <td class="p-3 text-right">
-                            <button onclick="editProduct(${p.id})" class="text-blue-500 mr-3"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteProduct(${p.id})" class="text-red-400"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function deleteProduct(id) {
-            if(confirm("Eliminare definitivamente il prodotto?")) {
-                mockProducts = mockProducts.filter(p => p.id !== id);
-                renderInventory();
+                caricaInventarioDaSupabase(); // Scarica i dati veri all'avvio!
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
             }
         }
 
-        function editProduct(id) {
-            let newVal = prompt("Inserisci la nuova quantità:");
-            if(newVal !== null) {
-                let p = mockProducts.find(prod => prod.id === id);
-                p.qta = parseFloat(newVal);
-                renderInventory();
+        // NAVIGAZIONE
+        function nav(id) {
+            document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            const titles = { 'view-dashboard': 'Dashboard', 'view-inventory': 'Inventario Reale', 'view-add-product': 'Nuovo Prodotto' };
+            document.getElementById('header-title').innerText = titles[id];
+
+            if(id === 'view-inventory') caricaInventarioDaSupabase();
+        }
+
+        function apriNuovoProdotto() {
+            document.getElementById('new-nome').value = '';
+            document.getElementById('new-qta').value = '1';
+            document.getElementById('new-prezzo').value = '0.00';
+            nav('view-add-product');
+        }
+
+        // --- LE FUNZIONI CHE PARLANO CON IL TUO DATABASE VERO ---
+
+        // 1. LEGGI TUTTO
+        async function caricaInventarioDaSupabase() {
+            document.getElementById('loading-spinner').classList.remove('hidden');
+            document.getElementById('inventory-table-body').innerHTML = '';
+
+            const { data, error } = await supabaseClient.from('inventario').select('*').order('nome', { ascending: true });
+            
+            document.getElementById('loading-spinner').classList.add('hidden');
+
+            if (error) {
+                alert("Errore di connessione a Supabase. Hai creato la tabella 'inventario'?");
+                console.error(error);
+                return;
+            }
+
+            let html = '';
+            let valoreTotale = 0;
+
+            if(data.length === 0) {
+                html = '<tr><td colspan="3" class="p-6 text-center text-slate-400">Nessun prodotto in magazzino. Aggiungine uno.</td></tr>';
+            } else {
+                data.forEach(p => {
+                    valoreTotale += (parseFloat(p.prezzo) * parseFloat(p.quantita));
+                    html += `
+                        <tr>
+                            <td class="p-3">
+                                <p class="font-bold text-xs text-slate-800">${p.nome}</p>
+                                <p class="text-[9px] text-slate-400 uppercase bg-slate-100 inline-block px-1 rounded">${p.categoria}</p>
+                            </td>
+                            <td class="p-3 text-center">
+                                <span class="bg-emerald-100 text-emerald-800 font-black px-2 py-1 rounded text-sm">${p.quantita}</span>
+                            </td>
+                            <td class="p-3 text-right whitespace-nowrap">
+                                <button onclick="modificaQuantita('${p.id}', '${p.nome}', ${p.quantita})" class="bg-slate-100 w-8 h-8 rounded text-blue-500 mr-1 active:scale-95"><i class="fas fa-edit"></i></button>
+                                <button onclick="eliminaProdotto('${p.id}')" class="bg-slate-100 w-8 h-8 rounded text-red-500 active:scale-95"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            document.getElementById('inventory-table-body').innerHTML = html;
+            document.getElementById('dash-total-value').innerText = '€ ' + valoreTotale.toFixed(2);
+        }
+
+        // 2. INSERISCI NUOVO PRODOTTO
+        async function salvaNuovoProdotto() {
+            const nome = document.getElementById('new-nome').value.trim();
+            const qta = document.getElementById('new-qta').value;
+            const prezzo = document.getElementById('new-prezzo').value;
+            const cat = document.getElementById('new-cat').value;
+
+            if(!nome) return alert("Inserisci il nome del prodotto!");
+
+            document.getElementById('btn-salva-prod').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvataggio...';
+
+            const { error } = await supabaseClient.from('inventario').insert([
+                { nome: nome, quantita: qta, prezzo: prezzo, categoria: cat }
+            ]);
+
+            document.getElementById('btn-salva-prod').innerHTML = 'Salva nel Database';
+
+            if (error) {
+                alert("Errore durante il salvataggio: " + error.message);
+            } else {
+                alert("Prodotto salvato con successo!");
+                nav('view-inventory');
+            }
+        }
+
+        // 3. ELIMINA PRODOTTO
+        async function eliminaProdotto(id) {
+            if(confirm("Sei sicuro di voler eliminare questo prodotto dal database?")) {
+                const { error } = await supabaseClient.from('inventario').delete().eq('id', id);
+                if (error) alert("Errore durante l'eliminazione.");
+                else caricaInventarioDaSupabase(); // Ricarica la lista aggiornata
+            }
+        }
+
+        // 4. MODIFICA QUANTITA'
+        async function modificaQuantita(id, nome, quantitaAttuale) {
+            let nuovaQta = prompt(`Aggiorna la quantità per: ${nome}`, quantitaAttuale);
+            
+            if(nuovaQta !== null && nuovaQta !== "") {
+                const { error } = await supabaseClient.from('inventario')
+                    .update({ quantita: parseFloat(nuovaQta) })
+                    .eq('id', id);
+                    
+                if (error) alert("Errore durante l'aggiornamento.");
+                else caricaInventarioDaSupabase(); // Ricarica la lista aggiornata
             }
         }
     </script>
