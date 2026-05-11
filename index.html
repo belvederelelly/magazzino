@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belvedere Smart - Sistema Multi-Utente</title>
+    <title>Belvedere Smart - ERP Business Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -31,8 +31,8 @@
             <p class="text-emerald-400 text-[10px] font-bold tracking-widest uppercase">Business Management</p>
         </div>
         <div class="w-full max-w-sm space-y-4">
-            <input type="password" id="pass-field" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold tracking-widest text-center" placeholder="INSERISCI PASSWORD">
-            <button onclick="handleAuth()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 uppercase tracking-widest text-sm transition">Accedi al Sistema</button>
+            <input type="password" id="pass-field" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold tracking-widest text-center" placeholder="PASSWORD (es: belvedere59)">
+            <button onclick="handleAuth()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 uppercase tracking-widest text-sm transition">Accedi</button>
         </div>
     </div>
 
@@ -43,7 +43,7 @@
                 <div id="role-badge" class="inline-block px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest mt-1 bg-amber-100 text-amber-700">Ruolo</div>
             </div>
             <div class="flex gap-2">
-                <button id="btn-shopping-alert" onclick="nav('view-shopping')" class="relative bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center text-slate-600 transition">
+                <button id="btn-shopping-alert" onclick="nav('view-shopping')" class="relative bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center text-slate-600 transition titolare-only">
                     <i class="fas fa-shopping-basket"></i>
                     <span id="alert-shopping-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
                 </button>
@@ -64,9 +64,9 @@
                 </button>
                 <div class="grid grid-cols-2 gap-3">
                     <button onclick="nav('view-inventory')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-boxes text-2xl text-slate-600 mb-2"></i><span class="block text-[10px] font-black uppercase">Magazzino</span></button>
-                    <button onclick="nav('view-staff')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-users text-2xl text-blue-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Staff</span></button>
-                    <button onclick="nav('view-fatture')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-file-invoice text-2xl text-amber-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Fatture</span></button>
-                    <button onclick="nav('view-cassa')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-sync text-2xl text-emerald-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Sincro RCH</span></button>
+                    <button onclick="nav('view-ricettario')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-book-open text-2xl text-blue-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Menu & Ricette</span></button>
+                    <button onclick="nav('view-staff')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-users text-2xl text-slate-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Staff</span></button>
+                    <button onclick="nav('view-cassa')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-cash-register text-2xl text-emerald-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Chiusura</span></button>
                 </div>
             </div>
 
@@ -85,21 +85,89 @@
 
             <div id="view-cassa" class="view-panel space-y-4 titolare-only">
                 <div class="bg-emerald-600 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
-                    <h3 class="font-black text-lg uppercase"><i class="fas fa-bolt mr-2"></i>Chiusura Serale</h3>
-                    <p class="text-[10px] font-bold text-emerald-100 mb-4 mt-2 leading-relaxed">Carica il file Excel "Statistiche" di XStore. L'app creerà i nuovi prodotti, scaricherà lo stock e compilerà il bilancio automaticamente.</p>
+                    <h3 class="font-black text-lg uppercase"><i class="fas fa-bolt mr-2"></i>Chiusura Automatica</h3>
+                    <p class="text-[10px] font-bold text-emerald-100 mb-4 mt-2 leading-relaxed">Carica il file Excel "Statistiche / Venduto Prodotti" di XStore. L'app creerà i nuovi piatti e scaricherà il magazzino da sola.</p>
                     <input type="file" accept=".xlsx, .xls" id="file-rch-vendite" onchange="elaboraVenditeRCHExcel(this)" class="hidden">
-                    <button onclick="document.getElementById('file-rch-vendite').click()" class="w-full bg-white text-emerald-600 px-6 py-4 rounded-xl font-black text-xs uppercase shadow-md active:scale-95 transition">Carica Statistiche RCH (.xlsx)</button>
+                    <button onclick="document.getElementById('file-rch-vendite').click()" class="w-full bg-white text-emerald-600 px-6 py-4 rounded-xl font-black text-xs uppercase shadow-md active:scale-95 transition">Carica Report RCH</button>
                 </div>
                 
-                <div class="bg-white p-4 rounded-3xl border shadow-sm mt-6">
-                    <h3 class="font-black text-slate-800 text-sm mb-3">Chiusura Manuale (Emergenza)</h3>
-                    <div id="cassa-piatti-list" class="space-y-2 mb-4"></div>
-                    <div class="flex justify-between items-center border-t pt-4 mt-2">
-                        <span class="text-xs text-slate-400 uppercase font-black">Totale Man:</span>
-                        <span id="cassa-total-display" class="text-xl font-black text-slate-700">€ 0.00</span>
-                    </div>
-                    <button onclick="eseguiScaricoMagazzinoManuale()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-black uppercase text-[10px] mt-3">Registra Manualmente</button>
+                <div class="bg-white p-5 rounded-3xl border shadow-sm mt-6">
+                    <h3 class="font-black text-slate-800 text-sm mb-1"><i class="fas fa-keyboard mr-1"></i> Chiusura Rapida Manuale</h3>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-4">Usa questo se non puoi esportare il file da RCH</p>
+                    <label class="text-[10px] font-black uppercase text-slate-500">Incasso Lordo Serata (€)</label>
+                    <input type="number" id="manual-incasso-tot" class="w-full border-2 border-slate-200 p-4 rounded-xl font-black text-emerald-600 bg-slate-50 text-2xl mb-4 text-center" placeholder="0.00">
+                    <button onclick="eseguiChiusuraManualePura()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase text-xs shadow-md active:scale-95 transition">Registra Incasso in Bilancio</button>
                 </div>
+            </div>
+
+            <div id="view-inventory" class="view-panel space-y-4">
+                <div class="flex justify-between items-center px-2">
+                    <h3 class="font-black text-slate-800 uppercase text-xs">Giacenze Magazzino <br><span class="text-[8px] text-slate-400">Inserisci le materie prime (Padre)</span></h3>
+                    <button onclick="nav('view-add-product')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm">+ Materia</button>
+                </div>
+                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 border-b"><tr><th class="p-4 text-[10px] font-bold text-slate-400 uppercase">Materia Prima</th><th class="p-4 text-center text-[10px] font-bold text-slate-400 uppercase">Q.tà</th><th class="p-4"></th></tr></thead>
+                        <tbody id="inventory-table-body" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-add-product" class="view-panel space-y-4">
+                <div class="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
+                    <h3 class="font-black text-lg border-b pb-2">Nuova Materia Prima</h3>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase">Es: Fusto Birra 25L, Caffè in Grani Kg</p>
+                    <input type="text" id="new-nome" placeholder="NOME MATERIA PRIMA" class="w-full border p-3 rounded-xl font-bold bg-slate-50 uppercase">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Giacenza (Es. Litri, Kg, Pz)</label><input type="number" id="new-qta" class="w-full border p-3 rounded-xl font-black text-center" value="1"></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Soglia Minima</label><input type="number" id="new-soglia" class="w-full border p-3 rounded-xl font-black text-center" value="1"></div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border flex items-center justify-between">
+                        <div class="flex-1"><p class="text-[10px] font-black text-slate-800 uppercase">Viene battuta in cassa così com'è?</p><p class="text-[8px] text-slate-500 font-bold uppercase">Es: Lattina Coca Cola = SI. Farina = NO.</p></div>
+                        <input type="checkbox" id="new-auto-scalo" class="w-6 h-6 accent-emerald-600">
+                    </div>
+                    <button onclick="salvaNuovoProdotto()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm mt-4 active:scale-95 transition">Salva in Stock</button>
+                </div>
+            </div>
+
+            <div id="view-ricettario" class="view-panel space-y-4 titolare-only">
+                <div class="flex justify-between items-center bg-emerald-50 p-4 rounded-2xl border border-emerald-200">
+                    <div><h3 class="font-black text-emerald-900">Associazione RCH</h3><p class="text-[9px] text-emerald-600 uppercase font-black">Collega Cassa a Magazzino</p></div>
+                    <button onclick="apriCreaPiatto()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md">+ Tasto Cassa</button>
+                </div>
+                <div id="menu-builder-list" class="space-y-3"></div>
+                
+                <div id="form-crea-piatto" class="hidden bg-white p-6 rounded-3xl border shadow-xl space-y-5 mt-6 border-t-4 border-t-emerald-500 relative">
+                    <button onclick="chiudiCreaPiatto()" class="absolute top-4 right-4 text-slate-400 text-xl"><i class="fas fa-times"></i></button>
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-emerald-600">Nome esatto battuto in cassa</label>
+                        <input type="text" id="piatto-nome" onkeyup="suggerisciGrammatura()" placeholder="Es: CAFFE, 1/2 BIANCO, CALICE" class="w-full border p-3 rounded-xl font-bold bg-slate-50 uppercase">
+                        <p class="text-[8px] font-bold text-slate-400 mt-1">L'A.I. suggerirà le dosi standard se scrivi CAFFE, DOPPIO, 1/2 o CALICE.</p>
+                    </div>
+                    
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <h4 class="font-black text-[10px] text-slate-700 uppercase mb-2">Cosa scarica dal magazzino?</h4>
+                        <div id="lista-ingredienti-piatto" class="space-y-2 mb-4"></div>
+                        <div class="flex gap-2 items-end border-t border-slate-200 pt-3">
+                            <div class="flex-1">
+                                <label class="text-[8px] font-bold uppercase text-slate-400">Materia</label>
+                                <select id="select-ingrediente" class="w-full border p-2 rounded-lg font-bold text-[10px] bg-white"></select>
+                            </div>
+                            <div class="w-20">
+                                <label class="text-[8px] font-bold uppercase text-slate-400">Consumo</label>
+                                <input type="number" id="qta-ingrediente" class="w-full border p-2 rounded-lg font-bold text-xs text-center bg-white" placeholder="Es. 0.007">
+                            </div>
+                            <button onclick="aggiungiIngredienteRicetta()" class="bg-slate-900 text-white w-10 h-9 rounded-lg font-bold"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <button onclick="salvaPiattoMenu()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-sm mt-4">Salva Regola</button>
+                </div>
+            </div>
+
+            <div id="view-staff" class="view-panel space-y-4 titolare-only">
+                <div class="bg-white p-5 rounded-3xl border shadow-sm"><h4 class="font-black text-slate-800 mb-3 border-b pb-2">Anticipo Stipendio</h4><div class="space-y-3"><select id="staff-select" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-sm"></select><input type="number" id="staff-anticipo-val" placeholder="Importo €" class="w-full border p-3 rounded-xl font-black text-center text-lg bg-slate-50" value="0.00"><button onclick="salvaAnticipoStaff()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl uppercase text-xs">Conferma Anticipo</button></div></div>
+                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden" id="staff-list-container"></div>
+                <div class="flex gap-2"><input type="text" id="new-staff-name" placeholder="Nome Dipendente..." class="flex-1 border p-3 rounded-xl font-bold text-xs"><button onclick="aggiungiDipendente()" class="bg-slate-900 text-white px-4 rounded-xl font-black active:scale-95">+</button></div>
             </div>
 
             <div id="view-fatture" class="view-panel space-y-4 titolare-only">
@@ -110,11 +178,10 @@
                     <input type="file" accept=".xml, .html, .htm" id="file-xml" onchange="elaboraFatturaXML(this)" class="hidden">
                     <button onclick="document.getElementById('file-xml').click()" class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition">Seleziona Documento</button>
                 </div>
-                <div id="fattura-loader" class="hidden text-center py-10"><i class="fas fa-spinner fa-spin text-4xl text-emerald-600"></i><p class="text-xs font-black text-slate-500 uppercase mt-2">Analisi...</p></div>
                 <div id="fattura-result" class="hidden space-y-4">
-                    <div id="fattura-items-list" class="bg-white rounded-3xl border divide-y divide-slate-100 overflow-hidden shadow-xl"></div>
+                    <div id="fattura-items-list" class="bg-white rounded-3xl border divide-y divide-slate-100 overflow-hidden shadow-xl p-3 text-[10px]"></div>
                     <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
-                        <div class="flex justify-between items-center"><span class="text-[10px] font-black uppercase text-slate-500">IVA Totale Fattura:</span><input type="number" id="ocr-tot-iva" value="0.00" class="w-24 border p-2 rounded-lg font-black text-right text-sm"></div>
+                        <div class="flex justify-between items-center"><span class="text-[10px] font-black uppercase text-slate-500">IVA Totale:</span><input type="number" id="ocr-tot-iva" value="0.00" class="w-24 border p-2 rounded-lg font-black text-right text-sm"></div>
                         <select id="ocr-tipo-doc" class="w-full border p-3 rounded-xl font-bold text-xs"><option value="merce">Merci (Stock+Bilancio)</option><option value="bolletta">Bolletta (Solo Bilancio)</option></select>
                         <select id="ocr-stato-pag" class="w-full border p-3 rounded-xl font-bold text-xs"><option value="pagato">Già Pagata</option><option value="da_pagare">Da Pagare</option></select>
                         <button onclick="confermaCaricoFattura()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-black uppercase text-sm">Conferma Operazione</button>
@@ -122,51 +189,8 @@
                 </div>
             </div>
 
-            <div id="view-inventory" class="view-panel space-y-4">
-                <div class="flex justify-between items-center px-2">
-                    <h3 class="font-black text-slate-800 uppercase text-xs">Giacenze Magazzino</h3>
-                    <button onclick="nav('view-add-product')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm">+ Nuovo</button>
-                </div>
-                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-slate-50 border-b"><tr><th class="p-4 text-[10px] font-bold text-slate-400 uppercase">Articolo</th><th class="p-4 text-center text-[10px] font-bold text-slate-400 uppercase">Q.tà</th><th class="p-4"></th></tr></thead><tbody id="inventory-table-body" class="divide-y divide-slate-100"></tbody></table></div>
-            </div>
-
-            <div id="view-add-product" class="view-panel space-y-4">
-                <div class="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
-                    <h3 class="font-black text-lg border-b pb-2">Nuovo Prodotto</h3>
-                    <input type="text" id="new-nome" placeholder="NOME ARTICOLO (Esatto come RCH)" class="w-full border p-3 rounded-xl font-bold bg-slate-50 uppercase">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Giacenza</label><input type="number" id="new-qta" class="w-full border p-3 rounded-xl font-black text-center" value="1"></div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Soglia Ordine</label><input type="number" id="new-soglia" class="w-full border p-3 rounded-xl font-black text-center" value="5"></div>
-                    </div>
-                    <div class="bg-slate-50 p-4 rounded-2xl border flex items-center justify-between">
-                        <div class="flex-1"><p class="text-xs font-black text-slate-800 uppercase">Scarico Automatico</p><p class="text-[8px] text-slate-500 font-bold uppercase">Sottrai via RCH/Cassa</p></div>
-                        <input type="checkbox" id="new-auto-scalo" class="w-6 h-6 accent-emerald-600" checked>
-                    </div>
-                    <button onclick="salvaNuovoProdotto()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm mt-4 active:scale-95 transition">Salva in Stock</button>
-                </div>
-            </div>
-
-            <div id="view-ricettario" class="view-panel space-y-4 titolare-only">
-                <div class="flex justify-between items-center bg-emerald-50 p-4 rounded-2xl border border-emerald-200"><div><h3 class="font-black text-emerald-900">Il Mio Menu</h3><p class="text-[9px] text-emerald-600 uppercase font-black">Distinta Base per RCH</p></div><button onclick="apriCreaPiatto()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold">+ Piatto</button></div>
-                <div id="menu-builder-list" class="space-y-3"></div>
-                <div id="form-crea-piatto" class="hidden bg-white p-6 rounded-3xl border shadow-xl space-y-5 mt-6 border-t-4 border-t-emerald-500 relative">
-                    <button onclick="chiudiCreaPiatto()" class="absolute top-4 right-4 text-slate-400"><i class="fas fa-times text-xl"></i></button>
-                    <div class="grid grid-cols-2 gap-4"><div class="col-span-2"><label class="text-[10px] font-bold uppercase ml-1">Nome in Cassa RCH</label><input type="text" id="piatto-nome" placeholder="NOME ESATTO RCH" class="w-full border p-3 rounded-xl font-bold bg-slate-50 uppercase"></div><div class="col-span-2"><label class="text-[10px] font-bold uppercase ml-1">Prezzo Menu (€)</label><input type="number" id="piatto-prezzo" class="w-full border p-3 rounded-xl font-black text-emerald-600 bg-slate-50 text-xl" value="0.00"></div></div>
-                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200"><div id="lista-ingredienti-piatto" class="space-y-2 mb-4"></div><div class="flex gap-2 items-end border-t pt-3"><div class="flex-1"><select id="select-ingrediente" class="w-full border p-2 rounded-lg font-bold text-[10px] bg-white"></select></div><div class="w-16"><input type="number" id="qta-ingrediente" class="w-full border p-2 rounded-lg font-bold text-xs text-center bg-white" value="1"></div><button onclick="aggiungiIngredienteRicetta()" class="bg-slate-900 text-white w-10 h-10 rounded-lg font-bold"><i class="fas fa-plus"></i></button></div></div>
-                    <button onclick="salvaPiattoMenu()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-sm mt-4">Salva nel Menu</button>
-                </div>
-            </div>
-
-            <div id="view-staff" class="view-panel space-y-4 titolare-only">
-                <div class="bg-white p-5 rounded-3xl border shadow-sm"><h4 class="font-black text-slate-800 mb-3 border-b pb-2">Anticipo Stipendio</h4><div class="space-y-3"><select id="staff-select" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-sm"></select><input type="number" id="staff-anticipo-val" placeholder="Importo €" class="w-full border p-3 rounded-xl font-black text-center text-lg bg-slate-50" value="0.00"><button onclick="salvaAnticipoStaff()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl uppercase text-xs">Conferma Anticipo</button></div></div>
-                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden" id="staff-list-container"></div>
-                <div class="flex gap-2"><input type="text" id="new-staff-name" placeholder="Nome Dipendente..." class="flex-1 border p-3 rounded-xl font-bold text-xs"><button onclick="aggiungiDipendente()" class="bg-slate-900 text-white px-4 rounded-xl font-black active:scale-95">+</button></div>
-            </div>
-
             <div id="view-shopping" class="view-panel space-y-4 titolare-only">
-                <div class="bg-amber-50 p-4 rounded-3xl border border-amber-200"><h3 class="font-black text-amber-900 text-sm">Lista Spesa Automatica</h3><p class="text-[9px] text-amber-700 uppercase font-bold">Prodotti sotto soglia minima</p></div>
-                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden divide-y divide-slate-100" id="auto-shopping-list"></div>
-                <div class="bg-slate-100 p-5 rounded-3xl space-y-3"><div class="flex gap-2"><input type="text" id="manual-shop-item" placeholder="Altro?" class="flex-1 border p-3 rounded-xl font-bold text-xs"><button onclick="aggiungiVoceManualeSpesa()" class="bg-emerald-600 text-white px-4 rounded-xl font-black active:scale-95">+</button></div><div id="manual-shopping-list" class="space-y-2"></div></div>
+                <div class="bg-amber-50 p-4 rounded-3xl border border-amber-200"><h3 class="font-black text-amber-900 text-sm">Lista Spesa Auto</h3><div id="auto-shopping-list" class="mt-2 space-y-2"></div></div>
             </div>
 
         </main>
@@ -176,7 +200,7 @@
             <button id="nav-menu" onclick="nav('view-ricettario')" class="titolare-only flex flex-col items-center w-1/5 text-slate-400 transition"><i class="fas fa-book-open text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Menu</span></button>
             <button id="nav-stock" onclick="nav('view-inventory')" class="flex flex-col items-center w-1/5 text-slate-400 transition"><i class="fas fa-boxes text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Stock</span></button>
             <button id="nav-staff" onclick="nav('view-staff')" class="titolare-only flex flex-col items-center w-1/5 text-slate-400 transition"><i class="fas fa-users text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Staff</span></button>
-            <button id="nav-cassa" onclick="nav('view-cassa')" class="titolare-only flex flex-col items-center w-1/5 text-slate-400 transition"><i class="fas fa-sync text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Sincro</span></button>
+            <button id="nav-cassa" onclick="nav('view-cassa')" class="titolare-only flex flex-col items-center w-1/5 text-slate-400 transition"><i class="fas fa-cash-register text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Cassa</span></button>
         </nav>
     </div>
 
@@ -210,35 +234,29 @@
             
             if (userRole === 'Staff') {
                 document.getElementById('role-badge').innerText = 'Staff Magazzino';
-                document.getElementById('role-badge').className = 'inline-block px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest mt-1 bg-slate-200 text-slate-700';
                 document.querySelectorAll('.titolare-only').forEach(el => el.classList.add('hidden'));
                 document.getElementById('nav-stock').classList.replace('text-slate-400', 'text-emerald-600');
                 nav('view-inventory'); caricaInventarioDaSupabase();
             } else {
                 document.getElementById('role-badge').innerText = 'Titolare';
-                document.getElementById('role-badge').className = 'inline-block px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest mt-1 bg-amber-100 text-amber-700';
                 document.querySelectorAll('.titolare-only').forEach(el => el.classList.remove('hidden'));
-                nav('view-dashboard'); caricaInventarioDaSupabase(); caricaStaff(); caricaFinanzaDaSupabase(); aggiornaVistaRicettario();
+                nav('view-dashboard'); caricaInventarioDaSupabase(); caricaFinanzaDaSupabase(); caricaStaff(); aggiornaVistaRicettario();
             }
+        }
+
+        function nav(id) {
+            if (userRole === 'Staff' && id !== 'view-inventory' && id !== 'view-add-product') return;
+            document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active')); 
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('#bottom-nav button').forEach(btn => btn.className = btn.className.replace('text-emerald-600', 'text-slate-400'));
+            if(event && event.currentTarget && event.currentTarget.tagName === 'BUTTON') event.currentTarget.className = event.currentTarget.className.replace('text-slate-400', 'text-emerald-600');
+            if(id === 'view-inventory') caricaInventarioDaSupabase();
         }
 
         function logout() { localStorage.removeItem('belvedereAuthRole'); location.reload(); }
 
-        function nav(id) {
-            if (userRole === 'Staff' && id !== 'view-inventory' && id !== 'view-add-product') { id = 'view-inventory'; }
-            document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active');
-            document.querySelectorAll('#bottom-nav button').forEach(btn => btn.className = btn.className.replace('text-emerald-600', 'text-slate-400'));
-            if(event && event.currentTarget && event.currentTarget.tagName === 'BUTTON') event.currentTarget.className = event.currentTarget.className.replace('text-slate-400', 'text-emerald-600');
-            
-            if(id==='view-shopping') generaListaSpesa();
-            if(id==='view-cassa') popolaCassaMenu();
-            if(id==='view-finanza') caricaFinanzaDaSupabase();
-            if(id==='view-inventory') caricaInventarioDaSupabase();
-            if(id==='view-staff') caricaStaff();
-        }
-
         // ==========================================
-        // NUOVO MOTORE: IMPORT VENDITE DETTAGLIATE RCH & CHIUSURA
+        // MOTORE SMART RCH EXCEL
         // ==========================================
         function elaboraVenditeRCHExcel(input) {
             if(!input.files[0]) return;
@@ -248,295 +266,258 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, {type: 'array'});
                     
-                    // 1. Individua i fogli corretti (Venduto prodotti e IVA)
                     let sheetProdottiName = workbook.SheetNames.find(n => String(n).toLowerCase().includes('venduto prodotti'));
                     let sheetIvaName = workbook.SheetNames.find(n => String(n).toLowerCase().includes('iva'));
+                    if(!sheetProdottiName) { alert("Attenzione: Carica il file 'Venduto Prodotti / Statistiche' scaricato da RCH."); input.value=''; return; }
 
-                    if(!sheetProdottiName) {
-                        alert("ERRORE: Questo file Excel non contiene il dettaglio dei prodotti.\nVai su RCH XStore -> Statistiche ed esporta il file con le Vendite dettagliate.");
-                        input.value = ''; return;
-                    }
-
-                    const jsonProdotti = XLSX.utils.sheet_to_json(workbook.Sheets[sheetProdottiName], {header: 1});
-                    let headerRow = jsonProdotti[0] || [];
-                    let idxProdotto = headerRow.findIndex(h => String(h).toLowerCase().includes('prodotto'));
-                    let idxVendite = headerRow.findIndex(h => String(h).toLowerCase() === 'vendite' || String(h).toLowerCase() === 'quantità');
-                    let idxImporto = headerRow.findIndex(h => String(h).toLowerCase().includes('importo'));
-
-                    if(idxProdotto === -1 || idxVendite === -1) throw new Error("Colonne essenziali non trovate nel report.");
-
-                    let venditeRaggruppate = {};
-                    let lordoCalcolato = 0;
-
-                    // Legge i prodotti venduti e raggruppa le quantità
-                    for(let i=1; i<jsonProdotti.length; i++) {
-                        let row = jsonProdotti[i];
-                        if(row && row[idxProdotto]) {
-                            let nome = String(row[idxProdotto]).trim().toUpperCase();
-                            let qta = parseFloat(String(row[idxVendite]).replace(',', '.')) || 0;
-                            let importo = parseFloat(String(row[idxImporto]||'0').replace(/\./g, '').replace(',', '.')) || 0;
-
-                            // Escludiamo false intestazioni e valori a zero
-                            if(nome && nome !== "PRODOTTO" && qta > 0) {
-                                if(!venditeRaggruppate[nome]) venditeRaggruppate[nome] = { qta: 0, importo: 0 };
-                                venditeRaggruppate[nome].qta += qta;
-                                venditeRaggruppate[nome].importo += importo;
-                                lordoCalcolato += importo;
-                            }
-                        }
-                    }
-
-                    let prodottiFinali = Object.keys(venditeRaggruppate).map(k => ({ nome: k, ...venditeRaggruppate[k] }));
-
-                    // 2. Lettura Finanziaria Esatta (Foglio IVA)
-                    let lordoEsatto = lordoCalcolato;
-                    let ivaEsatto = lordoEsatto - (lordoEsatto / 1.10);
-
+                    // Leggi IVA
+                    let lordo = 0; let iva = 0;
                     if(sheetIvaName) {
                         const jsonIva = XLSX.utils.sheet_to_json(workbook.Sheets[sheetIvaName], {header: 1});
-                        let hIva = jsonIva[0] || [];
-                        let idxLordo = hIva.findIndex(h => String(h).toLowerCase().includes('lordo'));
-                        let idxTassa = hIva.findIndex(h => String(h).toLowerCase().includes('tassa'));
-                        
-                        if(idxLordo !== -1 && idxTassa !== -1) {
-                            let tLordo = 0; let tIva = 0;
-                            for(let i=1; i<jsonIva.length; i++) {
-                                let row = jsonIva[i];
-                                tLordo += parseFloat(String(row[idxLordo]||'0').replace(/\./g, '').replace(',', '.')) || 0;
-                                tIva += parseFloat(String(row[idxTassa]||'0').replace(/\./g, '').replace(',', '.')) || 0;
-                            }
-                            if(tLordo > 0) { lordoEsatto = tLordo; ivaEsatto = tIva; }
+                        let hIva = jsonIva[0] || []; let iL = hIva.findIndex(h => String(h).toLowerCase().includes('lordo')); let iT = hIva.findIndex(h => String(h).toLowerCase().includes('tassa'));
+                        if(iL !== -1 && iT !== -1 && jsonIva[1]) {
+                            lordo = parseFloat(String(jsonIva[1][iL]||'0').replace(/\./g, '').replace(',', '.')) || 0;
+                            iva = parseFloat(String(jsonIva[1][iT]||'0').replace(/\./g, '').replace(',', '.')) || 0;
                         }
                     }
 
-                    // 3. Verifica Prodotti Nuovi da Auto-Creare
-                    let nuoviDaCreare = [];
-                    prodottiFinali.forEach(venduto => {
-                        let inMenu = menuRistorante.find(m => m.nome.toUpperCase() === venduto.nome);
-                        let inInv = inventarioLocale.find(inv => inv.nome.toUpperCase() === venduto.nome);
-                        if(!inMenu && !inInv) {
-                            nuoviDaCreare.push({
-                                nome: venduto.nome,
-                                quantita: 0, // Parte da 0 e andrà in negativo con lo scarico
-                                soglia_minima: 5,
-                                scalo_automatico: true, // Li mettiamo in scarico automatico di default
-                                prezzo: 0,
-                                categoria: 'Nuovi da RCH'
-                            });
-                        }
-                    });
+                    const fileID = `RCH_${lordo}_${input.files[0].lastModified}`;
+                    const { data: exists } = await supabaseClient.from('finanza').select('id').eq('descrizione', fileID);
+                    if(exists && exists.length > 0) { alert("Attenzione: Hai già caricato questo file in precedenza!"); input.value=''; return; }
 
-                    let msg = `RILEVAMENTO XSTORE COMPLETATO!\n\nIncasso Serale: € ${lordoEsatto.toFixed(2)}\nIVA Calcolata: € ${ivaEsatto.toFixed(2)}\nArticoli Riconosciuti: ${prodottiFinali.length}\n`;
-                    if(nuoviDaCreare.length > 0) {
-                        msg += `\n⚠️ ATTENZIONE: ${nuoviDaCreare.length} prodotti sono nuovi (Es. ${nuoviDaCreare[0].nome}) e verranno creati automaticamente in Magazzino.\n`;
-                    }
-                    msg += `\nConfermi la Chiusura di Cassa? L'app aggiornerà Bilancio e Giacenze.`;
+                    // Leggi Prodotti
+                    const jsonProd = XLSX.utils.sheet_to_json(workbook.Sheets[sheetProdottiName], {header: 1});
+                    let hProd = jsonProd[0] || [];
+                    let iProd = hProd.findIndex(h => String(h).toLowerCase().includes('prodotto'));
+                    let iQta = hProd.findIndex(h => String(h).toLowerCase().includes('quantità') || String(h).toLowerCase() === 'vendite');
+                    
+                    let daScaricare = {}; let nuoviPiatti = []; let countVenduti = 0;
 
-                    if(confirm(msg)) {
-                        
-                        // FASE A: Creazione prodotti mancanti
-                        if(nuoviDaCreare.length > 0) {
-                            await supabaseClient.from('inventario').insert(nuoviDaCreare);
-                            const { data } = await supabaseClient.from('inventario').select('*').order('nome');
-                            inventarioLocale = data || [];
-                        }
+                    for(let i=1; i<jsonProd.length; i++) {
+                        let row = jsonProd[i];
+                        if(row && row[iProd]) {
+                            let nome = String(row[iProd]).trim().toUpperCase();
+                            let qta = parseFloat(String(row[iQta]).replace(',', '.')) || 0;
+                            if(nome !== "PRODOTTO" && qta > 0) {
+                                countVenduti++;
+                                let inMenu = menuRistorante.find(m => m.nome === nome);
+                                let inInv = inventarioLocale.find(inv => inv.nome === nome);
+                                
+                                if(!inMenu && !inInv) nuoviPiatti.push({ nome: nome, prezzo: 0, ingredienti: [] });
 
-                        // FASE B: Logica di Scarico Intelligente
-                        let daScaricare = {};
-                        prodottiFinali.forEach(venduto => {
-                            // Cerca nel Menu (piatti composti, es. "LASAGNA")
-                            let menuItem = menuRistorante.find(m => m.nome.toUpperCase() === venduto.nome);
-                            if(menuItem && menuItem.ingredienti) {
-                                menuItem.ingredienti.forEach(ing => {
-                                    let prodInv = inventarioLocale.find(inv => inv.id === ing.id_supa);
-                                    if(prodInv && prodInv.scalo_automatico) {
-                                        daScaricare[ing.id_supa] = (daScaricare[ing.id_supa] || 0) + (ing.qta * venduto.qta);
-                                    }
-                                });
-                            } else {
-                                // Cerca direttamente in Magazzino (es. "ACQUA NAT")
-                                let invItem = inventarioLocale.find(inv => inv.nome.toUpperCase() === venduto.nome);
-                                if(invItem && invItem.scalo_automatico) {
-                                    daScaricare[invItem.id] = (daScaricare[invItem.id] || 0) + venduto.qta;
+                                if(inMenu && inMenu.ingredienti) {
+                                    inMenu.ingredienti.forEach(ing => { daScaricare[ing.id_supa] = (daScaricare[ing.id_supa] || 0) + (ing.qta * qta); });
+                                } else if (inInv && inInv.scalo_automatico) {
+                                    daScaricare[inInv.id] = (daScaricare[inInv.id] || 0) + qta;
                                 }
                             }
-                        });
-
-                        // Sottrazione in blocco su Supabase
-                        for(let id in daScaricare) { 
-                            let {data} = await supabaseClient.from('inventario').select('quantita').eq('id',id).single();
-                            if(data) await supabaseClient.from('inventario').update({quantita: data.quantita - daScaricare[id]}).eq('id',id); 
                         }
-
-                        // FASE C: Registrazione Bilancio Mensile
-                        let dataOggi = new Date().toISOString();
-                        let meseSel = document.getElementById('finanza-mese-selettore').value;
-                        if (meseSel && !dataOggi.startsWith(meseSel)) dataOggi = meseSel + "-01T12:00:00.000Z";
-
-                        await supabaseClient.from('finanza').insert([{ 
-                            tipo: 'entrata', categoria: 'Ristorante', descrizione: 'Chiusura RCH Automatica', 
-                            importo: lordoEsatto, iva: ivaEsatto, stato_pagamento: 'pagato', data: dataOggi, data_pagamento: dataOggi 
-                        }]);
-
-                        alert("Chiusura Serale Registrata con Successo!");
-                        nav('view-dashboard'); caricaInventarioDaSupabase(); caricaFinanzaDaSupabase();
                     }
 
-                } catch(err) { alert("Si è verificato un errore: " + err.message); }
+                    if(confirm(`RILEVATO: Incasso Lordo € ${lordo.toFixed(2)} (IVA: € ${iva.toFixed(2)})\nArticoli venduti: ${countVenduti}\nPiatti Nuovi Trovati: ${nuoviPiatti.length}\n\nVuoi registrare la chiusura e scaricare il magazzino?`)) {
+                        
+                        if(nuoviPiatti.length > 0) {
+                            menuRistorante = [...menuRistorante, ...nuoviPiatti];
+                            localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante));
+                        }
+
+                        for(let id in daScaricare) { 
+                            let {data: p} = await supabaseClient.from('inventario').select('quantita').eq('id',id).single();
+                            if(p) await supabaseClient.from('inventario').update({quantita: p.quantita - daScaricare[id]}).eq('id',id); 
+                        }
+
+                        let dataOggi = new Date().toISOString(); let meseSel = document.getElementById('finanza-mese-selettore').value;
+                        if (meseSel && !dataOggi.startsWith(meseSel)) dataOggi = meseSel + "-01T12:00:00.000Z";
+                        
+                        await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione: fileID, importo:lordo, iva:iva, stato_pagamento:'pagato', data: dataOggi, data_pagamento: dataOggi }]);
+                        
+                        alert("Sincronizzazione completata! I nuovi piatti sono stati aggiunti al Menu.");
+                        nav('view-dashboard'); caricaInventarioDaSupabase(); caricaFinanzaDaSupabase(); aggiornaVistaRicettario();
+                    }
+                } catch(e) { alert("Errore: " + e.message); }
                 input.value = '';
-            };
-            reader.readAsArrayBuffer(input.files[0]);
+            }; reader.readAsArrayBuffer(input.files[0]);
         }
 
         // ==========================================
-        // STOCK E MODIFICHE (CON RBAC)
+        // CHIUSURA MANUALE (FIXATA)
+        // ==========================================
+        async function eseguiChiusuraManualePura() {
+            let lordoStr = document.getElementById('manual-incasso-tot').value;
+            let lordo = parseFloat(lordoStr.replace(',', '.'));
+            if(isNaN(lordo) || lordo <= 0) return alert("Inserisci un incasso valido.");
+            
+            let iva = lordo - (lordo / 1.10);
+            let d = new Date().toISOString();
+            
+            await supabaseClient.from('finanza').insert([{ 
+                tipo: 'entrata', categoria: 'Ristorante', descrizione: 'Chiusura Manuale Emergenza', 
+                importo: lordo, iva: iva, stato_pagamento: 'pagato', data: d, data_pagamento: d 
+            }]);
+            
+            alert(`Incasso di € ${lordo.toFixed(2)} registrato in Bilancio!\n(Il magazzino non è stato scaricato in modalità manuale d'emergenza).`);
+            document.getElementById('manual-incasso-tot').value = '';
+            nav('view-dashboard'); caricaFinanzaDaSupabase();
+        }
+
+        // ==========================================
+        // STOCK & ELIMINAZIONE GLOBALE
         // ==========================================
         async function caricaInventarioDaSupabase() {
             const { data } = await supabaseClient.from('inventario').select('*').order('nome');
-            inventarioLocale = data || []; let valTot = 0; let shoppingCount = 0;
+            inventarioLocale = data || []; let valTot = 0; let shopCount = 0;
             document.getElementById('inventory-table-body').innerHTML = inventarioLocale.map(p => {
                 valTot += (parseFloat(p.prezzo||0) * parseFloat(p.quantita||0));
-                if(parseFloat(p.quantita) <= parseFloat(p.soglia_minima)) shoppingCount++;
-                let badge = p.scalo_automatico ? '<span class="text-[7px] bg-emerald-100 text-emerald-700 px-1 rounded ml-1 font-black">AUTO</span>' : '<span class="text-[7px] bg-slate-100 text-slate-500 px-1 rounded ml-1 font-black">MANUAL</span>';
-                return `<tr><td class="p-4"><p class="font-black text-xs uppercase">${p.nome}</p>${badge}</td><td class="p-4 text-center font-bold ${parseFloat(p.quantita)<0?'text-red-500':''}">${p.quantita}</td><td class="p-4 text-right"><button onclick="apriModificaStock('${p.id}')" class="bg-slate-100 p-2 rounded-xl text-blue-500 active:scale-90"><i class="fas fa-pencil"></i></button></td></tr>`;
+                if(parseFloat(p.quantita) <= parseFloat(p.soglia_minima)) shopCount++;
+                let badge = p.scalo_automatico ? '<span class="text-[7px] bg-emerald-100 text-emerald-700 px-1 rounded ml-1 font-black">AUTO</span>' : '<span class="text-[7px] bg-slate-100 text-slate-500 px-1 rounded ml-1 font-black">NO AUTO</span>';
+                return `<tr><td class="p-4"><p class="font-black text-xs uppercase">${p.nome}</p>${badge}</td><td class="p-4 text-center font-bold ${parseFloat(p.quantita)<0?'text-red-500':''}">${p.quantita}</td><td class="p-4 text-right whitespace-nowrap"><button onclick="apriModificaStock('${p.id}')" class="bg-slate-100 p-2 rounded-xl text-blue-500 mr-1"><i class="fas fa-pencil"></i></button><button onclick="eliminaProdottoStock('${p.id}')" class="bg-red-50 p-2 rounded-xl text-red-500"><i class="fas fa-trash"></i></button></td></tr>`;
             }).join('');
             
             if (userRole === 'Titolare') {
                 document.getElementById('dash-total-value').innerText = '€ ' + valTot.toFixed(2);
                 let bC = document.getElementById('alert-shopping-count');
-                if(shoppingCount > 0) { bC.innerText = shoppingCount; bC.classList.remove('hidden'); } else { bC.classList.add('hidden'); }
+                if(shopCount > 0) { bC.innerText = shopCount; bC.classList.remove('hidden'); } else { bC.classList.add('hidden'); }
             }
             popolaSelectIngredienti();
         }
 
         async function apriModificaStock(id) {
             let p = inventarioLocale.find(x => x.id === id);
-            let nQ = prompt(`Modifica Giacenza per ${p.nome.toUpperCase()}:`, p.quantita);
-            if(nQ === null) return;
-            
-            let updatePayload = { quantita: parseFloat(nQ) };
-            if (userRole === 'Titolare') {
-                let nAuto = confirm(`MANTENERE LO SCARICO AUTOMATICO IN CASSA PER QUESTO PRODOTTO?\n\nOK = SI (Viene scalato vendendo in cassa)\nANNULLA = NO (Come olio e spezie)`);
-                updatePayload.scalo_automatico = nAuto;
+            let nQ = prompt(`Giacenza per ${p.nome}:`, p.quantita);
+            if(nQ !== null) { await supabaseClient.from('inventario').update({ quantita: parseFloat(nQ.replace(',','.')) }).eq('id', id); caricaInventarioDaSupabase(); }
+        }
+
+        async function eliminaProdottoStock(id) {
+            if(confirm("Vuoi davvero ELIMINARE DEFINITIVAMENTE questa materia prima dal magazzino?")) {
+                await supabaseClient.from('inventario').delete().eq('id', id);
+                caricaInventarioDaSupabase();
             }
-            
-            await supabaseClient.from('inventario').update(updatePayload).eq('id', id);
-            caricaInventarioDaSupabase();
         }
 
         async function salvaNuovoProdotto() { 
-            let pay = { nome: document.getElementById('new-nome').value.trim().toUpperCase(), quantita: parseFloat(document.getElementById('new-qta').value), soglia_minima: parseFloat(document.getElementById('new-soglia').value), scalo_automatico: document.getElementById('new-auto-scalo').checked, prezzo: 0, categoria: 'Generale' }; 
-            if(!pay.nome) return alert("Inserisci il nome del prodotto"); 
-            await supabaseClient.from('inventario').insert([pay]); alert("Prodotto aggiunto allo stock!"); nav('view-inventory'); caricaInventarioDaSupabase(); 
+            let pay = { nome: document.getElementById('new-nome').value.trim().toUpperCase(), quantita: parseFloat(document.getElementById('new-qta').value), soglia_minima: parseFloat(document.getElementById('new-soglia').value), scalo_automatico: document.getElementById('new-auto-scalo').checked, prezzo: 0, categoria: 'Materia Prima' }; 
+            if(!pay.nome) return; await supabaseClient.from('inventario').insert([pay]); alert("Salvato!"); document.getElementById('new-nome').value=''; nav('view-inventory'); caricaInventarioDaSupabase(); 
         }
 
         // ==========================================
-        // FATTURE SPORTELLO CLOUD
+        // MENU / A.I. SMART STANDARD
         // ==========================================
+        function aggiornaVistaRicettario() {
+            document.getElementById('menu-builder-list').innerHTML = menuRistorante.map((p,idx) => `
+                <div class="bg-white p-4 border rounded-2xl flex justify-between items-center shadow-sm">
+                    <div><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">${p.ingredienti.length} Elementi associati</p></div>
+                    <button onclick="rimuoviPiatto(${idx})" class="bg-red-50 p-2 rounded-xl text-red-400"><i class="fas fa-trash"></i></button>
+                </div>`).join('') || '<p class="text-center text-xs text-slate-400">Nessuna regola menu impostata</p>';
+        }
+
+        function suggerisciGrammatura() {
+            let nome = document.getElementById('piatto-nome').value.toUpperCase();
+            let qtaInput = document.getElementById('qta-ingrediente');
+            
+            // Intelligenza per grammature
+            if (nome.includes('CAFFE') || nome.includes('CAFFÈ') || nome.includes('ESPRESSO') || nome.includes('MACCHIATO')) {
+                if(nome.includes('DOPPIO')) qtaInput.value = '0.014'; // 14g
+                else qtaInput.value = '0.007'; // 7g
+            } 
+            else if (nome.includes('1/2') || nome.includes('MEZZO')) { qtaInput.value = '0.5'; } 
+            else if (nome.includes('1/4') || nome.includes('QUARTO')) { qtaInput.value = '0.25'; } 
+            else if (nome.includes('CALICE')) { qtaInput.value = '0.15'; } // 150ml standard
+        }
+
+        function popolaSelectIngredienti() { document.getElementById('select-ingrediente').innerHTML = inventarioLocale.map(i=>`<option value="${i.id}" data-nome="${i.nome}">${i.nome}</option>`).join(''); }
+        function aggiungiIngredienteRicetta() {
+            const s = document.getElementById('select-ingrediente');
+            if(!s.value) return;
+            ingredientiTempRicetta.push({ id_supa: s.value, nome: s.options[s.selectedIndex].getAttribute('data-nome'), qta: parseFloat(document.getElementById('qta-ingrediente').value)||1 });
+            document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map((i, idx)=>`<div class="flex justify-between text-[10px] font-black uppercase border-b pb-1 mb-1"><span>${i.nome}</span><span>- ${i.qta} <button onclick="ingredientiTempRicetta.splice(${idx},1); document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map((x, i2)=>\`<div class='flex justify-between text-[10px] font-black uppercase border-b pb-1 mb-1'><span>\${x.nome}</span><span>- \${x.qta}</span></div>\`).join('');" class="text-red-500 ml-2"><i class="fas fa-times"></i></button></span></div>`).join('');
+        }
+        function salvaPiattoMenu() {
+            let n = document.getElementById('piatto-nome').value.toUpperCase().trim(); if(!n) return;
+            let extIdx = menuRistorante.findIndex(m => m.nome === n);
+            if(extIdx > -1) { menuRistorante[extIdx].ingredienti = [...ingredientiTempRicetta]; } 
+            else { menuRistorante.push({ nome: n, prezzo: parseFloat(document.getElementById('piatto-prezzo').value||0), ingredienti: [...ingredientiTempRicetta] }); }
+            localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); chiudiCreaPiatto(); aggiornaVistaRicettario();
+        }
+        function rimuoviPiatto(i) { if(confirm("Eliminare voce dal menu?")) { menuRistorante.splice(i,1); localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); aggiornaVistaRicettario(); } }
+        function apriCreaPiatto() { document.getElementById('form-crea-piatto').classList.remove('hidden'); ingredientiTempRicetta = []; document.getElementById('lista-ingredienti-piatto').innerHTML = ''; document.getElementById('piatto-nome').value=''; document.getElementById('qta-ingrediente').value=''; }
+        function chiudiCreaPiatto() { document.getElementById('form-crea-piatto').classList.add('hidden'); }
+
+        // ==========================================
+        // FINANZA E FATTURE CLOUD
+        // ==========================================
+        async function caricaFinanzaDaSupabase() {
+            const { data } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false });
+            let mese = document.getElementById('finanza-mese-selettore').value;
+            let filtrati = (data || []).filter(m => m.data && m.data.startsWith(mese));
+            let totE = 0; let totU = 0; let ivaD = 0; let ivaC = 0;
+            document.getElementById('finanza-list').innerHTML = filtrati.map(m => {
+                let isE = (m.tipo === 'entrata');
+                if(isE) { totE += m.importo; ivaD += (m.iva||0); } else { if(m.stato_pagamento==='pagato') totU += m.importo; ivaC += (m.iva||0); }
+                return `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-xs uppercase">${m.descrizione.startsWith('RCH')?'Chiusura Serale RCH':m.descrizione}</p><p class="text-[8px] font-bold text-slate-400">${new Date(m.data).toLocaleDateString()} - ${m.stato_pagamento}</p></div><div class="flex items-center"><span class="font-black ${isE?'text-emerald-500':'text-slate-700'}">€ ${m.importo.toFixed(2)}</span><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-300 p-2 ml-2 bg-red-50 rounded-lg"><i class="fas fa-trash"></i></button></div></div>`;
+            }).join('') || '<p class="p-8 text-center text-xs text-slate-400 uppercase">Nessun movimento</p>';
+            let liq = totE - totU; document.getElementById('finanza-saldo').innerText = '€ ' + Math.abs(liq).toFixed(2);
+            document.getElementById('finanza-saldo').className = `text-4xl font-black ${liq >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
+            document.getElementById('finanza-saldo-segno').innerText = liq >= 0 ? "ATTIVO MENSILE" : "PASSIVO MENSILE";
+            document.getElementById('finanza-iva-totale').innerText = '€ ' + Math.abs(ivaD - ivaC).toFixed(2);
+            document.getElementById('dash-income').innerText = '€ ' + totE.toFixed(2);
+        }
+        async function eliminaMovimentoFinanza(id) { if(confirm("Vuoi davvero ELIMINARE questo movimento fiscale?")) { await supabaseClient.from('finanza').delete().eq('id', id); caricaFinanzaDaSupabase(); } }
+
         function elaboraFatturaXML(input) {
-            if(!input.files[0]) return; document.getElementById('fattura-loader').classList.remove('hidden'); document.getElementById('fattura-result').classList.add('hidden');
+            if(!input.files[0]) return; document.getElementById('fattura-result').classList.add('hidden');
             const reader = new FileReader(); reader.onload = function(e) {
-                try {
-                    let rawText = e.target.result; let items = []; let ivaT = 0;
-                    if (rawText.includes('<html')) {
-                        const parser = new DOMParser(); const htmlDoc = parser.parseFromString(rawText, "text/html");
-                        const tabelle = htmlDoc.querySelectorAll('table'); let tabellaP = null;
-                        for (let tb of tabelle) { if (tb.textContent.includes('Prezzo unitario')) { tabellaP = tb; break; } }
-                        if (tabellaP) {
-                            tabellaP.querySelectorAll('tbody tr').forEach(riga => {
-                                const celle = riga.querySelectorAll('td');
-                                if (celle.length >= 8) {
-                                    let desc = celle[1].innerText.split('Periodo')[0].trim(), qta = parseFloat(celle[2].innerText.replace(/\./g,'').replace(',','.'))||0, p = parseFloat(celle[3].innerText.replace(/\./g,'').replace(',','.'))||0, percIva = parseFloat(celle[6].innerText.replace(',','.'))||0;
-                                    if (desc && qta > 0) { items.push({ nome: desc.substring(0,30), qta, costo_unit: p }); ivaT += (qta*p)*(percIva/100); }
-                                }
-                            });
-                        }
+                let rawText = e.target.result; let items = []; let ivaT = 0;
+                if (rawText.includes('<html')) {
+                    const parser = new DOMParser(); const htmlDoc = parser.parseFromString(rawText, "text/html");
+                    const tabelle = htmlDoc.querySelectorAll('table'); let tabellaP = null;
+                    for (let tb of tabelle) { if (tb.textContent.includes('Prezzo unitario')) { tabellaP = tb; break; } }
+                    if (tabellaP) {
+                        tabellaP.querySelectorAll('tbody tr').forEach(riga => {
+                            const celle = riga.querySelectorAll('td');
+                            if (celle.length >= 8) {
+                                let desc = celle[1].innerText.split('Periodo')[0].trim(), qta = parseFloat(celle[2].innerText.replace(/\./g,'').replace(',','.'))||0, p = parseFloat(celle[3].innerText.replace(/\./g,'').replace(',','.'))||0, percIva = parseFloat(celle[6].innerText.replace(',','.'))||0;
+                                if (desc && qta > 0) { items.push({ nome: desc.substring(0,30), qta, costo_unit: p }); ivaT += (qta*p)*(percIva/100); }
+                            }
+                        });
                     }
-                    fatturaItemsLetti = items; document.getElementById('ocr-tot-iva').value = ivaT.toFixed(2);
-                    document.getElementById('fattura-loader').classList.add('hidden'); document.getElementById('fattura-result').classList.remove('hidden');
-                    document.getElementById('fattura-items-list').innerHTML = items.map(i => `<div class="p-3 flex justify-between text-[10px] font-bold border-b"><span>${i.nome}</span><span>x${i.qta}</span><span class="text-emerald-600">€${i.costo_unit.toFixed(2)}</span></div>`).join('');
-                } catch(err) { alert("File non supportato"); document.getElementById('fattura-loader').classList.add('hidden'); }
+                }
+                fatturaItemsLetti = items; document.getElementById('ocr-tot-iva').value = ivaT.toFixed(2);
+                document.getElementById('fattura-result').classList.remove('hidden');
+                document.getElementById('fattura-items-list').innerHTML = items.map(i => `<div class="flex justify-between border-b pb-1 mb-1"><span>${i.nome}</span><span>x${i.qta}</span><span class="text-emerald-600">€${i.costo_unit.toFixed(2)}</span></div>`).join('');
             }; reader.readAsText(input.files[0]);
         }
-
         async function confermaCaricoFattura() {
             let doc=document.getElementById('ocr-tipo-doc').value, stato=document.getElementById('ocr-stato-pag').value, tot=0, ivaE = parseFloat(document.getElementById('ocr-tot-iva').value)||0;
             fatturaItemsLetti.forEach(i => tot += (i.qta * i.costo_unit));
             if(doc === 'merce') {
                 for(let i of fatturaItemsLetti) {
                     let {data: ex} = await supabaseClient.from('inventario').select('*').ilike('nome', `%${i.nome.split(' ')[0]}%`).limit(1);
-                    if(ex && ex.length > 0) await supabaseClient.from('inventario').update({ quantita: parseFloat(ex[0].quantita) + i.qta, prezzo: i.costo_unit }).eq('id', ex[0].id);
+                    if(ex && ex.length > 0) await supabaseClient.from('inventario').update({ quantita: parseFloat(ex[0].quantita) + i.qta }).eq('id', ex[0].id);
                     else await supabaseClient.from('inventario').insert([{ nome: i.nome.toUpperCase(), quantita: i.qta, prezzo: i.costo_unit, categoria: 'Da Assegnare', scalo_automatico: false }]);
                 }
             }
-            await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria: (doc==='merce'?'Fornitori':'Utenze'), descrizione:'Fattura Sportello Cloud', importo: tot+ivaE, iva: ivaE, stato_pagamento: stato, data: new Date().toISOString(), data_pagamento: stato==='pagato'?new Date().toISOString():null }]);
-            alert("Operazione completata!"); nav('view-dashboard');
+            await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria: (doc==='merce'?'Fornitori':'Utenze'), descrizione:'Fattura Acquisto', importo: tot+ivaE, iva: ivaE, stato_pagamento: stato, data: new Date().toISOString(), data_pagamento: stato==='pagato'?new Date().toISOString():null }]);
+            alert("Fattura Caricata!"); nav('view-dashboard');
         }
 
         // ==========================================
-        // FINANZA E CASSA MANUALE
+        // STAFF & ALTRO
         // ==========================================
-        async function caricaFinanzaDaSupabase() {
-            const { data, error } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false });
-            if(error) return;
-            let meseSel = document.getElementById('finanza-mese-selettore').value;
-            let filtrati = data.filter(m => m.data && m.data.startsWith(meseSel));
-            let html = ''; let totE=0; let totUPag=0; let ivaD=0; let ivaC=0; let totDeb=0;
-            filtrati.forEach(m => {
-                let imp = parseFloat(m.importo||0); let iva = parseFloat(m.iva||0);
-                if(m.tipo==='entrata' || m.categoria==='Ristorante') { totE+=imp; ivaD+=iva; } else { if(m.stato_pagamento==='pagato') totUPag+=imp; else totDeb+=imp; ivaC+=iva; }
-                let badge = m.stato_pagamento === 'da_pagare' ? `<span class="bg-red-500 text-white status-badge ml-2">Debito</span>` : `<span class="bg-slate-200 text-slate-600 status-badge ml-2">Pagato</span>`;
-                html += `<div class="p-4 border-b flex justify-between items-center"><div class="flex-1"><p class="font-black text-xs uppercase">${m.descrizione||m.categoria}</p><p class="text-[8px] text-slate-400 font-bold">${new Date(m.data).toLocaleDateString()} ${badge}</p></div><span class="font-black ${m.tipo==='entrata'?'text-emerald-500':'text-slate-700'}">€ ${imp.toFixed(2)}</span><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-200 p-2 ml-2"><i class="fas fa-trash"></i></button></div>`;
-            });
-            document.getElementById('finanza-list').innerHTML = html || '<p class="p-8 text-center text-xs text-slate-400 uppercase">Nessun movimento nel mese</p>';
-            let liq = totE - totUPag; document.getElementById('finanza-saldo').innerText = '€ '+Math.abs(liq).toFixed(2);
-            document.getElementById('finanza-saldo').className = `text-4xl font-black ${liq >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
-            document.getElementById('finanza-saldo-segno').innerText = liq >= 0 ? "MESE IN ATTIVO (+)" : "MESE IN PASSIVO (-)";
-            document.getElementById('finanza-saldo-segno').className = `inline-block text-[9px] font-black uppercase px-3 py-1 rounded-full mb-2 ${liq >= 0 ? 'bg-emerald-500' : 'bg-red-500'} text-white`;
-            let ivaS = ivaD - ivaC; document.getElementById('finanza-iva-totale').innerText = '€ ' + Math.abs(ivaS).toFixed(2);
-            document.getElementById('finanza-iva-badge').innerText = ivaS >= 0 ? "DA VERSARE" : "A CREDITO";
-            document.getElementById('finanza-iva-badge').className = `text-[8px] font-black uppercase px-2 py-1 rounded text-white ${ivaS >= 0 ? 'bg-red-500' : 'bg-emerald-500'}`;
+        async function caricaStaff() { 
+            const { data } = await supabaseClient.from('staff').select('*').order('nome'); staffLocale = data || []; 
+            document.getElementById('staff-select').innerHTML = staffLocale.map(s => `<option value="${s.nome}">${s.nome}</option>`).join(''); 
+            let html = ''; 
+            for(let s of staffLocale) { 
+                let mese = document.getElementById('finanza-mese-selettore').value; 
+                const { data: ant } = await supabaseClient.from('finanza').select('importo').eq('categoria', 'Personale').ilike('descrizione', `%Anticipo ${s.nome}%`).filter('data', 'gte', mese+'-01'); 
+                let totA = (ant || []).reduce((acc, curr) => acc + parseFloat(curr.importo), 0); 
+                html += `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-sm uppercase">${s.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">Anticipi Mese</p></div><div class="flex items-center"><span class="font-black text-red-500 text-lg">€ ${totA.toFixed(2)}</span><button onclick="eliminaStaff('${s.id}')" class="text-red-300 bg-red-50 p-2 rounded-xl ml-3"><i class="fas fa-trash"></i></button></div></div>`; 
+            } 
+            document.getElementById('staff-list-container').innerHTML = html || '<p class="p-6 text-center text-xs text-slate-400 uppercase">Nessuno staff</p>'; 
         }
-        async function eliminaMovimentoFinanza(id) { if(confirm("Eliminare movimento?")) { await supabaseClient.from('finanza').delete().eq('id', id); caricaFinanzaDaSupabase(); } }
-
-        function popolaCassaMenu() { document.getElementById('cassa-piatti-list').innerHTML = menuRistorante.map((p,idx) => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border mb-2 shadow-sm"><p class="font-black text-sm uppercase">${p.nome}</p><div class="flex gap-2"><button onclick="updateV(${idx},-1)" class="w-8 h-8 bg-white rounded-lg font-black shadow-sm">-</button><input id="cassa-qty-${idx}" value="${p.venduti||0}" readonly class="w-6 text-center font-black text-emerald-600"><button onclick="updateV(${idx},1)" class="w-8 h-8 bg-emerald-500 text-white rounded-lg font-black shadow-sm">+</button></div></div>`).join(''); calcolaTotC(); }
-        function updateV(i,d) { let n=(menuRistorante[i].venduti||0)+d; if(n>=0){menuRistorante[i].venduti=n; document.getElementById(`cassa-qty-${i}`).value=n; calcolaTotC();} }
-        function calcolaTotC() { let t=0; menuRistorante.forEach(p=>t+=(p.prezzo*(p.venduti||0))); document.getElementById('cassa-total-display').innerText='€ '+t.toFixed(2); return t; }
-        function resetMenuCassa() { menuRistorante.forEach(p=>p.venduti=0); popolaCassaMenu(); }
-
-        async function eseguiScaricoMagazzinoManuale() {
-            let incasso = calcolaTotC(); if(incasso===0) return;
-            let daScaricare = {};
-            menuRistorante.forEach(p => { 
-                if(p.venduti > 0 && p.ingredienti) {
-                    p.ingredienti.forEach(ing => { 
-                        let prodInv = inventarioLocale.find(inv => inv.id === ing.id_supa);
-                        if(prodInv && prodInv.scalo_automatico) { daScaricare[ing.id_supa] = (daScaricare[ing.id_supa]||0) + (ing.qta * p.venduti); }
-                    });
-                }
-            });
-            for(let id in daScaricare) { 
-                let {data} = await supabaseClient.from('inventario').select('quantita').eq('id',id).single();
-                if(data) await supabaseClient.from('inventario').update({quantita: data.quantita - daScaricare[id]}).eq('id',id); 
-            }
-            let ivaV = incasso - (incasso / 1.10);
-            await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione:'Chiusura Cassa Manuale', importo:incasso, iva:ivaV, stato_pagamento:'pagato', data: new Date().toISOString(), data_pagamento: new Date().toISOString() }]);
-            alert("Incasso Manuale registrato e Magazzino aggiornato!"); resetMenuCassa(); nav('view-dashboard'); caricaInventarioDaSupabase();
-        }
-        
-        // ==========================================
-        // STAFF E ALTRO
-        // ==========================================
-        async function caricaStaff() { const { data } = await supabaseClient.from('staff').select('*').order('nome'); staffLocale = data || []; document.getElementById('staff-select').innerHTML = staffLocale.map(s => `<option value="${s.nome}">${s.nome}</option>`).join(''); let html = ''; for(let s of staffLocale) { let mese = document.getElementById('finanza-mese-selettore').value; const { data: ant } = await supabaseClient.from('finanza').select('importo').eq('categoria', 'Personale').ilike('descrizione', `%Anticipo ${s.nome}%`).filter('data', 'gte', mese+'-01'); let totA = (ant || []).reduce((acc, curr) => acc + parseFloat(curr.importo), 0); html += `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-sm uppercase">${s.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">Anticipi Mese</p></div><span class="font-black text-red-500 text-lg">€ ${totA.toFixed(2)}</span></div>`; } document.getElementById('staff-list-container').innerHTML = html || '<p class="p-6 text-center text-xs text-slate-400 uppercase">Nessuno staff</p>'; }
-        async function salvaAnticipoStaff() { let n = document.getElementById('staff-select').value, i = parseFloat(document.getElementById('staff-anticipo-val').value); if(i>0) { await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria:'Personale', descrizione:`Anticipo ${n}`, importo:i, stato_pagamento:'pagato', data:new Date().toISOString(), data_pagamento:new Date().toISOString() }]); alert("Erogato!"); document.getElementById('staff-anticipo-val').value='0.00'; caricaStaff(); caricaFinanzaDaSupabase(); } }
+        async function eliminaStaff(id) { if(confirm("Licenziare / Eliminare questo dipendente?")) { await supabaseClient.from('staff').delete().eq('id', id); caricaStaff(); } }
+        async function salvaAnticipoStaff() { let n = document.getElementById('staff-select').value, i = parseFloat(document.getElementById('staff-anticipo-val').value); if(i>0) { await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria:'Personale', descrizione:`Anticipo ${n}`, importo:i, stato_pagamento:'pagato', data:new Date().toISOString() }]); alert("Erogato!"); document.getElementById('staff-anticipo-val').value='0.00'; caricaStaff(); caricaFinanzaDaSupabase(); } }
         async function aggiungiDipendente() { let n = document.getElementById('new-staff-name').value.trim(); if(n) { await supabaseClient.from('staff').insert([{ nome:n }]); document.getElementById('new-staff-name').value=''; caricaStaff(); } }
-        
-        function aggiornaVistaRicettario() { document.getElementById('menu-builder-list').innerHTML = menuRistorante.map((p,idx) => `<div class="bg-white p-4 border rounded-2xl flex justify-between shadow-sm"><p class="font-black text-sm uppercase">${p.nome} <span class="text-emerald-500">€${p.prezzo}</span></p><button onclick="menuRistorante.splice(${idx},1); localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); aggiornaVistaRicettario();" class="text-red-400"><i class="fas fa-trash"></i></button></div>`).join(''); }
-        function popolaSelectIngredienti() { document.getElementById('select-ingrediente').innerHTML = inventarioLocale.map(i=>`<option value="${i.id}" data-nome="${i.nome}">${i.nome}</option>`).join(''); }
-        function aggiungiIngredienteRicetta() { const s=document.getElementById('select-ingrediente'); if(s.value) { ingredientiTempRicetta.push({ id_supa: s.value, nome: s.options[s.selectedIndex].getAttribute('data-nome'), qta: parseFloat(document.getElementById('qta-ingrediente').value)||0 }); document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map(i=>`<p class="text-[10px] font-black uppercase">${i.qta}x ${i.nome}</p>`).join(''); } }
-        function salvaPiattoMenu() { let nome=document.getElementById('piatto-nome').value; if(nome) { menuRistorante.push({ nome, prezzo: parseFloat(document.getElementById('piatto-prezzo').value), venduti: 0, ingredienti: [...ingredientiTempRicetta] }); localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); chiudiCreaPiatto(); aggiornaVistaRicettario(); } }
-        function apriCreaPiatto() { document.getElementById('form-crea-piatto').classList.remove('hidden'); ingredientiTempRicetta=[]; document.getElementById('lista-ingredienti-piatto').innerHTML = ''; }
-        function chiudiCreaPiatto() { document.getElementById('form-crea-piatto').classList.add('hidden'); }
         
         function generaListaSpesa() { let autoItems = inventarioLocale.filter(p => parseFloat(p.quantita) <= parseFloat(p.soglia_minima)); document.getElementById('auto-shopping-list').innerHTML = autoItems.map(p => `<div class="p-4 flex justify-between bg-white"><div><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] text-red-500 font-bold uppercase">Stock: ${p.quantita} / Soglia: ${p.soglia_minima}</p></div><i class="fas fa-triangle-exclamation text-amber-500"></i></div>`).join('') || '<p class="p-8 text-center text-xs text-slate-400">Tutto in stock!</p>'; }
         let extraShopping = [];
