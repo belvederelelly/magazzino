@@ -131,22 +131,22 @@
                 <div class="bg-emerald-600 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
                     <i class="fas fa-bolt absolute -right-4 -bottom-4 text-7xl opacity-20"></i>
                     <h3 class="font-black text-lg">Caricamento Rapido</h3>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-100">Usa File Digitale o Screenshot</p>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-100">Usa File Digitale o Foto</p>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4">
                     <div class="bg-white border-2 border-dashed border-emerald-200 p-6 rounded-3xl text-center shadow-sm">
                         <i class="fas fa-file-code text-3xl text-emerald-500 mb-3"></i>
-                        <h4 class="font-bold text-sm">File XML Originale</h4>
-                        <p class="text-[9px] text-slate-400 mb-4 uppercase">Istantaneo (ignora anche gli .html)</p>
+                        <h4 class="font-bold text-sm">File XML (Sportello Cloud)</h4>
+                        <p class="text-[9px] text-slate-400 mb-4 uppercase">Istantaneo, ignora l'errore .HTML</p>
                         <input type="file" accept=".xml, application/xml, text/xml, .html, .htm" id="file-xml" onchange="elaboraFatturaXML(this)" class="hidden">
                         <button onclick="document.getElementById('file-xml').click()" class="bg-emerald-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition">Seleziona Documento</button>
                     </div>
 
                     <div class="bg-white border-2 border-dashed border-blue-200 p-6 rounded-3xl text-center shadow-sm">
                         <i class="fas fa-camera text-3xl text-blue-500 mb-3"></i>
-                        <h4 class="font-bold text-sm">Foto o Screenshot Tabella</h4>
-                        <p class="text-[9px] text-slate-400 mb-4 uppercase">L'A.I. leggerà i testi visivamente</p>
+                        <h4 class="font-bold text-sm">Foto o Screenshot</h4>
+                        <p class="text-[9px] text-slate-400 mb-4 uppercase">Lettura visiva tramite A.I.</p>
                         <input type="file" accept="image/*" id="file-foto" onchange="elaboraFatturaFoto(this)" class="hidden">
                         <button onclick="document.getElementById('file-foto').click()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition">Scatta Foto</button>
                     </div>
@@ -160,7 +160,7 @@
                 <div id="fattura-result" class="hidden space-y-4">
                     <div class="bg-white rounded-3xl border shadow-xl overflow-hidden">
                         <div class="p-3 bg-slate-900 text-white text-[10px] font-bold uppercase flex justify-between">
-                            <span class="w-1/2">Voce Rilevata</span><span class="w-1/4 text-center">Q.tà</span><span class="w-1/4 text-right">Costo Ut.</span>
+                            <span class="w-1/2">Voce</span><span class="w-1/4 text-center">Q.tà</span><span class="w-1/4 text-right">Costo Ut.</span>
                         </div>
                         <div id="fattura-items-list" class="divide-y divide-slate-100 bg-white"></div>
                         <div class="bg-slate-100 p-4 border-t grid grid-cols-2 gap-3">
@@ -174,7 +174,7 @@
 
             <div id="view-inventory" class="view-panel space-y-4">
                 <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border">
-                    <h3 class="font-bold text-slate-800">Scorte Magazzino</h3>
+                    <h3 class="font-bold text-slate-800">Scorte</h3>
                     <div class="flex gap-2"><button onclick="nav('view-add-product')" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold shadow-sm">+ Nuovo</button><button onclick="caricaInventarioDaSupabase()" class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold"><i class="fas fa-sync-alt"></i></button></div>
                 </div>
                 <div class="bg-white rounded-3xl border overflow-hidden shadow-sm"><table class="w-full text-left text-sm"><thead class="bg-slate-50 border-b"><tr><th class="p-4 text-[10px] font-bold text-slate-400 uppercase">Prodotto</th><th class="p-4 text-[10px] font-bold text-slate-400 uppercase text-center">Q.tà</th><th class="p-4"></th></tr></thead><tbody id="inventory-table-body" class="divide-y divide-slate-100"></tbody></table></div>
@@ -182,7 +182,7 @@
 
             <div id="view-add-product" class="view-panel space-y-4">
                 <div class="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
-                    <h3 class="font-black text-lg border-b pb-2 mb-4">Nuovo Prodotto</h3>
+                    <h3 class="font-black text-lg border-b pb-2 mb-4">Aggiungi a Magazzino</h3>
                     <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Nome</label><input type="text" id="new-nome" class="w-full border p-3 rounded-xl font-bold bg-slate-50"></div>
                     <div class="grid grid-cols-2 gap-4">
                         <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Q.tà</label><input type="number" id="new-qta" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-center" value="1"></div>
@@ -206,7 +206,7 @@
                         <div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Prezzo (€)</label><input type="number" id="piatto-prezzo" class="w-full border p-3 rounded-xl font-black text-emerald-600 bg-slate-50 text-xl" value="0.00"></div>
                     </div>
                     <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                        <h4 class="font-bold text-slate-700 text-sm mb-3">Ingredienti (da Supabase)</h4>
+                        <h4 class="font-bold text-slate-700 text-sm mb-3">Ingredienti Necessari</h4>
                         <div id="lista-ingredienti-piatto" class="space-y-2 mb-4"></div>
                         <div class="flex gap-2 items-end border-t pt-3 border-slate-200">
                             <div class="flex-1"><select id="select-ingrediente" class="w-full border p-2 rounded-lg font-bold text-[10px] bg-white"></select></div>
@@ -228,7 +228,7 @@
                 </div>
                 <div class="bg-slate-900 p-6 rounded-3xl shadow-xl mt-4 relative overflow-hidden">
                     <div class="flex justify-between items-center mb-6 relative z-10"><span class="text-xs text-slate-400 uppercase font-bold tracking-widest">Incasso Totale:</span><span id="cassa-total-display" class="text-3xl font-black text-emerald-400">€ 0.00</span></div>
-                    <button id="btn-conferma-cassa" onclick="eseguiScaricoMagazzino()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg relative z-10 active:scale-95 transition">Conferma & Scarica Magazzino</button>
+                    <button id="btn-conferma-cassa" onclick="eseguiScaricoMagazzino()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg relative z-10 active:scale-95 transition">Conferma & Scarica</button>
                 </div>
             </div>
 
@@ -342,18 +342,18 @@
         }
 
         // ==========================================
-        // FATTURE: XML CORAZZATO E OCR FOTOCAMERA "REALE"
+        // FATTURE: XML IBRIDO (PURO O SPORTELLO CLOUD) E OCR
         // ==========================================
         function elaboraFatturaXML(input) {
             if(!input.files[0]) return;
             const file = input.files[0];
             
             if (file.name.toLowerCase().endsWith('.p7m')) {
-                alert("Attenzione: Questo file è firmato digitalmente (.p7m). Devi prima scompattarlo dal tuo gestionale per ottenere l'XML puro.");
+                alert("Questo file è firmato digitalmente (.p7m). Scompattalo prima di caricarlo.");
                 input.value = ''; return;
             }
             
-            document.getElementById('fattura-loader-msg').innerText = "Estrazione intelligente..."; 
+            document.getElementById('fattura-loader-msg').innerText = "Analisi dati in corso..."; 
             document.getElementById('fattura-loader').classList.remove('hidden'); 
             document.getElementById('fattura-result').classList.add('hidden');
             
@@ -361,49 +361,68 @@
             reader.onload = function(e) {
                 try {
                     let rawText = e.target.result;
-                    
-                    // Se Safari ha corrotto il file salvandolo come HTML
-                    if (file.name.toLowerCase().includes('.html') || file.name.toLowerCase().includes('.htm')) {
-                        const decodificatore = document.createElement('textarea');
-                        decodificatore.innerHTML = rawText;
-                        rawText = decodificatore.value; 
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = rawText;
-                        rawText = tempDiv.textContent || tempDiv.innerText || rawText;
-                    }
-
-                    // Regex per isolare il cuore della fattura XML
-                    let estrazione = rawText.match(/(<[a-zA-Z0-9_:]*FatturaElettronica[\s\S]*<\/[a-zA-Z0-9_:]*FatturaElettronica>)/i);
-                    if(estrazione) {
-                        rawText = estrazione[1]; 
-                    } else {
-                        throw new Error("Non riesco a trovare il codice della fattura nel file.");
-                    }
-
-                    const parser = new DOMParser(); 
-                    const xmlDoc = parser.parseFromString(rawText, "text/xml");
-                    if (xmlDoc.getElementsByTagName("parsererror").length > 0) throw new Error("Il file è troppo danneggiato o formattato male.");
-
-                    const getTags = (nodo, n) => { let t = nodo.getElementsByTagName(n); return t.length === 0 ? nodo.getElementsByTagNameNS("*", n) : t; };
-                    const linee = getTags(xmlDoc.documentElement, "DettaglioLinee");
-                    
-                    if (linee.length === 0) throw new Error("Fattura senza prodotti ('DettaglioLinee' mancante).");
-
                     let items = [];
-                    for(let i=0; i < linee.length; i++) {
-                        let tagDesc = getTags(linee[i], "Descrizione")[0];
-                        let tagQta = getTags(linee[i], "Quantita")[0];
-                        let tagPrezzo = getTags(linee[i], "PrezzoUnitario")[0];
+
+                    // 1. TENTATIVO "KAMIKAZE": Lettura Tabella HTML (Es. Sportello Cloud)
+                    if (rawText.includes('<html') && rawText.includes('<table')) {
+                        const parser = new DOMParser();
+                        const htmlDoc = parser.parseFromString(rawText, "text/html");
                         
-                        if(tagDesc && tagPrezzo) {
-                            items.push({ 
-                                nome: tagDesc.textContent.trim(), 
-                                qta: tagQta ? parseFloat(tagQta.textContent) : 1, 
-                                costo_unit: parseFloat(tagPrezzo.textContent) 
+                        const tabelle = htmlDoc.querySelectorAll('table');
+                        let tabellaProdotti = null;
+                        
+                        for (let tb of tabelle) {
+                            if (tb.textContent.includes('Prezzo unitario') && tb.textContent.includes('Quantit')) {
+                                tabellaProdotti = tb; break;
+                            }
+                        }
+
+                        if (tabellaProdotti) {
+                            const righe = tabellaProdotti.querySelectorAll('tbody tr');
+                            righe.forEach(riga => {
+                                const celle = riga.querySelectorAll('td');
+                                if (celle.length >= 8) {
+                                    let desc = celle[1].innerText.split('Periodo')[0].split('\n')[0].trim();
+                                    let qta = parseFloat(celle[2].innerText.replace(/\./g, '').replace(',', '.')) || 0;
+                                    let prezzo = parseFloat(celle[3].innerText.replace(/\./g, '').replace(',', '.')) || 0;
+
+                                    if (desc && qta > 0 && prezzo > 0 && !desc.includes('---')) {
+                                        items.push({ nome: desc.substring(0, 50), qta: qta, costo_unit: prezzo });
+                                    }
+                                }
                             });
                         }
                     }
-                    if(items.length === 0) throw new Error("Nessun articolo estratto.");
+
+                    // 2. SE NON E' UNA TABELLA HTML, PROVA IL METODO XML CLASSICO
+                    if (items.length === 0) {
+                        let estrazione = rawText.match(/(<[a-zA-Z0-9_:]*FatturaElettronica[\s\S]*<\/[a-zA-Z0-9_:]*FatturaElettronica>)/i);
+                        if(estrazione) rawText = estrazione[1];
+
+                        const parser = new DOMParser(); 
+                        const xmlDoc = parser.parseFromString(rawText, "text/xml");
+                        
+                        if (xmlDoc.getElementsByTagName("parsererror").length === 0) {
+                            const getTags = (nodo, n) => { let t = nodo.getElementsByTagName(n); return t.length === 0 ? nodo.getElementsByTagNameNS("*", n) : t; };
+                            const linee = getTags(xmlDoc.documentElement, "DettaglioLinee");
+                            
+                            for(let i=0; i < linee.length; i++) {
+                                let tagDesc = getTags(linee[i], "Descrizione")[0];
+                                let tagQta = getTags(linee[i], "Quantita")[0];
+                                let tagPrezzo = getTags(linee[i], "PrezzoUnitario")[0];
+                                
+                                if(tagDesc && tagPrezzo) {
+                                    items.push({ 
+                                        nome: tagDesc.textContent.trim(), 
+                                        qta: tagQta ? parseFloat(tagQta.textContent) : 1, 
+                                        costo_unit: parseFloat(tagPrezzo.textContent) 
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    if(items.length === 0) throw new Error("Nessun articolo estratto dal file. Controlla il formato.");
 
                     fatturaItemsLetti = items; 
                     mostraFatturaItems();
@@ -417,7 +436,6 @@
             reader.readAsText(file);
         }
 
-        // Motore OCR Reale
         function elaboraFatturaFoto(input) {
             if(!input.files[0]) return;
             
@@ -430,7 +448,6 @@
                 const img = new Image(); img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                    
                     const MAX_DIM = 1600; 
                     let w = img.width, h = img.height;
                     if(w > h && w > MAX_DIM) { h *= MAX_DIM / w; w = MAX_DIM; } else if(h > MAX_DIM) { w *= MAX_DIM / h; h = MAX_DIM; }
@@ -438,18 +455,13 @@
                     
                     canvas.toBlob(blob => {
                         Tesseract.recognize(blob, 'ita').then(({ data: { text } }) => {
-                            
                             let righe = text.split('\n');
                             let itemsTrovati = [];
                             
                             righe.forEach(riga => {
                                 riga = riga.trim();
                                 let matchPrezzo = riga.match(/(\d+[\.,]\d{2})\s*$/);
-                                
-                                let isScarto = riga.toLowerCase().includes('totale') || 
-                                            riga.toLowerCase().includes('iva') || 
-                                            riga.toLowerCase().includes('imponibile') || 
-                                            riga.length < 5;
+                                let isScarto = riga.toLowerCase().includes('totale') || riga.toLowerCase().includes('iva') || riga.toLowerCase().includes('imponibile') || riga.length < 5;
                                 
                                 if (matchPrezzo && !isScarto) {
                                     let costoUnitario = parseFloat(matchPrezzo[1].replace(',', '.'));
@@ -465,11 +477,7 @@
                                     nomeProdotto = nomeProdotto.replace(/[^a-zA-Z0-9\s]/g, '').trim();
                                     
                                     if (nomeProdotto.length > 2 && costoUnitario > 0) {
-                                        itemsTrovati.push({ 
-                                            nome: nomeProdotto.substring(0, 30), 
-                                            qta: qta, 
-                                            costo_unit: costoUnitario 
-                                        });
+                                        itemsTrovati.push({ nome: nomeProdotto.substring(0, 30), qta: qta, costo_unit: costoUnitario });
                                     }
                                 }
                             });
@@ -477,8 +485,8 @@
                             if (itemsTrovati.length > 0) {
                                 fatturaItemsLetti = itemsTrovati;
                             } else {
-                                fatturaItemsLetti = [{ nome: "ERRORE A.I. Foto Confusa", qta: 0, costo_unit: 0.00 }];
-                                alert("Ho letto la foto ma il testo è troppo confuso. Fai uno screenshot ritagliando solo la colonna dei prodotti e dei prezzi.");
+                                fatturaItemsLetti = [{ nome: "ERRORE OCR: Qualità Foto Bassa", qta: 0, costo_unit: 0.00 }];
+                                alert("Ho letto la foto ma il testo è troppo confuso per isolare i prezzi. Prova a ritagliare lo screenshot mostrando solo la colonna dei prodotti e dei prezzi.");
                             }
                             
                             mostraFatturaItems();
@@ -500,7 +508,6 @@
             
             if(doc === 'merce') {
                 for(let i of fatturaItemsLetti) {
-                    if(i.qta === 0) continue; // Salta errori OCR
                     let {data: ex} = await supabaseClient.from('inventario').select('*').ilike('nome', `%${i.nome.split(' ')[0]}%`).limit(1);
                     if(ex && ex.length > 0) await supabaseClient.from('inventario').update({ quantita: parseFloat(ex[0].quantita) + i.qta, prezzo: i.costo_unit }).eq('id', ex[0].id);
                     else await supabaseClient.from('inventario').insert([{ nome: i.nome, quantita: i.qta, prezzo: i.costo_unit, categoria: 'Da Assegnare' }]);
