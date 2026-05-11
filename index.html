@@ -160,40 +160,33 @@
         // Configurazione
         const SB_URL = 'https://nizktofcamulygzszydw.supabase.co';
         const SB_KEY = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
-        const supabase = supabase.createClient(SB_URL, SB_KEY);
+        // ERRORE PRECEDENTE CORRETTO QUI: rinominata la variabile in supabaseClient
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
         let userRole = '';
         let html5QrScanner = null;
 
-        // AGGIUNTA: Rileva il tasto "Invio" sulla tastiera per fare login più in fretta
+        // Rileva il tasto "Invio" sulla tastiera
         document.getElementById('pass-field').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 handleAuth();
             }
         });
 
-        // LOGIN MIGLIORATO
+        // LOGIN
         function handleAuth() {
-            // Prendiamo il valore inserito
             let rawPass = document.getElementById('pass-field').value;
-            
-            // "Puliamo" la password: 
-            // .trim() toglie gli spazi iniziali e finali inseriti per sbaglio
-            // .toLowerCase() rende tutte le lettere minuscole (se il telefono scrive "Staff" o "STAFF" o " staff ")
             let pass = rawPass.trim().toLowerCase();
             
             const error = document.getElementById('login-error');
             
-            // Ora il controllo non fallirà per uno spazio in più o una maiuscola automatica
             if (pass === 'staff' || pass === 'belvedere59') {
                 userRole = (pass === 'belvedere59') ? 'titolare' : 'staff';
                 document.getElementById('view-login').style.display = 'none';
                 document.getElementById('app-interface').classList.remove('hidden');
                 
-                // Nascondo l'errore se prima c'era
                 error.classList.add('hidden');
                 
-                // Personalizza interfaccia
                 const badge = document.getElementById('role-badge');
                 badge.innerText = userRole;
                 badge.className = (userRole === 'titolare') ? 
@@ -202,10 +195,7 @@
                 
                 nav('view-dashboard');
             } else {
-                // Password davvero sbagliata
                 error.classList.remove('hidden');
-                
-                // Nascondi l'errore dopo 3 secondi
                 setTimeout(() => {
                     error.classList.add('hidden');
                 }, 3000);
@@ -217,11 +207,9 @@
             document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             
-            // Titoli
             const titles = { 'view-dashboard': 'Dashboard', 'view-barcode': 'Scanner Barcode', 'view-ocr': 'Chiusura Cassa' };
             document.getElementById('header-title').innerText = titles[id];
 
-            // Gestione Scanner
             if (id === 'view-barcode') {
                 startScanner();
             } else if (html5QrScanner) {
@@ -234,7 +222,7 @@
             html5QrScanner = new Html5Qrcode("qr-reader");
             html5QrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
                 document.getElementById('scan-feedback').classList.remove('hidden');
-                alert("Prodotto " + text + " caricato a magazzino!");
+                alert("Prodotto " + text + " scansionato!");
                 nav('view-dashboard');
             });
         }
@@ -252,7 +240,6 @@
                 loader.classList.add('hidden');
                 result.classList.remove('hidden');
                 
-                // Logica estrazione prezzo (cerca il valore più alto)
                 const matches = text.match(/\d+[\.,]\d{2}/g);
                 if (matches) {
                     const values = matches.map(m => parseFloat(m.replace(',', '.')));
@@ -266,10 +253,7 @@
             const val = document.getElementById('final-total').value;
             document.getElementById('dash-income').innerText = '€ ' + val;
             
-            // Aggiungi allo storico
             const list = document.getElementById('history-list');
-            
-            // Rimuovo il testo "Nessun movimento" se è la prima entrata
             if(list.innerText.includes("Nessun movimento oggi")) {
                 list.innerHTML = "";
             }
