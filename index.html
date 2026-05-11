@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belvedere Smart - ERP Business Manager</title>
+    <title>Belvedere Smart - Business Manager v5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -28,11 +28,11 @@
                 <i class="fas fa-utensils text-4xl text-white -rotate-3"></i>
             </div>
             <h1 class="text-3xl font-black text-white italic tracking-tighter uppercase mb-1">Belvedere</h1>
-            <p class="text-emerald-400 text-[10px] font-bold tracking-widest uppercase">Business Intelligence</p>
+            <p class="text-emerald-400 text-[10px] font-bold tracking-widest uppercase">Business Management System</p>
         </div>
         <div class="w-full max-w-sm space-y-4">
             <input type="password" id="pass-field" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold tracking-widest text-center" placeholder="PASSWORD">
-            <button onclick="handleAuth()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 uppercase tracking-widest text-sm transition">Accedi</button>
+            <button onclick="handleAuth()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 uppercase tracking-widest text-sm transition">Entra</button>
         </div>
     </div>
 
@@ -43,7 +43,7 @@
                 <div id="role-badge" class="inline-block px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest mt-1 bg-amber-100 text-amber-700">Titolare</div>
             </div>
             <div class="flex gap-2">
-                <button onclick="nav('view-shopping')" class="relative bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center text-slate-600 active:scale-90 transition">
+                <button onclick="nav('view-shopping')" class="relative bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center text-slate-600">
                     <i class="fas fa-shopping-basket"></i>
                     <span id="alert-shopping-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
                 </button>
@@ -59,199 +59,114 @@
                     <div class="bg-white p-4 rounded-3xl border shadow-sm"><p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Valore Stock</p><p id="dash-total-value" class="text-xl font-black text-slate-700">€ 0.00</p></div>
                 </div>
 
-                <button onclick="nav('view-finanza')" class="w-full bg-slate-900 text-white p-4 rounded-3xl shadow-lg flex justify-between items-center active:scale-95 transition">
-                    <div class="text-left"><h3 class="font-black text-emerald-400"><i class="fas fa-wallet mr-2"></i>Bilancio, Debiti & IVA</h3><p class="text-[9px] text-slate-400 uppercase font-bold">Monitoraggio Mensile Real-Time</p></div>
+                <button onclick="nav('view-finanza')" class="w-full bg-slate-900 text-white p-5 rounded-3xl shadow-lg flex justify-between items-center active:scale-95 transition">
+                    <div class="text-left"><h3 class="font-black text-emerald-400"><i class="fas fa-wallet mr-2"></i>Bilancio, Debiti & IVA</h3><p class="text-[10px] font-bold text-slate-400 uppercase font-bold tracking-widest mt-1">Controllo Fiscale Mensile</p></div>
                     <i class="fas fa-chevron-right text-slate-600"></i>
-                </button>
-
-                <button onclick="nav('view-staff')" class="w-full bg-blue-600 text-white p-4 rounded-3xl shadow-lg flex justify-between items-center active:scale-95 transition">
-                    <div class="text-left"><h3 class="font-black"><i class="fas fa-users mr-2"></i>Personale & Anticipi</h3><p class="text-[9px] text-blue-100 uppercase font-bold">Gestione Staff e Acconti</p></div>
-                    <i class="fas fa-chevron-right text-blue-400"></i>
                 </button>
 
                 <div class="grid grid-cols-2 gap-3">
                     <button onclick="nav('view-inventory')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-boxes text-2xl text-slate-600 mb-2"></i><span class="block text-[10px] font-black uppercase">Magazzino</span></button>
-                    <button onclick="nav('view-shopping')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-list-check text-2xl text-amber-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Lista Spesa</span></button>
-                    <button onclick="nav('view-fatture')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-file-invoice text-2xl text-blue-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Carico Fatture</span></button>
+                    <button onclick="nav('view-staff')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-users text-2xl text-blue-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Staff</span></button>
+                    <button onclick="nav('view-fatture')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-file-invoice text-2xl text-amber-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Fatture</span></button>
                     <button onclick="nav('view-cassa')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-cash-register text-2xl text-emerald-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Cassa</span></button>
                 </div>
             </div>
 
             <div id="view-finanza" class="view-panel space-y-5">
                 <div class="bg-white p-3 rounded-2xl border flex justify-between items-center shadow-sm">
-                    <span class="text-[10px] font-black uppercase text-slate-500">Mese:</span>
-                    <input type="month" id="finanza-mese-selettore" onchange="caricaFinanzaDaSupabase()" class="font-black text-sm bg-slate-50 p-2 rounded-xl outline-none w-36 text-center">
+                    <input type="month" id="finanza-mese-selettore" onchange="caricaFinanzaDaSupabase()" class="font-black text-sm bg-slate-50 p-2 rounded-xl outline-none w-full text-center">
                 </div>
-
                 <div class="bg-slate-900 p-6 rounded-3xl shadow-xl text-center relative overflow-hidden">
-                    <div class="text-center border-b border-slate-700 pb-4 mb-4">
-                        <div class="flex justify-center mb-1"><span id="finanza-saldo-segno" class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-slate-700 text-white">CALCOLO...</span></div>
-                        <p id="finanza-saldo" class="text-4xl font-black text-emerald-400">€ 0.00</p>
-                        <p class="text-[9px] font-bold text-slate-500 uppercase mt-1">Liquidità Mensile</p>
-                    </div>
-                    
-                    <div class="bg-slate-800 rounded-2xl p-3 mb-4 flex justify-between items-center border border-slate-700">
-                        <div><p class="text-[8px] font-bold uppercase text-slate-400">Saldo IVA</p><p id="finanza-iva-totale" class="text-lg font-black text-white">€ 0.00</p></div>
+                    <div class="flex justify-center mb-1"><span id="finanza-saldo-segno" class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-slate-700 text-white">CALCOLANDO...</span></div>
+                    <p id="finanza-saldo" class="text-4xl font-black text-emerald-400">€ 0.00</p>
+                    <div class="bg-slate-800 rounded-2xl p-3 my-4 flex justify-between items-center border border-slate-700 text-left">
+                        <div><p class="text-[8px] font-bold uppercase text-slate-400">Pendenza IVA</p><p id="finanza-iva-totale" class="text-lg font-black text-white">€ 0.00</p></div>
                         <span id="finanza-iva-badge" class="text-[8px] font-black uppercase px-2 py-1 rounded">--</span>
                     </div>
-
-                    <div class="flex justify-between text-[10px]">
-                        <div class="text-left"><p class="text-slate-400 uppercase">Incasso</p><p id="finanza-entrate" class="font-black text-white">€ 0.00</p></div>
-                        <div class="text-center"><p class="text-slate-400 uppercase">Pagate</p><p id="finanza-uscite-pagate" class="font-black text-white">€ 0.00</p></div>
-                        <div class="text-right text-red-400"><p class="uppercase">Debiti</p><p id="finanza-debiti" class="font-black">€ 0.00</p></div>
+                    <div class="flex justify-between text-[10px] font-bold">
+                        <div class="text-left"><p class="text-slate-400 uppercase">Incasso</p><p id="finanza-entrate" class="text-white">€ 0.00</p></div>
+                        <div class="text-center"><p class="text-slate-400 uppercase">Uscite</p><p id="finanza-uscite-pagate" class="text-white">€ 0.00</p></div>
+                        <div class="text-right text-red-400"><p class="uppercase">Debiti</p><p id="finanza-debiti">€ 0.00</p></div>
                     </div>
                 </div>
-
-                <div class="bg-white p-5 rounded-3xl border shadow-sm">
-                    <h4 class="font-black text-slate-800 mb-3 border-b pb-2">Aggiungi Movimento</h4>
-                    <div class="grid grid-cols-2 gap-3 mb-3">
-                        <div><label class="text-[9px] font-bold uppercase text-slate-400">Stato</label><select id="fin-stato" class="w-full border p-2.5 rounded-xl font-bold bg-slate-50 text-xs"><option value="pagato">Già Pagato</option><option value="da_pagare">Da Pagare</option></select></div>
-                        <div><label class="text-[9px] font-bold uppercase text-slate-400">Cat.</label><select id="fin-cat" class="w-full border p-2.5 rounded-xl font-bold bg-slate-50 text-xs"><option>Utenze</option><option>Personale</option><option>Fornitori</option><option value="entrata">Entrata Extra (+)</option></select></div>
-                    </div>
-                    <input type="text" id="fin-desc" placeholder="Descrizione..." class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-sm mb-3">
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div><label class="text-[9px] font-bold uppercase text-slate-400">Importo (€)</label><input type="number" id="fin-importo" value="0.00" class="w-full border p-3 rounded-xl font-black text-center"></div>
-                        <div><label class="text-[9px] font-bold uppercase text-slate-400">IVA (€)</label><input type="number" id="fin-iva-man" value="0.00" class="w-full border p-3 rounded-xl font-black text-center text-slate-400"></div>
-                    </div>
-                    <button onclick="salvaMovimentoFinanza()" class="w-full bg-slate-900 text-white font-black py-3.5 rounded-xl uppercase text-xs active:scale-95">Registra</button>
-                </div>
-                
                 <div class="bg-white rounded-3xl border shadow-sm overflow-hidden divide-y divide-slate-100" id="finanza-list"></div>
             </div>
 
-            <div id="view-staff" class="view-panel space-y-4">
-                <div class="bg-white p-5 rounded-3xl border shadow-sm">
-                    <h4 class="font-black text-slate-800 mb-3 border-b pb-2">Eroga Anticipo</h4>
-                    <div class="space-y-3">
-                        <div><label class="text-[9px] font-bold uppercase text-slate-400">Dipendente</label><select id="staff-select" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-sm"></select></div>
-                        <input type="number" id="staff-anticipo-val" placeholder="Importo €" class="w-full border p-3 rounded-xl font-black text-center text-lg bg-slate-50" value="0.00">
-                        <button onclick="salvaAnticipoStaff()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl uppercase text-xs shadow-md">Conferma Anticipo</button>
-                    </div>
+            <div id="view-cassa" class="view-panel space-y-4">
+                <div class="bg-emerald-600 text-white p-5 rounded-3xl shadow-lg relative overflow-hidden">
+                    <i class="fas fa-bolt absolute -right-4 -bottom-4 text-6xl opacity-20"></i>
+                    <h3 class="font-black text-sm uppercase">Importazione Rapida RCH</h3>
+                    <p class="text-[9px] font-bold text-emerald-100 mb-4 uppercase">Sincronizza l'incasso giornaliero dal file XML</p>
+                    <input type="file" accept=".xml" id="file-rch" onchange="elaboraChiusuraRCH(this)" class="hidden">
+                    <button onclick="document.getElementById('file-rch').click()" class="bg-white text-emerald-600 px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition">Carica File Chiusura</button>
                 </div>
-                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden" id="staff-list-container"></div>
-                <div class="flex gap-2">
-                    <input type="text" id="new-staff-name" placeholder="Nuovo Dipendente..." class="flex-1 border p-3 rounded-xl font-bold text-xs">
-                    <button onclick="aggiungiDipendente()" class="bg-slate-900 text-white px-4 rounded-xl font-black active:scale-95">+</button>
+
+                <div class="bg-white p-4 rounded-3xl border shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2"><h3 class="font-black text-slate-800 text-sm">Chiusura Manuale</h3><button onclick="resetMenuCassa()" class="text-[9px] text-red-500 font-black uppercase tracking-widest bg-red-50 px-2 py-1 rounded">Azzera</button></div>
+                    <div id="cassa-piatti-list" class="space-y-3"></div>
+                </div>
+
+                <div class="bg-slate-900 p-6 rounded-3xl shadow-xl mt-4">
+                    <div class="flex justify-between items-center mb-6"><span class="text-xs text-slate-400 uppercase font-black">Totale Comande:</span><span id="cassa-total-display" class="text-3xl font-black text-emerald-400">€ 0.00</span></div>
+                    <button id="btn-conferma-cassa" onclick="eseguiScaricoMagazzino()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg active:scale-95 transition">Conferma & Scarica</button>
                 </div>
             </div>
 
-            <div id="view-shopping" class="view-panel space-y-4">
-                <div class="bg-amber-50 p-4 rounded-3xl border border-amber-200">
-                    <h3 class="font-black text-amber-900 text-sm">Lista Spesa Automatica</h3>
-                    <p class="text-[9px] text-amber-700 uppercase font-bold">Prodotti sotto soglia minima</p>
-                </div>
-                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden divide-y divide-slate-100" id="auto-shopping-list"></div>
-                
-                <div class="bg-slate-100 p-5 rounded-3xl space-y-3">
-                    <h4 class="font-black text-xs uppercase text-slate-500">Mancanti Extra (Manuale)</h4>
-                    <div class="flex gap-2">
-                        <input type="text" id="manual-shop-item" placeholder="Cosa manca?" class="flex-1 border p-3 rounded-xl font-bold text-xs">
-                        <button onclick="aggiungiVoceManualeSpesa()" class="bg-emerald-600 text-white px-4 rounded-xl font-black active:scale-95">+</button>
+            <div id="view-staff" class="view-panel space-y-4">
+                <div class="bg-white p-5 rounded-3xl border shadow-sm"><h4 class="font-black text-slate-800 mb-3 border-b pb-2">Anticipo Stipendio</h4><div class="space-y-3"><select id="staff-select" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-sm"></select><input type="number" id="staff-anticipo-val" placeholder="Importo €" class="w-full border p-3 rounded-xl font-black text-center text-lg bg-slate-50" value="0.00"><button onclick="salvaAnticipoStaff()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl uppercase text-xs">Conferma</button></div></div>
+                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden" id="staff-list-container"></div>
+                <div class="flex gap-2"><input type="text" id="new-staff-name" placeholder="Nuovo Dipendente..." class="flex-1 border p-3 rounded-xl font-bold text-xs"><button onclick="aggiungiDipendente()" class="bg-slate-900 text-white px-4 rounded-xl font-black">+</button></div>
+            </div>
+
+            <div id="view-fatture" class="view-panel space-y-4">
+                <div class="bg-white border-2 border-dashed border-emerald-200 p-6 rounded-3xl text-center shadow-sm"><h4 class="font-bold text-sm mb-3">Carico Merci / Bollette</h4><input type="file" accept=".xml, .html, .htm" id="file-xml" onchange="elaboraFatturaXML(this)" class="hidden"><button onclick="document.getElementById('file-xml').click()" class="bg-emerald-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase">Seleziona Documento</button></div>
+                <div id="fattura-loader" class="hidden text-center py-10"><i class="fas fa-spinner fa-spin text-4xl text-emerald-600"></i></div>
+                <div id="fattura-result" class="hidden space-y-4">
+                    <div class="bg-white rounded-3xl border shadow-xl overflow-hidden">
+                        <div id="fattura-items-list" class="divide-y divide-slate-100 bg-white"></div>
+                        <div class="bg-amber-50 p-4 flex justify-between items-center"><span class="text-[9px] font-black uppercase">IVA Totale Fattura:</span><input type="number" id="ocr-tot-iva" value="0.00" class="w-20 font-black bg-white border rounded p-1 text-right"></div>
+                        <div class="bg-slate-100 p-4 grid grid-cols-1 gap-2"><select id="ocr-tipo-doc" class="w-full border p-2 rounded-xl font-bold text-xs"><option value="merce">Merci (Stock+Bilancio)</option><option value="bolletta">Bolletta (Solo Bilancio)</option></select><select id="ocr-stato-pag" class="w-full border p-2 rounded-xl font-bold text-xs"><option value="pagato">Già Pagata</option><option value="da_pagare">Da Pagare</option></select></div>
                     </div>
-                    <div id="manual-shopping-list" class="space-y-2"></div>
+                    <button onclick="confermaCaricoFattura()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm">Salva Carico</button>
                 </div>
             </div>
 
             <div id="view-inventory" class="view-panel space-y-4">
-                <div class="flex justify-between items-center px-2">
-                    <h3 class="font-black text-slate-800 uppercase text-xs">Stock & Giacenze</h3>
-                    <button onclick="nav('view-add-product')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm">+ Nuovo</button>
-                </div>
-                <div class="bg-white rounded-3xl border overflow-hidden shadow-sm">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-50 border-b">
-                            <tr><th class="p-4 text-[10px] font-bold text-slate-400 uppercase">Articolo</th><th class="p-4 text-center text-[10px] font-bold text-slate-400 uppercase">Q.tà</th><th class="p-4"></th></tr>
-                        </thead>
-                        <tbody id="inventory-table-body" class="divide-y divide-slate-100"></tbody>
-                    </table>
-                </div>
+                <div class="flex justify-between items-center"><h3 class="font-black text-slate-800 uppercase text-xs">Giacenze</h3><button onclick="nav('view-add-product')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm">+ Nuovo</button></div>
+                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-slate-50 border-b"><tr><th class="p-4 text-[10px] font-bold text-slate-400 uppercase">Articolo</th><th class="p-4 text-center text-[10px] font-bold text-slate-400 uppercase">Q.tà</th><th class="p-4"></th></tr></thead><tbody id="inventory-table-body" class="divide-y divide-slate-100"></tbody></table></div>
             </div>
 
+            <div id="view-shopping" class="view-panel space-y-4">
+                <div class="bg-amber-50 p-4 rounded-3xl border border-amber-200"><h3 class="font-black text-amber-900 text-sm">Lista Spesa</h3><p class="text-[9px] text-amber-700 uppercase font-bold">Sotto soglia minima</p></div>
+                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden divide-y divide-slate-100" id="auto-shopping-list"></div>
+                <div class="bg-slate-100 p-5 rounded-3xl space-y-3"><div class="flex gap-2"><input type="text" id="manual-shop-item" placeholder="Altro da comprare?" class="flex-1 border p-3 rounded-xl font-bold text-xs"><button onclick="aggiungiVoceManualeSpesa()" class="bg-emerald-600 text-white px-4 rounded-xl font-black">+</button></div><div id="manual-shopping-list" class="space-y-2"></div></div>
+            </div>
+            
             <div id="view-add-product" class="view-panel space-y-4">
                 <div class="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
-                    <h3 class="font-black text-lg border-b pb-2">Configurazione Prodotto</h3>
-                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Nome Articolo</label><input type="text" id="new-nome" class="w-full border p-3 rounded-xl font-bold bg-slate-50"></div>
+                    <h3 class="font-black text-lg border-b pb-2">Nuovo Prodotto</h3>
+                    <input type="text" id="new-nome" placeholder="Nome Articolo" class="w-full border p-3 rounded-xl font-bold bg-slate-50 uppercase">
                     <div class="grid grid-cols-2 gap-4">
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Giacenza</label><input type="number" id="new-qta" class="w-full border p-3 rounded-xl font-bold text-center bg-slate-50" value="1"></div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Soglia Minima</label><input type="number" id="new-soglia" class="w-full border p-3 rounded-xl font-bold text-center bg-slate-50" value="5"></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Q.tà Iniziale</label><input type="number" id="new-qta" class="w-full border p-3 rounded-xl font-black text-center bg-slate-50" value="1"></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Soglia Ordine</label><input type="number" id="new-soglia" class="w-full border p-3 rounded-xl font-black text-center bg-slate-50" value="5"></div>
                     </div>
                     <div class="bg-slate-50 p-4 rounded-2xl border flex items-center justify-between">
-                        <div class="flex-1"><p class="text-xs font-black text-slate-800 uppercase">Scarico Automatico</p><p class="text-[8px] text-slate-500 font-bold uppercase">Sottrai quantità ad ogni vendita di cassa</p></div>
+                        <div class="flex-1"><p class="text-xs font-black text-slate-800 uppercase">Scarico Automatico</p><p class="text-[8px] text-slate-500 font-bold uppercase">Sottrai quantità vendute in cassa</p></div>
                         <input type="checkbox" id="new-auto-scalo" class="w-6 h-6 accent-emerald-600" checked>
                     </div>
-                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Costo Ultimo Carico (€)</label><input type="number" id="new-prezzo" class="w-full border p-3 rounded-xl font-bold text-center bg-slate-50" value="0.00"></div>
-                    <button onclick="salvaNuovoProdotto()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm mt-4">Salva in Archivio</button>
-                </div>
-            </div>
-
-            <div id="view-fatture" class="view-panel space-y-4">
-                <div class="bg-emerald-600 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
-                    <h3 class="font-black text-lg">Caricamento Fatture</h3>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-100">Lettura automatica IVA e Prezzi</p>
-                </div>
-                <div class="grid grid-cols-1 gap-4">
-                    <div class="bg-white border-2 border-dashed border-emerald-200 p-6 rounded-3xl text-center shadow-sm">
-                        <i class="fas fa-file-code text-3xl text-emerald-500 mb-3"></i>
-                        <h4 class="font-bold text-sm">File Originale (.xml o .html)</h4>
-                        <input type="file" accept=".xml, .html, .htm" id="file-xml" onchange="elaboraFatturaXML(this)" class="hidden">
-                        <button onclick="document.getElementById('file-xml').click()" class="bg-emerald-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md mt-4">Seleziona Documento</button>
-                    </div>
-                    <div class="bg-white border-2 border-dashed border-blue-200 p-6 rounded-3xl text-center shadow-sm">
-                        <i class="fas fa-camera text-3xl text-blue-500 mb-3"></i>
-                        <h4 class="font-bold text-sm">Foto o Screenshot</h4>
-                        <input type="file" accept="image/*" id="file-foto" onchange="elaboraFatturaFoto(this)" class="hidden">
-                        <button onclick="document.getElementById('file-foto').click()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md mt-4">Scatta Foto</button>
-                    </div>
-                </div>
-                <div id="fattura-loader" class="hidden text-center py-10"><i class="fas fa-spinner fa-spin text-4xl text-emerald-600 mb-2"></i><p id="fattura-loader-msg" class="text-xs font-black text-slate-500 uppercase tracking-widest">Analisi...</p></div>
-                <div id="fattura-result" class="hidden space-y-4">
-                    <div class="bg-white rounded-3xl border shadow-xl overflow-hidden">
-                        <div class="p-3 bg-slate-900 text-white text-[10px] font-bold uppercase flex justify-between"><span class="w-1/2">Voce</span><span class="w-1/4 text-center">Q.tà</span><span class="w-1/4 text-right">Costo Ut.</span></div>
-                        <div id="fattura-items-list" class="divide-y divide-slate-100 bg-white"></div>
-                        <div class="bg-amber-50 p-4 border-t border-amber-200 flex justify-between items-center"><span class="text-[10px] font-black uppercase text-amber-800">IVA Totale:</span><div class="flex items-center gap-1"><span class="font-bold text-amber-700">€</span><input type="number" id="ocr-tot-iva" value="0.00" class="w-20 font-black text-amber-900 bg-white border border-amber-300 rounded p-1 text-right"></div></div>
-                        <div class="bg-slate-100 p-4 border-t grid grid-cols-1 gap-3">
-                            <select id="ocr-tipo-doc" class="w-full border p-2.5 rounded-xl font-bold text-xs bg-white"><option value="merce">Merce Fornitori (Stock + Bilancio)</option><option value="bolletta">Bolletta / Utenza (Solo Bilancio)</option></select>
-                            <select id="ocr-stato-pag" class="w-full border p-2.5 rounded-xl font-bold text-xs bg-white"><option value="pagato">Già Pagata</option><option value="da_pagare">Da Pagare</option></select>
-                        </div>
-                    </div>
-                    <button onclick="confermaCaricoFattura()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg active:scale-95 transition">Conferma Operazione</button>
+                    <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Costo Unit. Carico (€)</label><input type="number" id="new-prezzo" class="w-full border p-3 rounded-xl font-black text-center bg-slate-50" value="0.00"></div>
+                    <button onclick="salvaNuovoProdotto()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm mt-4">Conferma Salvataggio</button>
                 </div>
             </div>
 
             <div id="view-ricettario" class="view-panel space-y-4">
-                <div class="flex justify-between items-center bg-emerald-50 border border-emerald-200 p-4 rounded-2xl shadow-sm mb-4">
-                    <div><h3 class="font-black text-emerald-900">Menu</h3><p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Distinta Base</p></div>
-                    <button onclick="apriCreaPiatto()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md">+ Piatto</button>
-                </div>
+                <div class="flex justify-between items-center bg-emerald-50 p-4 rounded-2xl border border-emerald-200"><div><h3 class="font-black text-emerald-900">Ricettario</h3><p class="text-[9px] text-emerald-600 uppercase font-black">Distinta Base</p></div><button onclick="apriCreaPiatto()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold">+ Piatto</button></div>
                 <div id="menu-builder-list" class="space-y-3"></div>
                 <div id="form-crea-piatto" class="hidden bg-white p-6 rounded-3xl border shadow-xl space-y-5 mt-6 border-t-4 border-t-emerald-500 relative">
-                    <button onclick="chiudiCreaPiatto()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
-                    <h3 class="font-black text-lg border-b pb-2">Componi Ricetta</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Nome Piatto</label><input type="text" id="piatto-nome" class="w-full border p-3 rounded-xl font-bold bg-slate-50"></div>
-                        <div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Prezzo (€)</label><input type="number" id="piatto-prezzo" class="w-full border p-3 rounded-xl font-black text-emerald-600 bg-slate-50 text-xl" value="0.00"></div>
-                    </div>
-                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                        <h4 class="font-bold text-slate-700 text-sm mb-3">Ingredienti Necessari</h4>
-                        <div id="lista-ingredienti-piatto" class="space-y-2 mb-4"></div>
-                        <div class="flex gap-2 items-end border-t pt-3 border-slate-200">
-                            <div class="flex-1"><select id="select-ingrediente" class="w-full border p-2 rounded-lg font-bold text-[10px] bg-white"></select></div>
-                            <div class="w-16"><input type="number" id="qta-ingrediente" class="w-full border p-2 rounded-lg font-bold text-xs text-center bg-white" value="1"></div>
-                            <button onclick="aggiungiIngredienteRicetta()" class="bg-slate-900 text-white w-10 h-10 rounded-lg font-bold"><i class="fas fa-plus"></i></button>
-                        </div>
-                    </div>
+                    <button onclick="chiudiCreaPiatto()" class="absolute top-4 right-4 text-slate-400"><i class="fas fa-times text-xl"></i></button>
+                    <div class="grid grid-cols-2 gap-4"><div class="col-span-2"><input type="text" id="piatto-nome" placeholder="Nome Piatto" class="w-full border p-3 rounded-xl font-bold bg-slate-50 uppercase"></div><div class="col-span-2"><label class="text-[10px] font-bold uppercase ml-1">Prezzo Menu (€)</label><input type="number" id="piatto-prezzo" class="w-full border p-3 rounded-xl font-black text-emerald-600 bg-slate-50 text-xl" value="0.00"></div></div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200"><div id="lista-ingredienti-piatto" class="space-y-2 mb-4"></div><div class="flex gap-2 items-end border-t pt-3"><div class="flex-1"><select id="select-ingrediente" class="w-full border p-2 rounded-lg font-bold text-[10px] bg-white"></select></div><div class="w-16"><input type="number" id="qta-ingrediente" class="w-full border p-2 rounded-lg font-bold text-xs text-center bg-white" value="1"></div><button onclick="aggiungiIngredienteRicetta()" class="bg-slate-900 text-white w-10 h-10 rounded-lg font-bold"><i class="fas fa-plus"></i></button></div></div>
                     <button onclick="salvaPiattoMenu()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-sm mt-4">Salva nel Menu</button>
-                </div>
-            </div>
-
-            <div id="view-cassa" class="view-panel space-y-4">
-                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-[10px] font-black uppercase text-amber-700 flex items-center gap-3">
-                    <i class="fas fa-magic text-2xl"></i><p>I prodotti 'MANUAL' (es. olio) non verranno scalati. Solo quelli 'AUTO' (es. birre) saranno sottratti.</p>
-                </div>
-                <div id="cassa-piatti-list" class="space-y-3 bg-white p-4 rounded-3xl border shadow-sm"></div>
-                <div class="bg-slate-900 p-6 rounded-3xl shadow-xl mt-4 relative overflow-hidden">
-                    <div class="flex justify-between items-center mb-6 relative z-10"><span class="text-xs text-slate-400 uppercase font-bold tracking-widest">Incasso Lordo:</span><span id="cassa-total-display" class="text-3xl font-black text-emerald-400">€ 0.00</span></div>
-                    <button id="btn-conferma-cassa" onclick="eseguiScaricoMagazzino()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm active:scale-95 transition">Conferma & Scarica</button>
                 </div>
             </div>
 
@@ -297,12 +212,9 @@
 
         function nav(id) {
             document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active');
-            document.querySelectorAll('nav button').forEach(btn => {
-                btn.className = btn.className.replace('text-emerald-600', 'text-slate-400');
-            });
-            if(event && event.currentTarget && event.currentTarget.tagName === 'BUTTON') {
-                event.currentTarget.className = event.currentTarget.className.replace('text-slate-400', 'text-emerald-600');
-            }
+            document.querySelectorAll('nav button').forEach(btn => btn.className = btn.className.replace('text-emerald-600', 'text-slate-400'));
+            if(event && event.currentTarget && event.currentTarget.tagName === 'BUTTON') event.currentTarget.className = event.currentTarget.className.replace('text-slate-400', 'text-emerald-600');
+            
             if(id==='view-shopping') generaListaSpesa();
             if(id==='view-staff') caricaStaff();
             if(id==='view-cassa') popolaCassaMenu();
@@ -311,62 +223,83 @@
         }
 
         // ==========================================
-        // FINANZA: BILANCIO, IVA E MENSILITA'
+        // IMPORTAZIONE CHIUSURA RCH (XML)
+        // ==========================================
+        function elaboraChiusuraRCH(input) {
+            if(!input.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
+                    
+                    // RCH XML: Cerchiamo l'ammontare lordo (tag: Ammontare o simili in base al modello)
+                    // Solitamente è in DocumentoCommerciale o RiepilogoFinanziario
+                    let tagAmmontare = xmlDoc.getElementsByTagName("Ammontare")[0] || xmlDoc.getElementsByTagNameNS("*", "Ammontare")[0];
+                    let tagIva = xmlDoc.getElementsByTagName("Imposta")[0] || xmlDoc.getElementsByTagNameNS("*", "Imposta")[0];
+
+                    if(!tagAmmontare) throw new Error("Tag 'Ammontare' non trovato. Assicurati che sia un file XML di Chiusura RCH.");
+
+                    let lordo = parseFloat(tagAmmontare.textContent.replace(',', '.'));
+                    let iva = tagIva ? parseFloat(tagIva.textContent.replace(',', '.')) : (lordo - (lordo / 1.10)); // Default 10% se non trovato
+
+                    if(confirm(`RILEVATO DA RCH:\nIncasso Lordo: € ${lordo.toFixed(2)}\nIVA: € ${iva.toFixed(2)}\n\nVuoi registrare questa chiusura a bilancio e scaricare il magazzino automatico?`)) {
+                        // 1. Registra in Finanza
+                        await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione:'Chiusura RCH Automatica', importo:lordo, iva:iva, stato_pagamento:'pagato', data: new Date().toISOString(), data_pagamento: new Date().toISOString() }]);
+                        
+                        // 2. Scarica Magazzino (Se hai piatti selezionati in cassa)
+                        let incassoSimulato = calcolaTotC();
+                        if(incassoSimulato > 0) { await eseguiScaricoMagazzino(); }
+                        else { alert("Incasso registrato! Nota: il magazzino non è stato scaricato perché non avevi selezionato piatti in Cassa."); }
+                        
+                        nav('view-dashboard'); caricaFinanzaDaSupabase();
+                    }
+                } catch(err) { alert("Errore lettura file RCH: " + err.message); }
+            };
+            reader.readAsText(input.files[0]);
+        }
+
+        // ==========================================
+        // FINANZA: BILANCIO, IVA E ELIMINA
         // ==========================================
         async function caricaFinanzaDaSupabase() {
             const { data, error } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false });
             if(error) return;
-            
             let meseSel = document.getElementById('finanza-mese-selettore').value;
             let filtrati = data.filter(m => m.data && m.data.startsWith(meseSel));
-
             let html = ''; let totE=0; let totUPag=0; let totDeb=0; let ivaD=0; let ivaC=0;
             
             filtrati.forEach(m => {
                 let imp = parseFloat(m.importo||0); let iva = parseFloat(m.iva||0);
-                let isEnt = (m.tipo==='entrata' || m.categoria==='entrata');
-                
+                let isEnt = (m.tipo==='entrata' || m.categoria==='entrata' || m.categoria==='Ristorante');
                 if(isEnt) { totE+=imp; ivaD+=iva; } 
-                else { 
-                    if(m.stato_pagamento==='da_pagare') totDeb+=imp; else totUPag+=imp; 
-                    ivaC+=iva;
-                }
-                
-                let badge = m.stato_pagamento === 'da_pagare' ? `<span class="bg-red-500 text-white status-badge ml-2">Da Pagare</span>` : `<span class="bg-slate-200 text-slate-600 status-badge ml-2">Pagato</span>`;
-                let action = (m.stato_pagamento === 'da_pagare') ? `<button onclick="segnaPagata('${m.id}')" class="mt-2 text-[9px] bg-slate-900 text-white px-2 py-1 rounded font-black active:scale-95">Paga Ora</button>` : '';
-                
-                html += `<div class="p-4 border-b flex justify-between items-center"><div class="flex-1"><p class="font-black text-sm text-slate-800">${m.descrizione||m.categoria}</p><p class="text-[9px] text-slate-500 uppercase font-bold mt-1">${m.categoria} ${badge}</p>${action}</div><div class="flex items-center"><span class="font-black ${isEnt?'text-emerald-500':'text-slate-700'} text-lg">€ ${imp.toFixed(2)}</span><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-200 p-2 ml-3 active:scale-90"><i class="fas fa-trash"></i></button></div></div>`;
+                else { if(m.stato_pagamento==='da_pagare') totDeb+=imp; else totUPag+=imp; ivaC+=iva; }
+                let badge = m.stato_pagamento === 'da_pagare' ? `<span class="bg-red-500 text-white status-badge ml-2">Debito</span>` : `<span class="bg-slate-200 text-slate-600 status-badge ml-2">Pagato</span>`;
+                html += `<div class="p-4 border-b flex justify-between items-center"><div class="flex-1"><p class="font-black text-sm text-slate-800 uppercase">${m.descrizione||m.categoria}</p><p class="text-[9px] text-slate-500 font-bold mt-1">${m.categoria} ${badge}</p></div><div class="flex items-center"><span class="font-black ${isEnt?'text-emerald-500':'text-slate-700'} text-lg">€ ${imp.toFixed(2)}</span><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-200 p-2 ml-3 active:scale-90"><i class="fas fa-trash"></i></button></div></div>`;
             });
-
-            document.getElementById('finanza-list').innerHTML = html || '<p class="p-8 text-xs text-center text-slate-400 uppercase">Nessun movimento.</p>';
+            document.getElementById('finanza-list').innerHTML = html || '<p class="p-8 text-xs text-center text-slate-400">Vuoto</p>';
             document.getElementById('finanza-entrate').innerText = '€ '+totE.toFixed(2);
             document.getElementById('finanza-debiti').innerText = '€ '+totDeb.toFixed(2);
             document.getElementById('finanza-uscite-pagate').innerText = '€ '+totUPag.toFixed(2);
-            
-            let liquidita = totE - totUPag; 
-            let UI_Segno = document.getElementById('finanza-saldo-segno');
-            UI_Segno.innerText = liquidita >= 0 ? "Mese in Attivo (+)" : "Mese in Passivo (-)";
-            UI_Segno.className = `text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full text-white shadow-sm ${liquidita >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`;
-            document.getElementById('finanza-saldo').innerText = '€ '+Math.abs(liquidita).toFixed(2);
-            document.getElementById('finanza-saldo').className = `text-4xl font-black relative z-10 ${liquidita >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
-
-            let ivaSaldo = ivaD - ivaC;
-            document.getElementById('finanza-iva-totale').innerText = '€ ' + Math.abs(ivaSaldo).toFixed(2);
-            let badgeIva = document.getElementById('finanza-iva-badge');
-            badgeIva.innerText = ivaSaldo >= 0 ? "DA VERSARE (-)" : "A CREDITO (+)";
-            badgeIva.className = `text-[8px] font-black uppercase px-2 py-1 rounded text-white ${ivaSaldo >= 0 ? 'bg-red-500' : 'bg-emerald-500'}`;
+            let liq = totE - totUPag; 
+            document.getElementById('finanza-saldo-segno').innerText = liq >= 0 ? "Attivo Mensile (+)" : "Passivo Mensile (-)";
+            document.getElementById('finanza-saldo-segno').className = `text-[9px] font-black uppercase px-3 py-1 rounded-full text-white shadow-sm ${liq >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`;
+            document.getElementById('finanza-saldo').innerText = '€ '+Math.abs(liq).toFixed(2);
+            document.getElementById('finanza-saldo').className = `text-4xl font-black ${liq >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
+            let ivaS = ivaD - ivaC;
+            document.getElementById('finanza-iva-totale').innerText = '€ ' + Math.abs(ivaS).toFixed(2);
+            document.getElementById('finanza-iva-badge').innerText = ivaS >= 0 ? "A DEBITO" : "A CREDITO";
+            document.getElementById('finanza-iva-badge').className = `text-[8px] font-black px-2 py-1 rounded text-white ${ivaS >= 0 ? 'bg-red-500' : 'bg-emerald-500'}`;
         }
 
         async function salvaMovimentoFinanza() {
             let s=document.getElementById('fin-stato').value, c=document.getElementById('fin-cat').value, d=document.getElementById('fin-desc').value, i=parseFloat(document.getElementById('fin-importo').value), ivaI=parseFloat(document.getElementById('fin-iva-man').value)||0;
-            if(i<=0) return alert("Inserisci importo"); let tipo = (c==='entrata') ? 'entrata' : 'uscita';
+            if(i<=0) return; let tipo = (c==='entrata') ? 'entrata' : 'uscita';
             let dataS = new Date().toISOString(); let meseS = document.getElementById('finanza-mese-selettore').value;
             if (meseS && !dataS.startsWith(meseS)) dataS = meseS + "-01T12:00:00.000Z";
             await supabaseClient.from('finanza').insert([{ tipo, categoria: c, descrizione: d, importo: i, iva: ivaI, stato_pagamento: s, data: dataS, data_pagamento: s==='pagato'?dataS:null }]); 
-            document.getElementById('fin-desc').value=''; document.getElementById('fin-importo').value='0.00'; caricaFinanzaDaSupabase();
+            document.getElementById('fin-desc').value=''; document.getElementById('fin-importo').value='0.00'; document.getElementById('fin-iva-man').value='0.00'; caricaFinanzaDaSupabase();
         }
-
-        async function segnaPagata(id) { if(confirm("Pagato oggi?")) { await supabaseClient.from('finanza').update({ stato_pagamento: 'pagato', data_pagamento: new Date().toISOString() }).eq('id', id); caricaFinanzaDaSupabase(); } }
         async function eliminaMovimentoFinanza(id) { if(confirm("Eliminare voce?")) { await supabaseClient.from('finanza').delete().eq('id', id); caricaFinanzaDaSupabase(); } }
 
         // ==========================================
@@ -381,25 +314,15 @@
                 let mese = document.getElementById('finanza-mese-selettore').value;
                 const { data: ant } = await supabaseClient.from('finanza').select('importo').eq('categoria', 'Personale').ilike('descrizione', `%Anticipo ${s.nome}%`).filter('data', 'gte', mese+'-01');
                 let totA = (ant || []).reduce((acc, curr) => acc + parseFloat(curr.importo), 0);
-                html += `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-sm uppercase">${s.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Tot. Anticipi Mese</p></div><span class="font-black text-red-500 text-lg">€ ${totA.toFixed(2)}</span></div>`;
+                html += `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-sm uppercase">${s.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">Anticipi Mese</p></div><span class="font-black text-red-500 text-lg">€ ${totA.toFixed(2)}</span></div>`;
             }
-            document.getElementById('staff-list-container').innerHTML = html || '<p class="p-6 text-center text-xs text-slate-400">Nessun dipendente.</p>';
+            document.getElementById('staff-list-container').innerHTML = html || '<p class="p-6 text-center text-xs text-slate-400">Nessuno staff.</p>';
         }
-
-        async function aggiungiDipendente() {
-            let nome = document.getElementById('new-staff-name').value.trim(); if(!nome) return;
-            await supabaseClient.from('staff').insert([{ nome }]); document.getElementById('new-staff-name').value = ''; caricaStaff();
-        }
-
-        async function salvaAnticipoStaff() {
-            let nome = document.getElementById('staff-select').value, imp = parseFloat(document.getElementById('staff-anticipo-val').value);
-            if(imp <= 0) return;
-            await supabaseClient.from('finanza').insert([{ tipo: 'uscita', categoria: 'Personale', descrizione: `Anticipo ${nome}`, importo: imp, stato_pagamento: 'pagato', data: new Date().toISOString(), data_pagamento: new Date().toISOString() }]);
-            alert(`Registrato!`); document.getElementById('staff-anticipo-val').value = '0.00'; caricaStaff(); caricaFinanzaDaSupabase();
-        }
+        async function aggiungiDipendente() { let n = document.getElementById('new-staff-name').value.trim(); if(n) { await supabaseClient.from('staff').insert([{ nome:n }]); document.getElementById('new-staff-name').value=''; caricaStaff(); } }
+        async function salvaAnticipoStaff() { let n = document.getElementById('staff-select').value, i = parseFloat(document.getElementById('staff-anticipo-val').value); if(i>0) { await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria:'Personale', descrizione:`Anticipo ${n}`, importo:i, stato_pagamento:'pagato', data:new Date().toISOString(), data_pagamento:new Date().toISOString() }]); alert("Registrato!"); document.getElementById('staff-anticipo-val').value='0.00'; caricaStaff(); caricaFinanzaDaSupabase(); } }
 
         // ==========================================
-        // MAGAZZINO & LISTA SPESA
+        // MAGAZZINO & LISTA SPESA (SELETTIVO)
         // ==========================================
         async function caricaInventarioDaSupabase() {
             const { data } = await supabaseClient.from('inventario').select('*').order('nome');
@@ -409,49 +332,28 @@
                 if(parseFloat(p.quantita) <= parseFloat(p.soglia_minima)) shoppingCount++;
                 let badgeA = p.scalo_automatico ? '<span class="text-[7px] bg-emerald-100 text-emerald-700 px-1 rounded ml-1">AUTO</span>' : '<span class="text-[7px] bg-slate-100 text-slate-500 px-1 rounded ml-1">MANUAL</span>';
                 let alertC = parseFloat(p.quantita) <= parseFloat(p.soglia_minima) ? 'text-red-600 font-black' : 'text-emerald-600 font-bold';
-                return `<tr><td class="p-4"><p class="font-black text-xs uppercase">${p.nome}</p>${badgeA}</td><td class="p-4 text-center ${alertC}">${p.quantita}</td><td class="p-4 text-right"><button onclick="modificaQuantitaManuale('${p.id}', '${p.nome}', ${p.quantita})" class="bg-slate-100 p-2 rounded-xl text-blue-500 active:scale-90"><i class="fas fa-pencil"></i></button></td></tr>`;
+                return `<tr><td class="p-4"><p class="font-black text-xs uppercase">${p.nome}</p>${badgeA}</td><td class="p-4 text-center ${alertC}">${p.quantita}</td><td class="p-4 text-right"><button onclick="modificaQuantitaManuale('${p.id}', '${p.nome}', ${p.quantita})" class="bg-slate-100 p-2 rounded-xl text-blue-500"><i class="fas fa-pencil"></i></button></td></tr>`;
             }).join('');
             document.getElementById('dash-total-value').innerText = '€ ' + valTot.toFixed(2);
             let bC = document.getElementById('alert-shopping-count');
             if(shoppingCount > 0) { bC.innerText = shoppingCount; bC.classList.remove('hidden'); } else { bC.classList.add('hidden'); }
             popolaSelectIngredienti();
         }
-
-        async function modificaQuantitaManuale(id, nome, attuale) {
-            let nQ = prompt(`REVISIONE STOCK: ${nome}\nQuantità fisica rilevata:`, attuale);
-            if(nQ !== null) { await supabaseClient.from('inventario').update({ quantita: parseFloat(nQ) }).eq('id', id); caricaInventarioDaSupabase(); }
-        }
-
+        async function modificaQuantitaManuale(id, nome, attuale) { let nQ = prompt(`REVISIONE: ${nome}\nQuantità fisica:`, attuale); if(nQ !== null) { await supabaseClient.from('inventario').update({ quantita: parseFloat(nQ) }).eq('id', id); caricaInventarioDaSupabase(); } }
         function generaListaSpesa() {
             let autoItems = inventarioLocale.filter(p => parseFloat(p.quantita) <= parseFloat(p.soglia_minima));
-            document.getElementById('auto-shopping-list').innerHTML = autoItems.map(p => `
-                <div class="p-4 flex justify-between items-center bg-white">
-                    <div><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] text-red-500 font-bold uppercase">Giacenza: ${p.quantita} / Soglia: ${p.soglia_minima}</p></div>
-                    <i class="fas fa-triangle-exclamation text-amber-500"></i>
-                </div>`).join('') || '<p class="p-8 text-center text-slate-400 text-xs uppercase">Tutto in stock!</p>';
+            document.getElementById('auto-shopping-list').innerHTML = autoItems.map(p => `<div class="p-4 flex justify-between bg-white"><div><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] text-red-500 font-bold uppercase">Giacenza: ${p.quantita} / Minima: ${p.soglia_minima}</p></div><i class="fas fa-triangle-exclamation text-amber-500"></i></div>`).join('') || '<p class="p-8 text-center text-xs text-slate-400">Stock ok!</p>';
         }
-
         let extraShopping = [];
-        function aggiungiVoceManualeSpesa() {
-            let val = document.getElementById('manual-shop-item').value.trim(); if(!val) return;
-            extraShopping.push(val); document.getElementById('manual-shop-item').value = '';
-            document.getElementById('manual-shopping-list').innerHTML = extraShopping.map((item, i) => `<div class="flex justify-between bg-white p-3 rounded-xl border text-xs font-bold uppercase"><span>${item}</span><button onclick="extraShopping.splice(${i},1); aggiungiVoceManualeSpesa();" class="text-red-400"><i class="fas fa-times"></i></button></div>`).join('');
-        }
-
-        async function salvaNuovoProdotto() {
-            let pay = { nome: document.getElementById('new-nome').value.trim(), quantita: parseFloat(document.getElementById('new-qta').value), soglia_minima: parseFloat(document.getElementById('new-soglia').value), scalo_automatico: document.getElementById('new-auto-scalo').checked, prezzo: parseFloat(document.getElementById('new-prezzo').value), categoria: 'Generale' };
-            if(!pay.nome) return alert("Nome richiesto");
-            await supabaseClient.from('inventario').insert([pay]); nav('view-inventory'); caricaInventarioDaSupabase();
-        }
+        function aggiungiVoceManualeSpesa() { let v = document.getElementById('manual-shop-item').value.trim(); if(v) { extraShopping.push(v); document.getElementById('manual-shop-item').value=''; document.getElementById('manual-shopping-list').innerHTML = extraShopping.map((item, i) => `<div class="flex justify-between bg-white p-3 rounded-xl border text-xs font-bold uppercase"><span>${item}</span><button onclick="extraShopping.splice(${i},1); aggiungiVoceManualeSpesa();" class="text-red-400"><i class="fas fa-times"></i></button></div>`).join(''); } }
+        async function salvaNuovoProdotto() { let pay = { nome: document.getElementById('new-nome').value.trim(), quantita: parseFloat(document.getElementById('new-qta').value), soglia_minima: parseFloat(document.getElementById('new-soglia').value), scalo_automatico: document.getElementById('new-auto-scalo').checked, prezzo: parseFloat(document.getElementById('new-prezzo').value), categoria: 'Generale' }; if(!pay.nome) return; await supabaseClient.from('inventario').insert([pay]); nav('view-inventory'); caricaInventarioDaSupabase(); }
 
         // ==========================================
-        // FATTURE IBRIDE (SPORT. CLOUD HTML + XML)
+        // FATTURE IBRIDE (XML + HTML)
         // ==========================================
         function elaboraFatturaXML(input) {
-            if(!input.files[0]) return; const file = input.files[0];
-            document.getElementById('fattura-loader').classList.remove('hidden'); document.getElementById('fattura-result').classList.add('hidden');
-            const reader = new FileReader();
-            reader.onload = function(e) {
+            if(!input.files[0]) return; document.getElementById('fattura-loader').classList.remove('hidden'); document.getElementById('fattura-result').classList.add('hidden');
+            const reader = new FileReader(); reader.onload = function(e) {
                 try {
                     let rawText = e.target.result; let items = []; let ivaT = 0;
                     if (rawText.includes('<html')) {
@@ -468,110 +370,46 @@
                             });
                         }
                     }
-                    if (items.length === 0) { /* Fallback XML classico */ }
                     fatturaItemsLetti = items; document.getElementById('ocr-tot-iva').value = ivaT.toFixed(2); mostraFatturaItems();
                 } catch(err) { alert("Errore file"); document.getElementById('fattura-loader').classList.add('hidden'); }
-            }; reader.readAsText(file);
+            }; reader.readAsText(input.files[0]);
         }
-
-        function elaboraFatturaFoto(input) {
-            if(!input.files[0]) return; document.getElementById('fattura-loader').classList.remove('hidden');
-            const reader = new FileReader(); reader.readAsDataURL(input.files[0]);
-            reader.onload = e => {
-                const img = new Image(); img.src = e.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                    canvas.width = 1200; canvas.height = (img.height/img.width)*1200; ctx.drawImage(img,0,0,1200,canvas.height);
-                    canvas.toBlob(blob => {
-                        Tesseract.recognize(blob, 'ita').then(({ data: { text } }) => {
-                            fatturaItemsLetti = [{ nome: "Dato da Foto", qta: 1, costo_unit: 0.00 }];
-                            document.getElementById('ocr-tot-iva').value = "0.00"; mostraFatturaItems();
-                        });
-                    }, 'image/jpeg', 0.9);
-                };
-            };
-        }
-
-        function mostraFatturaItems() {
-            document.getElementById('fattura-loader').classList.add('hidden'); document.getElementById('fattura-result').classList.remove('hidden');
-            document.getElementById('fattura-items-list').innerHTML = fatturaItemsLetti.map(i => `<div class="p-3 flex justify-between text-[11px] font-bold border-b"><span>${i.nome}</span><span>x${i.qta}</span><span class="text-emerald-600">€${i.costo_unit.toFixed(2)}</span></div>`).join('');
-        }
-
+        function elaboraFatturaFoto(input) { if(!input.files[0]) return; document.getElementById('fattura-loader').classList.remove('hidden'); const reader = new FileReader(); reader.readAsDataURL(input.files[0]); reader.onload = e => { const img = new Image(); img.src = e.target.result; img.onload = () => { const canvas = document.createElement('canvas'); canvas.width = 1200; canvas.height = (img.height/img.width)*1200; canvas.getContext('2d').drawImage(img,0,0,1200,canvas.height); canvas.toBlob(blob => { Tesseract.recognize(blob, 'ita').then(() => { fatturaItemsLetti = [{ nome: "Dato Foto", qta: 1, costo_unit: 0.00 }]; mostraFatturaItems(); }); }, 'image/jpeg', 0.9); }; }; }
+        function mostraFatturaItems() { document.getElementById('fattura-loader').classList.add('hidden'); document.getElementById('fattura-result').classList.remove('hidden'); document.getElementById('fattura-items-list').innerHTML = fatturaItemsLetti.map(i => `<div class="p-3 flex justify-between text-[11px] font-bold border-b"><span>${i.nome}</span><span>x${i.qta}</span><span class="text-emerald-600">€${i.costo_unit.toFixed(2)}</span></div>`).join(''); }
         async function confermaCaricoFattura() {
             let doc=document.getElementById('ocr-tipo-doc').value, stato=document.getElementById('ocr-stato-pag').value, tot=0, ivaE = parseFloat(document.getElementById('ocr-tot-iva').value)||0;
             fatturaItemsLetti.forEach(i => tot += (i.qta * i.costo_unit));
-            if(doc === 'merce') {
-                for(let i of fatturaItemsLetti) {
-                    let {data: ex} = await supabaseClient.from('inventario').select('*').ilike('nome', `%${i.nome.split(' ')[0]}%`).limit(1);
-                    if(ex && ex.length > 0) await supabaseClient.from('inventario').update({ quantita: parseFloat(ex[0].quantita) + i.qta, prezzo: i.costo_unit }).eq('id', ex[0].id);
-                    else await supabaseClient.from('inventario').insert([{ nome: i.nome, quantita: i.qta, prezzo: i.costo_unit, categoria: 'Da Assegnare' }]);
-                }
-            }
+            if(doc === 'merce') { for(let i of fatturaItemsLetti) { let {data: ex} = await supabaseClient.from('inventario').select('*').ilike('nome', `%${i.nome.split(' ')[0]}%`).limit(1); if(ex && ex.length > 0) await supabaseClient.from('inventario').update({ quantita: parseFloat(ex[0].quantita) + i.qta, prezzo: i.costo_unit }).eq('id', ex[0].id); else await supabaseClient.from('inventario').insert([{ nome: i.nome, quantita: i.qta, prezzo: i.costo_unit, categoria: 'Da Assegnare' }]); } }
             await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria: (doc==='merce'?'Fornitori':'Utenze'), descrizione:'Carico App', importo: tot+ivaE, iva: ivaE, stato_pagamento: stato, data: new Date().toISOString(), data_pagamento: stato==='pagato'?new Date().toISOString():null }]);
             alert("Salvato!"); nav('view-dashboard');
         }
 
         // ==========================================
-        // CASSA: SCARICO SELETTIVO (COCA COLA vs OLIO)
+        // CASSA: SCARICO SELETTIVO (COCA vs OLIO)
         // ==========================================
-        function popolaCassaMenu() {
-            document.getElementById('cassa-piatti-list').innerHTML = menuRistorante.map((p,idx) => `<div class="flex justify-between items-center bg-white p-3 rounded-2xl border mb-2"><p class="font-black text-sm">${p.nome}</p><div class="flex gap-2"><button onclick="updateV(${idx},-1)" class="w-8 h-8 bg-slate-100 rounded-lg font-black">-</button><input id="cassa-qty-${idx}" value="${p.venduti||0}" readonly class="w-6 text-center font-black text-emerald-600"><button onclick="updateV(${idx},1)" class="w-8 h-8 bg-emerald-500 text-white rounded-lg font-black">+</button></div></div>`).join('');
-            calcolaTotC();
-        }
+        function popolaCassaMenu() { document.getElementById('cassa-piatti-list').innerHTML = menuRistorante.map((p,idx) => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border mb-2 shadow-sm"><p class="font-black text-sm uppercase">${p.nome}</p><div class="flex gap-2"><button onclick="updateV(${idx},-1)" class="w-8 h-8 bg-white rounded-lg font-black shadow-sm">-</button><input id="cassa-qty-${idx}" value="${p.venduti||0}" readonly class="w-6 text-center font-black text-emerald-600"><button onclick="updateV(${idx},1)" class="w-8 h-8 bg-emerald-500 text-white rounded-lg font-black shadow-sm">+</button></div></div>`).join(''); calcolaTotC(); }
         function updateV(i,d) { let n=(menuRistorante[i].venduti||0)+d; if(n>=0){menuRistorante[i].venduti=n; document.getElementById(`cassa-qty-${i}`).value=n; calcolaTotC();} }
         function resetMenuCassa() { menuRistorante.forEach(p=>p.venduti=0); popolaCassaMenu(); }
         function calcolaTotC() { let t=0; menuRistorante.forEach(p=>t+=(p.prezzo*(p.venduti||0))); document.getElementById('cassa-total-display').innerText='€ '+t.toFixed(2); return t; }
 
         async function eseguiScaricoMagazzino() {
             let incasso = calcolaTotC(); if(incasso===0) return;
-            document.getElementById('btn-conferma-cassa').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scarico Selettivo...';
+            document.getElementById('btn-conferma-cassa').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scarico...';
             let daScaricare = {};
-            menuRistorante.forEach(p => { 
-                if(p.venduti > 0 && p.ingredienti) {
-                    p.ingredienti.forEach(ing => { 
-                        let prodInv = inventarioLocale.find(inv => inv.id === ing.id_supa);
-                        // LA REGOLA MAGICA: Scarica solo se 'scalo_automatico' è vero (es. Coca Cola sì, Olio no)
-                        if(prodInv && prodInv.scalo_automatico) {
-                            daScaricare[ing.id_supa] = (daScaricare[ing.id_supa]||0) + (ing.qta * p.venduti); 
-                        }
-                    });
-                }
-            });
-            for(let id in daScaricare) { 
-                let {data} = await supabaseClient.from('inventario').select('quantita').eq('id',id).single();
-                if(data) await supabaseClient.from('inventario').update({quantita: data.quantita - daScaricare[id]}).eq('id',id); 
-            }
-            let ivaVersare = incasso - (incasso / 1.10);
-            await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione:'Chiusura Cassa', importo:incasso, iva:ivaVersare, stato_pagamento:'pagato', data: new Date().toISOString(), data_pagamento: new Date().toISOString() }]);
-            alert("Incasso registrato! Prodotti 'MANUAL' (olio, spezie) non sono stati toccati.");
-            resetMenuCassa(); nav('view-dashboard'); caricaInventarioDaSupabase();
+            menuRistorante.forEach(p => { if(p.venduti > 0 && p.ingredienti) { p.ingredienti.forEach(ing => { let prodInv = inventarioLocale.find(inv => inv.id === ing.id_supa); if(prodInv && prodInv.scalo_automatico) { daScaricare[ing.id_supa] = (daScaricare[ing.id_supa]||0) + (ing.qta * p.venduti); } }); } });
+            for(let id in daScaricare) { let {data} = await supabaseClient.from('inventario').select('quantita').eq('id',id).single(); if(data) await supabaseClient.from('inventario').update({quantita: data.quantita - daScaricare[id]}).eq('id',id); }
+            let ivaV = incasso - (incasso / 1.10);
+            await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione:'Chiusura Cassa', importo:incasso, iva:ivaV, stato_pagamento:'pagato', data: new Date().toISOString(), data_pagamento: new Date().toISOString() }]);
+            alert("Incasso e Magazzino AUTO aggiornati!"); resetMenuCassa(); nav('view-dashboard'); caricaInventarioDaSupabase();
         }
 
-        // RICETTARIO CORE
+        // RICETTARIO
         function aggiornaVistaRicettario() { document.getElementById('menu-builder-list').innerHTML = menuRistorante.map((p,idx) => `<div class="bg-white p-4 border rounded-2xl flex justify-between shadow-sm"><p class="font-black text-sm uppercase">${p.nome} <span class="text-emerald-500">€${p.prezzo}</span></p><button onclick="menuRistorante.splice(${idx},1); localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); aggiornaVistaRicettario();" class="text-red-400"><i class="fas fa-trash"></i></button></div>`).join(''); }
         function apriCreaPiatto() { document.getElementById('form-crea-piatto').classList.remove('hidden'); ingredientiTempRicetta=[]; document.getElementById('lista-ingredienti-piatto').innerHTML = ''; }
         function chiudiCreaPiatto() { document.getElementById('form-crea-piatto').classList.add('hidden'); }
         function popolaSelectIngredienti() { document.getElementById('select-ingrediente').innerHTML = inventarioLocale.map(i=>`<option value="${i.id}" data-nome="${i.nome}">${i.nome}</option>`).join(''); }
-        function aggiungiIngredienteRicetta() {
-            const s=document.getElementById('select-ingrediente'); if(!s.value) return;
-            ingredientiTempRicetta.push({ id_supa: s.value, nome: s.options[s.selectedIndex].getAttribute('data-nome'), qta: parseFloat(document.getElementById('qta-ingrediente').value)||0 });
-            document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map(i=>`<p class="text-[10px] font-black uppercase">${i.qta}x ${i.nome}</p>`).join('');
-        }
-        function salvaPiattoMenu() {
-            let nome=document.getElementById('piatto-nome').value; if(!nome) return;
-            menuRistorante.push({ nome, prezzo: parseFloat(document.getElementById('piatto-prezzo').value), venduti: 0, ingredienti: [...ingredientiTempRicetta] });
-            localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); chiudiCreaPiatto(); aggiornaVistaRicettario();
-        }
-
-        // SCANNER (Placeholder per il core)
-        function startScanner() {
-            document.getElementById('qr-reader').style.display='block';
-            html5QrScanner = new Html5Qrcode("qr-reader");
-            html5QrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, txt => { 
-                html5QrScanner.stop(); document.getElementById('qr-reader').style.display='none'; 
-                alert("Rilevato: " + txt);
-            }).catch(e=>{});
-        }
+        function aggiungiIngredienteRicetta() { const s=document.getElementById('select-ingrediente'); if(s.value) { ingredientiTempRicetta.push({ id_supa: s.value, nome: s.options[s.selectedIndex].getAttribute('data-nome'), qta: parseFloat(document.getElementById('qta-ingrediente').value)||0 }); document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map(i=>`<p class="text-[10px] font-black uppercase">${i.qta}x ${i.nome}</p>`).join(''); } }
+        function salvaPiattoMenu() { let nome=document.getElementById('piatto-nome').value; if(nome) { menuRistorante.push({ nome, prezzo: parseFloat(document.getElementById('piatto-prezzo').value), venduti: 0, ingredienti: [...ingredientiTempRicetta] }); localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); chiudiCreaPiatto(); aggiornaVistaRicettario(); } }
     </script>
 </body>
 </html>
