@@ -4,15 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Belvedere Smart - ERP Completo</title>
-    <!-- Framework CSS -->
+    <!-- Framework & Librerie -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Icone -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Scanner Barcode -->
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <!-- Motore OCR Intelligenza Artificiale -->
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
     
     <style>
@@ -20,7 +16,6 @@
         .view-panel { display: none; }
         .view-panel.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* Nasconde le freccette dei campi numerici */
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .hide-scroll::-webkit-scrollbar { display: none; }
     </style>
@@ -28,7 +23,7 @@
 <body class="bg-slate-50 font-sans text-slate-900 h-screen overflow-hidden flex flex-col">
 
     <!-- ========================================== -->
-    <!-- 1. SCHERMATA LOGIN                         -->
+    <!-- 1. LOGIN                                   -->
     <!-- ========================================== -->
     <div id="view-login" class="view-panel active h-full flex flex-col justify-center items-center bg-slate-900 px-6 fixed inset-0 z-[100]">
         <div class="text-center mb-8">
@@ -44,7 +39,7 @@
                 <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
                 <input type="password" id="pass-field" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold tracking-widest" placeholder="Password...">
             </div>
-            <button onclick="handleAuth()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 uppercase tracking-widest text-sm">
+            <button onclick="handleAuth()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 uppercase tracking-widest text-sm">
                 Accedi al Gestionale
             </button>
             <p id="login-error" class="text-red-400 text-center text-xs hidden font-bold"><i class="fas fa-exclamation-triangle mr-1"></i> Password errata.</p>
@@ -52,27 +47,24 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- APP MAIN INTERFACE                         -->
+    <!-- MAIN APP INTERFACE                         -->
     <!-- ========================================== -->
     <div id="app-interface" class="hidden h-full flex flex-col">
         
-        <!-- HEADER -->
         <header class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm z-20">
             <div>
                 <h2 id="header-title" class="text-xl font-black text-slate-800">Dashboard</h2>
-                <div id="role-badge" class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1">Ruolo</div>
+                <div id="role-badge" class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1 bg-amber-100 text-amber-700">Titolare</div>
             </div>
             <button onclick="location.reload()" class="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 transition shadow-inner">
                 <i class="fas fa-power-off"></i>
             </button>
         </header>
 
-        <!-- MAIN SCROLL AREA -->
         <main class="flex-1 overflow-y-auto p-5 pb-32 hide-scroll">
             
             <!-- VISTA: DASHBOARD -->
             <div id="view-dashboard" class="view-panel active space-y-6">
-                <!-- Cruscotto Finanziario -->
                 <div class="grid grid-cols-2 gap-3">
                     <div class="bg-white p-4 rounded-3xl border border-emerald-100 shadow-sm relative overflow-hidden">
                         <div class="absolute -right-4 -bottom-4 text-emerald-50 opacity-50 text-6xl"><i class="fas fa-euro-sign"></i></div>
@@ -81,36 +73,24 @@
                     </div>
                     <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden">
                         <div class="absolute -right-4 -bottom-4 text-slate-50 opacity-50 text-6xl"><i class="fas fa-boxes"></i></div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Valore Stock (Supabase)</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Valore Scorte</p>
                         <p id="dash-total-value" class="text-2xl font-black text-slate-700 relative z-10">€ 0.00</p>
                     </div>
                 </div>
 
-                <div class="bg-red-50 p-4 rounded-3xl border border-red-100 shadow-sm flex justify-between items-center">
-                    <div>
-                        <p class="text-[10px] font-bold text-red-400 uppercase">Costo Sprechi Registrati</p>
-                        <p id="dash-waste" class="text-xl font-black text-red-600">€ 0.00</p>
-                    </div>
-                    <div class="bg-red-200 text-red-600 w-10 h-10 rounded-full flex items-center justify-center"><i class="fas fa-trash-alt"></i></div>
-                </div>
-
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-6">Azioni Rapide</h3>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-6">Gestione Rapida</h3>
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="openScanner('carico')" class="bg-slate-900 text-white p-6 rounded-3xl flex flex-col items-center gap-3 shadow-md active:scale-95 transition">
-                        <i class="fas fa-barcode text-3xl text-emerald-400"></i>
-                        <span class="text-[11px] font-bold uppercase">Carico Scanner</span>
+                    <button onclick="nav('view-ricettario')" class="bg-slate-900 text-white p-6 rounded-3xl flex flex-col items-center gap-3 shadow-md active:scale-95 transition">
+                        <i class="fas fa-book-open text-3xl text-emerald-400"></i>
+                        <span class="text-[11px] font-bold uppercase">Menu & Ricettario</span>
                     </button>
-                    <button onclick="nav('view-cassa')" class="bg-white border p-6 rounded-3xl flex flex-col items-center gap-3 shadow-sm active:scale-95 transition">
+                    <button onclick="nav('view-inventory')" class="bg-white border p-6 rounded-3xl flex flex-col items-center gap-3 shadow-sm active:scale-95 transition">
+                        <i class="fas fa-cubes text-3xl text-blue-500"></i>
+                        <span class="text-[11px] font-bold uppercase">Magazzino</span>
+                    </button>
+                    <button onclick="nav('view-cassa')" class="bg-white border p-6 rounded-3xl flex flex-col items-center gap-3 shadow-sm active:scale-95 transition col-span-2">
                         <i class="fas fa-cash-register text-3xl text-amber-500"></i>
-                        <span class="text-[11px] font-bold uppercase">Chiusura Cassa</span>
-                    </button>
-                    <button onclick="nav('view-spesa')" class="bg-white border p-6 rounded-3xl flex flex-col items-center gap-3 shadow-sm active:scale-95 transition">
-                        <i class="fas fa-shopping-cart text-3xl text-blue-500"></i>
-                        <span class="text-[11px] font-bold uppercase">Lista Spesa</span>
-                    </button>
-                    <button onclick="openScanner('spreco')" class="bg-white border p-6 rounded-3xl flex flex-col items-center gap-3 shadow-sm active:scale-95 transition">
-                        <i class="fas fa-trash text-3xl text-red-500"></i>
-                        <span class="text-[11px] font-bold uppercase">Segna Spreco</span>
+                        <span class="text-[11px] font-bold uppercase">Cassa & Scarico Scorte</span>
                     </button>
                 </div>
             </div>
@@ -118,9 +98,9 @@
             <!-- VISTA: INVENTARIO SUPABASE REALE -->
             <div id="view-inventory" class="view-panel space-y-4">
                 <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border">
-                    <h3 class="font-bold text-slate-800">Magazzino</h3>
+                    <h3 class="font-bold text-slate-800">Scorte Reali</h3>
                     <div class="flex gap-2">
-                        <button onclick="nav('view-add-product')" class="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm"><i class="fas fa-plus mr-1"></i>Nuovo</button>
+                        <button onclick="apriNuovoProdotto()" class="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm"><i class="fas fa-plus mr-1"></i>Nuovo</button>
                         <button onclick="caricaInventarioDaSupabase()" class="bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
@@ -134,21 +114,19 @@
                     <table class="w-full text-left text-sm">
                         <thead class="bg-slate-50 border-b">
                             <tr>
-                                <th class="p-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Prodotto / Fornitore</th>
+                                <th class="p-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Prodotto</th>
                                 <th class="p-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Q.tà</th>
                                 <th class="p-4"></th>
                             </tr>
                         </thead>
-                        <tbody id="inventory-table-body" class="divide-y divide-slate-100">
-                            <!-- Popolato da Supabase -->
-                        </tbody>
+                        <tbody id="inventory-table-body" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- VISTA: AGGIUNGI PRODOTTO A SUPABASE -->
+            <!-- VISTA: AGGIUNGI PRODOTTO MAGAZZINO -->
             <div id="view-add-product" class="view-panel space-y-4">
-                <div class="bg-white p-6 rounded-3xl border shadow-sm space-y-5">
+                <div class="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
                     <h3 class="font-black text-lg border-b pb-2 mb-4">Aggiungi a Magazzino</h3>
                     <div>
                         <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Nome Prodotto</label>
@@ -156,27 +134,12 @@
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Quantità</label>
+                            <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Quantità Iniziale</label>
                             <input type="number" id="new-qta" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-center" value="1">
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Prezzo Tot. (€)</label>
+                            <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Prezzo (€)</label>
                             <input type="number" id="new-prezzo" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-center" value="0.00">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Categoria (Zona)</label>
-                            <select id="new-cat" class="w-full border p-3 rounded-xl font-bold bg-slate-50">
-                                <option>Cella Frigo</option>
-                                <option>Freezer</option>
-                                <option>Secco</option>
-                                <option>Cantina</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Fornitore</label>
-                            <input type="text" id="new-fornitore" class="w-full border p-3 rounded-xl font-bold bg-slate-50" placeholder="Es. Metro">
                         </div>
                     </div>
                     <button onclick="salvaNuovoProdotto()" id="btn-salva-prod" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg uppercase tracking-widest text-sm mt-4 active:scale-95 transition">
@@ -185,130 +148,98 @@
                 </div>
             </div>
 
-            <!-- VISTA: SCANNER (FOTOCAMERA) -->
-            <div id="view-scanner" class="view-panel space-y-4">
-                <div id="mode-banner" class="bg-slate-800 text-white p-4 rounded-2xl font-black text-center uppercase tracking-widest text-sm shadow-md">
-                    Modalità: Carico
+            <!-- ========================================== -->
+            <!-- NUOVA VISTA: RICETTARIO E MENU             -->
+            <!-- ========================================== -->
+            <div id="view-ricettario" class="view-panel space-y-4">
+                
+                <div class="flex justify-between items-center bg-emerald-50 border border-emerald-200 p-4 rounded-2xl shadow-sm mb-4">
+                    <div>
+                        <h3 class="font-black text-emerald-900">I Miei Piatti</h3>
+                        <p class="text-[10px] font-bold text-emerald-600 uppercase">Crea la Distinta Base</p>
+                    </div>
+                    <button onclick="apriCreaPiatto()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-emerald-700 transition">+ Nuovo Piatto</button>
                 </div>
-                
-                <div id="qr-reader" class="rounded-3xl overflow-hidden bg-black aspect-square shadow-inner border-4 border-slate-200"></div>
-                
-                <!-- Form che appare dopo la scansione -->
-                <div id="scan-form" class="bg-white p-6 rounded-3xl border shadow-lg hidden space-y-4 mt-4">
-                    <h3 id="scan-product-name" class="font-black text-xl text-emerald-600">Prodotto Rilevato</h3>
-                    <p class="text-xs text-slate-400 font-bold mb-4">Inserisci i dettagli per l'aggiornamento.</p>
+
+                <!-- Lista Piatti Esistenti -->
+                <div id="menu-builder-list" class="space-y-3">
+                    <!-- Popolato via JS -->
+                </div>
+
+                <!-- FORM: CREA / MODIFICA PIATTO (Nascosto di default) -->
+                <div id="form-crea-piatto" class="hidden bg-white p-6 rounded-3xl border shadow-xl space-y-5 mt-6 border-t-4 border-t-emerald-500 relative">
+                    <button onclick="chiudiCreaPiatto()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+                    
+                    <h3 class="font-black text-lg border-b pb-2">Componi Piatto</h3>
                     
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-[10px] uppercase font-bold text-slate-400">Quantità</label>
-                            <input type="number" id="scan-qta" value="1" class="w-full border p-3 rounded-xl font-bold text-center bg-slate-50 text-lg">
+                        <div class="col-span-2">
+                            <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Nome del Piatto</label>
+                            <input type="text" id="piatto-nome" class="w-full border p-3 rounded-xl font-bold bg-slate-50" placeholder="Es. Carbonara">
                         </div>
-                        <div id="box-prezzo">
-                            <label class="text-[10px] uppercase font-bold text-slate-400">Prezzo / Valore (€)</label>
-                            <input type="number" id="scan-price" value="0.00" class="w-full border p-3 rounded-xl font-bold text-center bg-slate-50 text-lg">
+                        <div class="col-span-2">
+                            <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Prezzo di Vendita (€)</label>
+                            <input type="number" id="piatto-prezzo" class="w-full border p-3 rounded-xl font-black text-emerald-600 bg-slate-50 text-xl" value="0.00">
                         </div>
                     </div>
-                    <button onclick="confirmScanAction()" id="btn-scan-confirm" class="w-full bg-slate-900 text-white font-black py-4 rounded-xl shadow-md uppercase tracking-widest text-sm mt-2 active:scale-95 transition">
-                        Conferma Operazione
+
+                    <!-- Distinta Base / Ingredienti -->
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <h4 class="font-bold text-slate-700 text-sm mb-3"><i class="fas fa-mortar-pestle text-emerald-500 mr-2"></i>Ingredienti dal Magazzino</h4>
+                        
+                        <div id="lista-ingredienti-piatto" class="space-y-2 mb-4">
+                            <!-- Qui appaiono gli ingredienti aggiunti alla ricetta -->
+                            <p class="text-xs text-slate-400 italic" id="msg-no-ing">Nessun ingrediente associato.</p>
+                        </div>
+
+                        <!-- Selettore per aggiungere ingrediente -->
+                        <div class="flex gap-2 items-end border-t pt-3 border-slate-200">
+                            <div class="flex-1">
+                                <label class="text-[9px] font-bold uppercase text-slate-400">Prodotto (da Supabase)</label>
+                                <select id="select-ingrediente" class="w-full border p-2 rounded-lg font-bold text-xs bg-white"></select>
+                            </div>
+                            <div class="w-20">
+                                <label class="text-[9px] font-bold uppercase text-slate-400">Quantità</label>
+                                <input type="number" id="qta-ingrediente" class="w-full border p-2 rounded-lg font-bold text-xs text-center bg-white" value="1">
+                            </div>
+                            <button onclick="aggiungiIngredienteRicetta()" class="bg-slate-900 text-white w-10 h-10 rounded-lg flex items-center justify-center font-bold active:scale-95"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <button onclick="salvaPiattoMenu()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-sm mt-4 active:scale-95">
+                        Salva Piatto nel Menu
                     </button>
                 </div>
             </div>
 
-            <!-- VISTA: LISTA SPESA (FORNITORI) -->
-            <div id="view-spesa" class="view-panel space-y-4">
-                <div class="bg-blue-50 border border-blue-200 p-6 rounded-3xl shadow-sm">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-black text-blue-900 text-lg"><i class="fas fa-clipboard-list mr-2"></i>Da Ordinare</h3>
-                        <span class="bg-blue-600 text-white text-[9px] font-bold px-2 py-1 rounded-md uppercase tracking-widest shadow-sm">Automazione</span>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <!-- Fornitore 1 -->
-                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                            <h4 class="text-xs font-black text-slate-400 uppercase mb-3 border-b pb-2">Fornitore: Rossi Carni Srl</h4>
-                            <div class="flex justify-between items-center text-sm font-bold text-slate-700">
-                                <span>Guanciale Stagionato</span>
-                                <span class="text-red-500 bg-red-50 px-2 py-1 rounded">Ordina: 5 kg</span>
-                            </div>
-                        </div>
-                        <!-- Fornitore 2 -->
-                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                            <h4 class="text-xs font-black text-slate-400 uppercase mb-3 border-b pb-2">Fornitore: Metro Cash&Carry</h4>
-                            <div class="flex justify-between items-center text-sm font-bold text-slate-700 mb-2">
-                                <span>Farina 00</span>
-                                <span class="text-red-500 bg-red-50 px-2 py-1 rounded">Ordina: 20 kg</span>
-                            </div>
-                            <div class="flex justify-between items-center text-sm font-bold text-slate-700">
-                                <span>Olio Frittura</span>
-                                <span class="text-red-500 bg-red-50 px-2 py-1 rounded">Ordina: 15 L</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VISTA: CASSA (MANUALE / OCR) -->
+            <!-- VISTA: CASSA E SCARICO MAGAZZINO -->
             <div id="view-cassa" class="view-panel space-y-4">
                 
-                <!-- TABS -->
-                <div class="flex bg-slate-200 p-1 rounded-2xl mb-2">
-                    <button onclick="switchCassaTab('manual')" id="tab-btn-manual" class="flex-1 py-3 text-sm font-black rounded-xl transition-all bg-white text-slate-800 shadow">Menu e Ricette</button>
-                    <button onclick="switchCassaTab('ocr')" id="tab-btn-ocr" class="flex-1 py-3 text-sm font-black rounded-xl transition-all text-slate-500 hover:text-slate-700">Foto Scontrino</button>
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs font-bold text-amber-800 shadow-sm flex items-center gap-3">
+                    <i class="fas fa-magic text-2xl text-amber-500"></i>
+                    <p>Inserisci i piatti venduti. L'app scalerà in automatico gli ingredienti esatti dal tuo database Supabase.</p>
                 </div>
-
-                <!-- TAB 1: MANUALE (Distinta Base) -->
-                <div id="tab-manual" class="space-y-4">
-                    <div class="bg-emerald-50 text-emerald-800 p-4 rounded-2xl text-xs font-bold border border-emerald-100 shadow-sm">
-                        <i class="fas fa-info-circle mr-1"></i> Inserendo i piatti, il sistema calcolerà l'incasso e simulerà lo scarico degli ingredienti dalla Cella.
+                
+                <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h3 class="font-black text-slate-800">Comande da Evadere</h3>
+                        <button onclick="resetMenuCassa()" class="text-[10px] text-red-500 font-bold uppercase tracking-widest bg-red-50 px-2 py-1 rounded"><i class="fas fa-trash-alt mr-1"></i>Azzera</button>
                     </div>
                     
-                    <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm">
-                        <div class="flex justify-between items-center mb-4 border-b pb-2">
-                            <h3 class="font-bold text-slate-800">Piatti Venduti</h3>
-                            <button onclick="resetMenu()" class="text-[10px] text-red-500 font-bold uppercase tracking-widest bg-red-50 px-2 py-1 rounded"><i class="fas fa-trash-alt mr-1"></i>Azzera</button>
-                        </div>
-                        <div id="menu-list" class="space-y-2">
-                            <!-- Popolato via JS -->
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900 p-6 rounded-3xl shadow-lg mt-4 relative overflow-hidden">
-                        <i class="fas fa-coins absolute -right-4 -bottom-4 text-6xl text-white/10"></i>
-                        <div class="flex justify-between items-center mb-6 relative z-10">
-                            <span class="text-xs text-slate-400 uppercase font-bold tracking-widest">Totale Lordo:</span>
-                            <span id="manual-total-display" class="text-3xl font-black text-emerald-400">€ 0.00</span>
-                        </div>
-                        <button onclick="confirmManualClosure()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm active:scale-95 transition shadow-lg relative z-10">Conferma & Scarica Magazzino</button>
+                    <div id="cassa-piatti-list" class="space-y-3">
+                        <!-- Popolato dinamicamente dal Ricettario -->
                     </div>
                 </div>
 
-                <!-- TAB 2: OCR (Foto Scontrino) -->
-                <div id="tab-ocr" class="hidden space-y-4">
-                    <div class="bg-white p-6 rounded-3xl border shadow-sm text-center">
-                        <div class="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-camera text-3xl text-amber-600"></i>
-                        </div>
-                        <h3 class="font-black text-lg text-slate-800 mb-2">Lettura Intelligente</h3>
-                        <p class="text-xs text-slate-500 font-bold mb-6">Carica la foto della chiusura di cassa. L'Intelligenza Artificiale troverà il totale.</p>
-                        
-                        <label class="block w-full">
-                            <span class="sr-only">Scegli foto</span>
-                            <input type="file" accept="image/*" onchange="runOCR(this)" class="block w-full text-sm text-slate-500 file:mr-4 file:py-4 file:px-8 file:rounded-2xl file:border-0 file:text-sm file:font-black file:uppercase file:tracking-widest file:bg-amber-500 file:text-white hover:file:bg-amber-600 transition cursor-pointer shadow-md">
-                        </label>
+                <div class="bg-slate-900 p-6 rounded-3xl shadow-xl mt-4 relative overflow-hidden">
+                    <i class="fas fa-coins absolute -right-4 -bottom-4 text-6xl text-white/10"></i>
+                    <div class="flex justify-between items-center mb-6 relative z-10">
+                        <span class="text-xs text-slate-400 uppercase font-bold tracking-widest">Incasso Totale:</span>
+                        <span id="cassa-total-display" class="text-3xl font-black text-emerald-400">€ 0.00</span>
                     </div>
-
-                    <div id="ocr-loader" class="hidden text-center py-6">
-                        <i class="fas fa-circle-notch fa-spin text-amber-600 text-4xl mb-3"></i>
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Analisi A.I. in corso...</p>
-                    </div>
-
-                    <div id="ocr-result" class="hidden bg-white p-6 rounded-3xl border-2 border-emerald-400 shadow-xl space-y-4">
-                        <div class="flex justify-between items-center border-b pb-4">
-                            <span class="font-bold text-slate-400 text-xs uppercase tracking-widest">Totale Trovato:</span>
-                            <input type="number" id="final-total" class="text-3xl font-black text-emerald-600 w-32 text-right focus:outline-none bg-transparent">
-                        </div>
-                        <button onclick="confirmClosureFromOCR()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-md active:scale-95 transition">Registra Incasso</button>
-                    </div>
+                    <button id="btn-conferma-cassa" onclick="eseguiScaricoMagazzino()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg relative z-10 active:scale-95 transition">
+                        Conferma & Scarica Magazzino
+                    </button>
                 </div>
             </div>
 
@@ -320,13 +251,13 @@
                 <i class="fas fa-home text-xl mb-1"></i>
                 <span class="text-[9px] font-black uppercase tracking-widest">Home</span>
             </button>
-            <button onclick="nav('view-inventory')" class="flex flex-col items-center w-1/4 text-slate-400 hover:text-emerald-500 transition">
+            <button onclick="nav('view-ricettario')" class="flex flex-col items-center w-1/4 text-slate-400 hover:text-emerald-500 transition">
+                <i class="fas fa-book-open text-xl mb-1"></i>
+                <span class="text-[9px] font-black uppercase tracking-widest">Menu</span>
+            </button>
+            <button onclick="nav('view-inventory')" class="flex flex-col items-center w-1/4 text-slate-400 hover:text-emerald-500 transition border-l border-r border-slate-100">
                 <i class="fas fa-boxes text-xl mb-1"></i>
                 <span class="text-[9px] font-black uppercase tracking-widest">Stock</span>
-            </button>
-            <button onclick="nav('view-spesa')" class="flex flex-col items-center w-1/4 text-slate-400 hover:text-emerald-500 transition border-l border-r border-slate-100">
-                <i class="fas fa-clipboard-list text-xl mb-1"></i>
-                <span class="text-[9px] font-black uppercase tracking-widest">Spesa</span>
             </button>
             <button onclick="nav('view-cassa')" class="flex flex-col items-center w-1/4 text-slate-400 hover:text-amber-500 transition">
                 <i class="fas fa-cash-register text-xl mb-1"></i>
@@ -337,342 +268,311 @@
 
     <script>
         // ==========================================
-        // CONFIGURAZIONE SUPABASE
+        // 1. SUPABASE & VARIABILI GLOBALI
         // ==========================================
         const SB_URL = 'https://nizktofcamulygzszydw.supabase.co';
         const SB_KEY = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-        // VARIABILI DI STATO
-        let userRole = '';
-        let html5QrScanner = null;
-        let currentScanMode = 'carico';
-        let dashStats = { income: 0, waste: 0 };
-
-        // DISTINTA BASE (RICETTE)
-        let menuRistorante = [
-            { id: 1, nome: "Carbonara", prezzo: 14.00, quantita: 0, ricetta: "100g Pasta, 2 Uova, 50g Guanciale" },
-            { id: 2, nome: "Amatriciana", prezzo: 13.00, quantita: 0, ricetta: "100g Pasta, 80g Pomodoro, 40g Guanciale" },
-            { id: 3, nome: "Tagliata di Manzo", prezzo: 22.00, quantita: 0, ricetta: "250g Carne, 20g Rucola" }
-        ];
+        let inventarioLocale = []; // Copia dei prodotti per la select degli ingredienti
+        let menuRistorante = JSON.parse(localStorage.getItem('belvedereMenu')) || []; // Salva il menu nel browser
+        let ingredientiTempRicetta = []; // Ingredienti mentre si compone il piatto
+        let piattoInModificaId = null;
+        let incassoTotale = 0;
 
         // ==========================================
-        // 1. LOGIN
+        // 2. LOGIN & NAVIGAZIONE
         // ==========================================
-        document.getElementById('pass-field').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') handleAuth();
-        });
+        document.getElementById('pass-field').addEventListener('keypress', e => { if (e.key === 'Enter') handleAuth(); });
 
         function handleAuth() {
             let pass = document.getElementById('pass-field').value.trim().toLowerCase();
             if (pass === 'staff' || pass === 'belvedere59') {
-                userRole = (pass === 'belvedere59') ? 'Titolare' : 'Staff';
                 document.getElementById('view-login').style.display = 'none';
                 document.getElementById('app-interface').classList.remove('hidden');
-                document.getElementById('role-badge').innerText = userRole;
                 
                 nav('view-dashboard');
-                caricaInventarioDaSupabase(); // Sincronizza subito
-                renderMenu(); // Prepara i piatti per la cassa
+                caricaInventarioDaSupabase(); // Sincronizza DB
+                aggiornaVistaRicettario();    // Disegna menu
             } else {
                 document.getElementById('login-error').classList.remove('hidden');
                 setTimeout(() => document.getElementById('login-error').classList.add('hidden'), 3000);
             }
         }
 
-        function logout() { location.reload(); }
-
-        // ==========================================
-        // 2. NAVIGAZIONE PRINCIPALE
-        // ==========================================
         function nav(id) {
             document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             
             const titles = { 
-                'view-dashboard': 'Cruscotto', 
-                'view-inventory': 'Database Scorte', 
-                'view-add-product': 'Nuovo Prodotto',
-                'view-scanner': 'Lettore Barcode',
-                'view-spesa': 'Ordini Fornitori',
-                'view-cassa': 'Chiusura Fiscale'
+                'view-dashboard': 'Cruscotto', 'view-inventory': 'Scorte Magazzino', 
+                'view-add-product': 'Nuovo Prodotto', 'view-ricettario': 'Ricettario Piatti',
+                'view-cassa': 'Chiusura di Cassa'
             };
             document.getElementById('header-title').innerText = titles[id];
 
-            // Gestione Scanner Camera
-            if (id === 'view-scanner') {
-                startScanner();
-            } else if (html5QrScanner) {
-                html5QrScanner.stop().catch(err => console.log(err));
-            }
-
-            // Aggiorna icone Navbar inferiore
             document.querySelectorAll('nav button').forEach(btn => btn.className = btn.className.replace('text-emerald-600', 'text-slate-400').replace('text-amber-500', 'text-slate-400'));
             event.currentTarget.className = event.currentTarget.className.replace('text-slate-400', id === 'view-cassa' ? 'text-amber-500' : 'text-emerald-600');
+
+            if(id === 'view-cassa') popolaCassaMenu();
+            if(id === 'view-inventory') caricaInventarioDaSupabase();
         }
 
         // ==========================================
-        // 3. INVENTARIO (CRUD CON SUPABASE)
+        // 3. MAGAZZINO (SUPABASE)
         // ==========================================
         async function caricaInventarioDaSupabase() {
             document.getElementById('loading-spinner').classList.remove('hidden');
-            document.getElementById('inventory-table-body').innerHTML = '';
-
             const { data, error } = await supabaseClient.from('inventario').select('*').order('nome', { ascending: true });
             document.getElementById('loading-spinner').classList.add('hidden');
 
-            if (error) {
-                console.error(error);
-                return alert("Errore di connessione a Supabase. Assicurati di aver creato la tabella 'inventario' via SQL.");
-            }
+            if (error) return console.error("Errore Supabase:", error);
 
+            inventarioLocale = data; // Salvo per i menu a tendina
             let html = '';
             let valoreTotale = 0;
 
-            if(data.length === 0) {
-                html = '<tr><td colspan="3" class="p-6 text-center text-slate-400 text-xs font-bold">Nessun prodotto trovato.</td></tr>';
-            } else {
-                data.forEach(p => {
-                    valoreTotale += (parseFloat(p.prezzo) * parseFloat(p.quantita));
-                    html += `
-                        <tr>
-                            <td class="p-4">
-                                <p class="font-black text-xs text-slate-800 leading-tight">${p.nome}</p>
-                                <p class="text-[9px] text-slate-400 uppercase mt-1">
-                                    <span class="bg-slate-100 px-1 py-0.5 rounded mr-1">${p.categoria}</span>
-                                    ${p.fornitore ? `<span class="text-blue-400"><i class="fas fa-truck text-[8px] mr-0.5"></i>${p.fornitore}</span>` : ''}
-                                </p>
-                            </td>
-                            <td class="p-4 text-center align-middle">
-                                <span class="bg-emerald-100 text-emerald-800 font-black px-2 py-1 rounded text-sm">${p.quantita}</span>
-                            </td>
-                            <td class="p-4 text-right whitespace-nowrap align-middle">
-                                <button onclick="modificaQuantita('${p.id}', '${p.nome}', ${p.quantita})" class="bg-white border shadow-sm w-8 h-8 rounded text-blue-500 mr-1 active:scale-95"><i class="fas fa-edit"></i></button>
-                                <button onclick="eliminaProdotto('${p.id}')" class="bg-white border shadow-sm w-8 h-8 rounded text-red-500 active:scale-95"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
-
-            document.getElementById('inventory-table-body').innerHTML = html;
+            data.forEach(p => {
+                valoreTotale += (parseFloat(p.prezzo) * parseFloat(p.quantita));
+                html += `
+                    <tr>
+                        <td class="p-4">
+                            <p class="font-black text-xs text-slate-800">${p.nome}</p>
+                            <p class="text-[9px] text-slate-400 uppercase mt-1">${p.categoria}</p>
+                        </td>
+                        <td class="p-4 text-center align-middle">
+                            <span class="bg-emerald-100 text-emerald-800 font-black px-2 py-1 rounded">${p.quantita}</span>
+                        </td>
+                        <td class="p-4 text-right whitespace-nowrap align-middle">
+                            <button onclick="modificaQuantita('${p.id}', '${p.nome}', ${p.quantita})" class="bg-white border shadow-sm w-8 h-8 rounded text-blue-500 mr-1"><i class="fas fa-edit"></i></button>
+                            <button onclick="eliminaProdotto('${p.id}')" class="bg-white border shadow-sm w-8 h-8 rounded text-red-500"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('inventory-table-body').innerHTML = html || '<tr><td colspan="3" class="p-6 text-center text-slate-400 text-xs">Nessun prodotto.</td></tr>';
             document.getElementById('dash-total-value').innerText = '€ ' + valoreTotale.toFixed(2);
+            
+            popolaSelectIngredienti();
         }
 
         async function salvaNuovoProdotto() {
             const nome = document.getElementById('new-nome').value.trim();
             const qta = document.getElementById('new-qta').value;
             const prezzo = document.getElementById('new-prezzo').value;
-            const cat = document.getElementById('new-cat').value;
-            const fornitore = document.getElementById('new-fornitore').value.trim() || 'Generico';
-
             if(!nome) return alert("Inserisci il nome!");
 
-            const btn = document.getElementById('btn-salva-prod');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvataggio...';
-
-            const { error } = await supabaseClient.from('inventario').insert([
-                { nome: nome, quantita: qta, prezzo: prezzo, categoria: cat, fornitore: fornitore }
-            ]);
-
-            btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i>Salva nel Database';
-
-            if (error) alert("Errore: " + error.message);
-            else {
-                alert("Prodotto aggiunto!");
-                nav('view-inventory'); // Ricarica e mostra la lista
-            }
+            document.getElementById('btn-salva-prod').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            await supabaseClient.from('inventario').insert([{ nome, quantita: qta, prezzo, categoria: document.getElementById('new-cat').value }]);
+            document.getElementById('btn-salva-prod').innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i>Salva nel Database';
+            
+            alert("Aggiunto!");
+            nav('view-inventory');
         }
 
         async function eliminaProdotto(id) {
-            if(confirm("Eliminare definitivamente questo prodotto?")) {
-                const { error } = await supabaseClient.from('inventario').delete().eq('id', id);
-                if (!error) caricaInventarioDaSupabase();
+            if(confirm("Eliminare definitivamente?")) {
+                await supabaseClient.from('inventario').delete().eq('id', id);
+                caricaInventarioDaSupabase();
             }
         }
 
-        async function modificaQuantita(id, nome, quantitaAttuale) {
-            let nuovaQta = prompt(`Nuova quantità per: ${nome}`, quantitaAttuale);
-            if(nuovaQta !== null && nuovaQta !== "") {
-                const { error } = await supabaseClient.from('inventario').update({ quantita: parseFloat(nuovaQta) }).eq('id', id);
-                if (!error) caricaInventarioDaSupabase();
+        async function modificaQuantita(id, nome, qta) {
+            let nuovaQta = prompt(`Nuova quantità per: ${nome}`, qta);
+            if(nuovaQta !== null) {
+                await supabaseClient.from('inventario').update({ quantita: parseFloat(nuovaQta) }).eq('id', id);
+                caricaInventarioDaSupabase();
             }
         }
 
         // ==========================================
-        // 4. SCANNER FOTOCAMERA (CARICO & SPRECO)
+        // 4. GESTIONE RICETTARIO (MENU)
         // ==========================================
-        function openScanner(mode) {
-            currentScanMode = mode;
-            const banner = document.getElementById('mode-banner');
-            const btn = document.getElementById('btn-scan-confirm');
-            
-            if(mode === 'carico') {
-                banner.className = "bg-emerald-100 text-emerald-800 p-4 rounded-2xl font-black text-center uppercase tracking-widest text-sm shadow-sm border border-emerald-200";
-                banner.innerText = "Modalità: Carico Merce";
-                document.getElementById('box-prezzo').style.display = 'block';
-                btn.className = "w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-md uppercase tracking-widest text-sm mt-2 active:scale-95 transition";
-                btn.innerText = "Registra Carico";
-            } else {
-                banner.className = "bg-red-100 text-red-800 p-4 rounded-2xl font-black text-center uppercase tracking-widest text-sm shadow-sm border border-red-200";
-                banner.innerText = "Modalità: Segnala Spreco";
-                document.getElementById('box-prezzo').style.display = 'none';
-                btn.className = "w-full bg-red-600 text-white font-black py-4 rounded-xl shadow-md uppercase tracking-widest text-sm mt-2 active:scale-95 transition";
-                btn.innerText = "Registra Spreco";
-            }
-            
-            document.getElementById('scan-form').classList.add('hidden');
-            document.getElementById('qr-reader').style.display = 'block';
-            nav('view-scanner');
-        }
-
-        function startScanner() {
-            html5QrScanner = new Html5Qrcode("qr-reader");
-            html5QrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-                // Fermo scanner e mostro form
-                html5QrScanner.stop();
-                document.getElementById('qr-reader').style.display = 'none';
-                document.getElementById('scan-form').classList.remove('hidden');
-                document.getElementById('scan-product-name').innerText = "Prodotto Barcode: " + text;
-                // Nota: In un'app reale qui si farebbe una SELECT su Supabase per vedere se il barcode esiste.
-            }).catch(err => {
-                // Fallback se la fotocamera non parte su PC
-                console.log("Scanner error:", err);
-                if(confirm("Impossibile avviare fotocamera. Simulare scansione per test?")) {
-                    document.getElementById('qr-reader').style.display = 'none';
-                    document.getElementById('scan-form').classList.remove('hidden');
-                    document.getElementById('scan-product-name').innerText = "Prodotto Test 123";
-                }
-            });
-        }
-
-        function confirmScanAction() {
-            const qty = parseFloat(document.getElementById('scan-qta').value) || 0;
-            const price = parseFloat(document.getElementById('scan-price').value) || 0;
-
-            if (currentScanMode === 'spreco') {
-                const wasteValue = qty * 4.50; // Costo stimato fittizio
-                dashStats.waste += wasteValue;
-                document.getElementById('dash-waste').innerText = '€ ' + dashStats.waste.toFixed(2);
-                alert("Spreco registrato. Il valore è stato aggiunto alle perdite.");
-            } else {
-                alert("Merce caricata correttamente tramite scanner.");
-            }
-            
-            nav('view-dashboard');
-        }
-
-        // ==========================================
-        // 5. CASSA IBRIDA (MANUALE / OCR)
-        // ==========================================
-        function switchCassaTab(tab) {
-            const btnManual = document.getElementById('tab-btn-manual');
-            const btnOcr = document.getElementById('tab-btn-ocr');
-            const contentManual = document.getElementById('tab-manual');
-            const contentOcr = document.getElementById('tab-ocr');
-
-            if (tab === 'manual') {
-                btnManual.className = "flex-1 py-3 text-sm font-black rounded-xl transition-all bg-white text-slate-800 shadow";
-                btnOcr.className = "flex-1 py-3 text-sm font-black rounded-xl transition-all text-slate-500 hover:text-slate-700";
-                contentManual.classList.remove('hidden');
-                contentOcr.classList.add('hidden');
-            } else {
-                btnOcr.className = "flex-1 py-3 text-sm font-black rounded-xl transition-all bg-white text-slate-800 shadow";
-                btnManual.className = "flex-1 py-3 text-sm font-black rounded-xl transition-all text-slate-500 hover:text-slate-700";
-                contentOcr.classList.remove('hidden');
-                contentManual.classList.add('hidden');
-            }
-        }
-
-        // --- CASSA: MANUALE (RICETTE) ---
-        function renderMenu() {
-            const list = document.getElementById('menu-list');
+        function aggiornaVistaRicettario() {
+            const list = document.getElementById('menu-builder-list');
             list.innerHTML = '';
-            menuRistorante.forEach((p, index) => {
+            
+            if(menuRistorante.length === 0) {
+                list.innerHTML = '<p class="text-center text-slate-400 text-xs italic py-4">Nessun piatto nel menu. Creane uno per poterlo vendere in cassa.</p>';
+            }
+
+            menuRistorante.forEach((p, idx) => {
+                let ingStr = p.ingredienti.map(i => `${i.qta} ${i.nome}`).join(' + ');
                 list.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                        <div class="flex-1">
-                            <p class="font-black text-slate-800 text-sm leading-tight">${p.nome}</p>
-                            <p class="text-[9px] text-slate-400 uppercase tracking-widest mt-1"><i class="fas fa-box-open mr-1"></i>${p.ricetta}</p>
+                    <div class="bg-white p-4 rounded-2xl border shadow-sm flex justify-between items-center">
+                        <div>
+                            <h4 class="font-black text-slate-800">${p.nome} <span class="text-emerald-500 ml-2">€ ${parseFloat(p.prezzo).toFixed(2)}</span></h4>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase mt-1 leading-tight"><i class="fas fa-link mr-1 text-blue-400"></i>${ingStr || 'Nessun ingrediente'}</p>
                         </div>
-                        <div class="flex items-center gap-2 bg-white rounded-xl border border-slate-200 p-1 shadow-sm">
-                            <button onclick="updateDish(${index}, -1)" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 font-bold active:scale-95"><i class="fas fa-minus"></i></button>
-                            <input type="number" id="dish-${index}" value="${p.quantita}" readonly class="w-8 text-center font-black text-emerald-600 bg-transparent">
-                            <button onclick="updateDish(${index}, 1)" class="w-8 h-8 rounded-lg bg-emerald-500 text-white font-bold active:scale-95"><i class="fas fa-plus"></i></button>
-                        </div>
+                        <button onclick="eliminaPiattoMenu(${idx})" class="text-red-400 p-2"><i class="fas fa-trash"></i></button>
                     </div>
                 `;
             });
         }
 
-        function updateDish(idx, delta) {
-            let n = menuRistorante[idx].quantita + delta;
-            if (n >= 0) {
-                menuRistorante[idx].quantita = n;
-                document.getElementById(`dish-${idx}`).value = n;
-                calcTotal();
+        function apriCreaPiatto() {
+            piattoInModificaId = null;
+            document.getElementById('piatto-nome').value = '';
+            document.getElementById('piatto-prezzo').value = '0.00';
+            ingredientiTempRicetta = [];
+            aggiornaListaIngredientiUI();
+            document.getElementById('form-crea-piatto').classList.remove('hidden');
+        }
+
+        function chiudiCreaPiatto() {
+            document.getElementById('form-crea-piatto').classList.add('hidden');
+        }
+
+        function popolaSelectIngredienti() {
+            const sel = document.getElementById('select-ingrediente');
+            sel.innerHTML = inventarioLocale.map(i => `<option value="${i.id}" data-nome="${i.nome}">${i.nome} (Disp: ${i.quantita})</option>`).join('');
+        }
+
+        function aggiungiIngredienteRicetta() {
+            const sel = document.getElementById('select-ingrediente');
+            if(sel.options.length === 0) return alert("Magazzino vuoto!");
+            
+            const idProdotto = sel.value;
+            const nomeProdotto = sel.options[sel.selectedIndex].getAttribute('data-nome');
+            const quantita = parseFloat(document.getElementById('qta-ingrediente').value) || 0;
+
+            ingredientiTempRicetta.push({ id_supa: idProdotto, nome: nomeProdotto, qta: quantita });
+            aggiornaListaIngredientiUI();
+        }
+
+        function aggiornaListaIngredientiUI() {
+            const div = document.getElementById('lista-ingredienti-piatto');
+            if(ingredientiTempRicetta.length === 0) {
+                div.innerHTML = '<p class="text-xs text-slate-400 italic" id="msg-no-ing">Nessun ingrediente associato.</p>';
+                return;
+            }
+            div.innerHTML = ingredientiTempRicetta.map((ing, i) => `
+                <div class="flex justify-between items-center bg-white p-2 border rounded text-xs font-bold shadow-sm">
+                    <span>${ing.qta} x ${ing.nome}</span>
+                    <button onclick="rimuoviIngredienteTemp(${i})" class="text-red-500"><i class="fas fa-times"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function rimuoviIngredienteTemp(idx) {
+            ingredientiTempRicetta.splice(idx, 1);
+            aggiornaListaIngredientiUI();
+        }
+
+        function salvaPiattoMenu() {
+            const nome = document.getElementById('piatto-nome').value.trim();
+            const prezzo = document.getElementById('piatto-prezzo').value;
+            if(!nome) return alert("Dai un nome al piatto!");
+
+            menuRistorante.push({
+                nome: nome,
+                prezzo: parseFloat(prezzo),
+                venduti: 0,
+                ingredienti: [...ingredientiTempRicetta]
+            });
+
+            localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante));
+            chiudiCreaPiatto();
+            aggiornaVistaRicettario();
+            alert("Piatto salvato nel Menu!");
+        }
+
+        function eliminaPiattoMenu(idx) {
+            if(confirm("Eliminare il piatto dal menu?")) {
+                menuRistorante.splice(idx, 1);
+                localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante));
+                aggiornaVistaRicettario();
             }
         }
 
-        function resetMenu() {
-            menuRistorante.forEach(p => p.quantita = 0);
-            renderMenu();
-            calcTotal();
+        // ==========================================
+        // 5. CASSA & SCARICO INTELLIGENTE
+        // ==========================================
+        function popolaCassaMenu() {
+            const list = document.getElementById('cassa-piatti-list');
+            list.innerHTML = '';
+            
+            if(menuRistorante.length === 0) {
+                list.innerHTML = '<p class="text-xs text-center text-slate-400 p-4">Menu vuoto. Vai nel Ricettario per creare i piatti.</p>';
+            }
+
+            menuRistorante.forEach((p, idx) => {
+                p.venduti = p.venduti || 0; // assicuro esista
+                list.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                        <div class="flex-1">
+                            <p class="font-black text-slate-800 text-sm">${p.nome}</p>
+                            <p class="text-[10px] text-emerald-600 font-bold">€ ${parseFloat(p.prezzo).toFixed(2)}</p>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white rounded-xl border p-1 shadow-sm">
+                            <button onclick="updateVenduti(${idx}, -1)" class="w-8 h-8 rounded-lg bg-slate-100 font-bold text-slate-600"><i class="fas fa-minus"></i></button>
+                            <input type="number" id="cassa-qty-${idx}" value="${p.venduti}" readonly class="w-8 text-center font-black text-emerald-600 bg-transparent">
+                            <button onclick="updateVenduti(${idx}, 1)" class="w-8 h-8 rounded-lg bg-emerald-500 font-bold text-white"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            calcolaTotaleCassa();
         }
 
-        function calcTotal() {
+        function updateVenduti(idx, delta) {
+            let n = (menuRistorante[idx].venduti || 0) + delta;
+            if (n >= 0) {
+                menuRistorante[idx].venduti = n;
+                document.getElementById(`cassa-qty-${idx}`).value = n;
+                calcolaTotaleCassa();
+            }
+        }
+
+        function resetMenuCassa() {
+            menuRistorante.forEach(p => p.venduti = 0);
+            popolaCassaMenu();
+        }
+
+        function calcolaTotaleCassa() {
             let tot = 0;
-            menuRistorante.forEach(p => tot += (p.prezzo * p.quantita));
-            document.getElementById('manual-total-display').innerText = '€ ' + tot.toFixed(2);
+            menuRistorante.forEach(p => tot += (parseFloat(p.prezzo) * (p.venduti || 0)));
+            document.getElementById('cassa-total-display').innerText = '€ ' + tot.toFixed(2);
             return tot;
         }
 
-        function confirmManualClosure() {
-            let incasso = calcTotal();
-            if(incasso === 0) return alert("Non hai inserito piatti.");
-            
-            registraEntrataDashboard(incasso, "L'app ha simulato lo scarico degli ingredienti (Distinta Base) su Supabase.");
-            resetMenu();
-        }
+        async function eseguiScaricoMagazzino() {
+            let incasso = calcolaTotaleCassa();
+            if(incasso === 0) return alert("Non hai segnato nessun piatto venduto!");
 
-        // --- CASSA: OCR FOTOCAMERA ---
-        async function runOCR(input) {
-            if (!input.files[0]) return;
-            const loader = document.getElementById('ocr-loader');
-            const result = document.getElementById('ocr-result');
-            
-            loader.classList.remove('hidden');
-            result.classList.add('hidden');
+            const btn = document.getElementById('btn-conferma-cassa');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Scarico Supabase in corso...';
 
-            // Tesseract AI
-            Tesseract.recognize(input.files[0], 'ita').then(({ data: { text } }) => {
-                loader.classList.add('hidden');
-                result.classList.remove('hidden');
-                
-                const matches = text.match(/\d+[\.,]\d{2}/g);
-                if (matches) {
-                    const values = matches.map(m => parseFloat(m.replace(',', '.')));
-                    const max = Math.max(...values);
-                    document.getElementById('final-total').value = max.toFixed(2);
-                } else {
-                    document.getElementById('final-total').value = "0.00";
-                    alert("Impossibile trovare un totale chiaro. Inseriscilo a mano.");
+            // 1. Aggrega tutti gli ingredienti da togliere
+            let daScaricare = {}; // formato: { 'id_supabase': quantita_totale_da_togliere }
+            
+            menuRistorante.forEach(piatto => {
+                if (piatto.venduti > 0 && piatto.ingredienti) {
+                    piatto.ingredienti.forEach(ing => {
+                        if(!daScaricare[ing.id_supa]) daScaricare[ing.id_supa] = 0;
+                        daScaricare[ing.id_supa] += (ing.qta * piatto.venduti);
+                    });
                 }
             });
-        }
 
-        function confirmClosureFromOCR() {
-            const val = parseFloat(document.getElementById('final-total').value) || 0;
-            registraEntrataDashboard(val, "L'Incasso è stato letto e registrato dall'A.I.");
-            document.getElementById('ocr-result').classList.add('hidden');
-            document.getElementById('final-total').value = '';
-        }
+            // 2. Aggiorna Supabase per ogni ingrediente scalato
+            for (let id in daScaricare) {
+                // Prendo la quantità attuale dal DB
+                let { data } = await supabaseClient.from('inventario').select('quantita').eq('id', id).single();
+                if (data) {
+                    let nuovaQta = data.quantita - daScaricare[id];
+                    await supabaseClient.from('inventario').update({quantita: nuovaQta}).eq('id', id);
+                }
+            }
 
-        // --- AGGIORNAMENTO DASHBOARD CASSA ---
-        function registraEntrataDashboard(valore, messaggio) {
-            dashStats.income += valore;
-            document.getElementById('dash-income').innerText = '€ ' + dashStats.income.toFixed(2);
-            alert(`Chiusura completata con successo: € ${valore.toFixed(2)}\n\n${messaggio}`);
+            // 3. Fine operazione
+            incassoTotale += incasso;
+            document.getElementById('dash-income').innerText = '€ ' + incassoTotale.toFixed(2);
+            
+            alert(`Cassa Registrata: € ${incasso.toFixed(2)}\n\nL'app ha letto la Distinta Base e ha aggiornato automaticamente le giacenze su Supabase!`);
+            
+            resetMenuCassa();
+            btn.innerHTML = 'Conferma & Scarica Magazzino';
             nav('view-dashboard');
         }
 
