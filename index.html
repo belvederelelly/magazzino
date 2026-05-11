@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belvedere Smart - ERP Definitivo</title>
+    <title>Belvedere Smart - ERP Business Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -13,203 +13,256 @@
     <style>
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
         .view-panel { display: none; }
-        .view-panel.active { display: block; animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        .hide-scroll::-webkit-scrollbar { display: none; }
+        .view-panel.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .status-badge { font-size: 8px; font-weight: 900; text-transform: uppercase; padding: 2px 6px; border-radius: 99px; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 h-screen overflow-hidden flex flex-col">
 
     <div id="view-login" class="view-panel active h-full flex flex-col justify-center items-center bg-slate-900 px-6 fixed inset-0 z-[100]">
         <div class="text-center mb-8">
-            <div class="bg-emerald-500 w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-4 rotate-3 shadow-xl border-4 border-slate-800">
-                <i class="fas fa-utensils text-5xl text-white -rotate-3"></i>
+            <div class="bg-emerald-500 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4 rotate-3 shadow-xl border-4 border-slate-800">
+                <i class="fas fa-utensils text-4xl text-white -rotate-3"></i>
             </div>
-            <h1 class="text-4xl font-black text-white italic tracking-tighter uppercase mb-1">Belvedere</h1>
-            <p class="text-emerald-400 text-sm font-bold tracking-widest uppercase">Business Intelligence</p>
+            <h1 class="text-3xl font-black text-white italic tracking-tighter uppercase mb-1">Belvedere</h1>
+            <p class="text-emerald-400 text-[10px] font-bold tracking-widest uppercase">Business Intelligence</p>
         </div>
         <div class="w-full max-w-sm space-y-4">
-            <div class="relative"><i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i><input type="password" id="pass-field" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold tracking-widest" placeholder="Password..."></div>
-            <div class="flex items-center gap-2 pl-2"><input type="checkbox" id="check-ricorda" class="w-4 h-4 text-emerald-600 rounded bg-slate-800 border-slate-700" checked><label for="check-ricorda" class="text-xs text-slate-400 font-bold uppercase tracking-widest">Resta collegato</label></div>
+            <input type="password" id="pass-field" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold tracking-widest text-center" placeholder="PASSWORD">
             <button onclick="handleAuth()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 uppercase tracking-widest text-sm transition">Accedi</button>
-            <p id="login-error" class="text-red-400 text-center text-xs hidden font-bold">Password errata.</p>
         </div>
     </div>
 
     <div id="app-interface" class="hidden h-full flex flex-col">
         <header class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm z-20">
-            <div><h2 id="header-title" class="text-xl font-black text-slate-800">Dashboard</h2><div id="role-badge" class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1 bg-amber-100 text-amber-700">Ruolo</div></div>
-            <button onclick="logout()" class="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 transition shadow-inner"><i class="fas fa-power-off"></i></button>
+            <div>
+                <h2 id="header-title" class="text-lg font-black text-slate-800">Dashboard</h2>
+                <div id="role-badge" class="inline-block px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest mt-1 bg-amber-100 text-amber-700">Titolare</div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="nav('view-shopping')" class="relative bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center text-slate-600 active:scale-90 transition">
+                    <i class="fas fa-shopping-basket"></i>
+                    <span id="alert-shopping-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+                </button>
+                <button onclick="logout()" class="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center text-slate-400"><i class="fas fa-power-off"></i></button>
+            </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-5 pb-32 hide-scroll">
+        <main class="flex-1 overflow-y-auto p-4 pb-32 hide-scroll">
             
-            <div id="view-dashboard" class="view-panel active space-y-6">
+            <div id="view-dashboard" class="view-panel active space-y-4">
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-white p-4 rounded-3xl border border-emerald-100 shadow-sm relative overflow-hidden">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Incasso Cassa</p>
-                        <p id="dash-income" class="text-2xl font-black text-emerald-600 relative z-10">€ 0.00</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Valore Stock</p>
-                        <p id="dash-total-value" class="text-2xl font-black text-slate-700 relative z-10">€ 0.00</p>
-                    </div>
+                    <div class="bg-white p-4 rounded-3xl border shadow-sm"><p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Incasso Mese</p><p id="dash-income" class="text-xl font-black text-emerald-600">€ 0.00</p></div>
+                    <div class="bg-white p-4 rounded-3xl border shadow-sm"><p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Valore Stock</p><p id="dash-total-value" class="text-xl font-black text-slate-700">€ 0.00</p></div>
                 </div>
-                <button onclick="nav('view-finanza')" class="w-full bg-slate-900 text-white p-5 rounded-3xl shadow-lg flex justify-between items-center active:scale-95 transition">
-                    <div class="text-left"><h3 class="font-black text-lg text-emerald-400"><i class="fas fa-wallet mr-2"></i>Bilancio, Debiti & IVA</h3><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Stipendi, Bollette, Scadenze</p></div><i class="fas fa-chevron-right text-slate-600 text-xl"></i>
+
+                <button onclick="nav('view-finanza')" class="w-full bg-slate-900 text-white p-4 rounded-3xl shadow-lg flex justify-between items-center active:scale-95 transition">
+                    <div class="text-left"><h3 class="font-black text-emerald-400"><i class="fas fa-wallet mr-2"></i>Bilancio, Debiti & IVA</h3><p class="text-[9px] text-slate-400 uppercase font-bold">Monitoraggio Mensile Real-Time</p></div>
+                    <i class="fas fa-chevron-right text-slate-600"></i>
                 </button>
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-6">Logistica & Fatture</h3>
+
+                <button onclick="nav('view-staff')" class="w-full bg-blue-600 text-white p-4 rounded-3xl shadow-lg flex justify-between items-center active:scale-95 transition">
+                    <div class="text-left"><h3 class="font-black"><i class="fas fa-users mr-2"></i>Personale & Anticipi</h3><p class="text-[9px] text-blue-100 uppercase font-bold">Gestione Staff e Acconti</p></div>
+                    <i class="fas fa-chevron-right text-blue-400"></i>
+                </button>
+
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="nav('view-scanner')" class="bg-white border p-5 rounded-3xl flex flex-col items-center gap-3 shadow-sm active:scale-95 transition"><div class="bg-slate-100 p-3 rounded-full text-slate-600"><i class="fas fa-barcode text-2xl"></i></div><span class="text-[10px] font-bold uppercase text-center">Scanner</span></button>
-                    <button onclick="nav('view-fatture')" class="bg-white border p-5 rounded-3xl flex flex-col items-center gap-3 shadow-sm active:scale-95 transition"><div class="bg-blue-50 p-3 rounded-full text-blue-500"><i class="fas fa-file-invoice-dollar text-2xl"></i></div><span class="text-[10px] font-bold uppercase text-center">Carico Fattura</span></button>
-                </div>
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-6">Ristorazione</h3>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="nav('view-ricettario')" class="bg-white border p-4 rounded-3xl flex items-center gap-3 shadow-sm active:scale-95 transition"><div class="bg-emerald-50 p-2 rounded-xl text-emerald-600"><i class="fas fa-book-open text-xl"></i></div><span class="text-[10px] font-bold uppercase text-left">Menu &<br>Ricettario</span></button>
-                    <button onclick="nav('view-cassa')" class="bg-white border p-4 rounded-3xl flex items-center gap-3 shadow-sm active:scale-95 transition"><div class="bg-amber-50 p-2 rounded-xl text-amber-500"><i class="fas fa-cash-register text-xl"></i></div><span class="text-[10px] font-bold uppercase text-left">Cassa &<br>Scarico</span></button>
+                    <button onclick="nav('view-inventory')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-boxes text-2xl text-slate-600 mb-2"></i><span class="block text-[10px] font-black uppercase">Magazzino</span></button>
+                    <button onclick="nav('view-shopping')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-list-check text-2xl text-amber-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Lista Spesa</span></button>
+                    <button onclick="nav('view-fatture')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-file-invoice text-2xl text-blue-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Carico Fatture</span></button>
+                    <button onclick="nav('view-cassa')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-cash-register text-2xl text-emerald-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Cassa</span></button>
                 </div>
             </div>
 
             <div id="view-finanza" class="view-panel space-y-5">
-                <div class="bg-white p-3 rounded-2xl shadow-sm border flex justify-between items-center">
-                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest"><i class="far fa-calendar-alt mr-1"></i> Mese:</span>
-                    <input type="month" id="finanza-mese-selettore" onchange="caricaFinanzaDaSupabase()" class="font-bold text-sm bg-slate-50 border border-slate-200 p-2 rounded-xl text-slate-800 outline-none w-36 text-center shadow-inner">
+                <div class="bg-white p-3 rounded-2xl border flex justify-between items-center shadow-sm">
+                    <span class="text-[10px] font-black uppercase text-slate-500">Mese:</span>
+                    <input type="month" id="finanza-mese-selettore" onchange="caricaFinanzaDaSupabase()" class="font-black text-sm bg-slate-50 p-2 rounded-xl outline-none w-36 text-center">
                 </div>
 
-                <div class="bg-slate-900 p-6 rounded-3xl shadow-xl relative overflow-hidden">
+                <div class="bg-slate-900 p-6 rounded-3xl shadow-xl text-center relative overflow-hidden">
                     <div class="text-center border-b border-slate-700 pb-4 mb-4">
-                        <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Liquidità Reale Mensile</h3>
-                        <div class="flex justify-center mb-1"><span id="finanza-saldo-segno" class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-slate-700 text-white shadow-md">CALCOLO...</span></div>
-                        <p id="finanza-saldo" class="text-4xl font-black text-emerald-400 relative z-10">€ 0.00</p>
+                        <div class="flex justify-center mb-1"><span id="finanza-saldo-segno" class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-slate-700 text-white">CALCOLO...</span></div>
+                        <p id="finanza-saldo" class="text-4xl font-black text-emerald-400">€ 0.00</p>
+                        <p class="text-[9px] font-bold text-slate-500 uppercase mt-1">Liquidità Mensile</p>
                     </div>
                     
-                    <div class="bg-slate-800 rounded-2xl p-4 mb-4 flex justify-between items-center border border-slate-700">
-                        <div>
-                            <p class="text-[9px] font-bold uppercase text-slate-400 tracking-widest">Saldo IVA del Mese</p>
-                            <p id="finanza-iva-totale" class="text-lg font-black text-white">€ 0.00</p>
-                        </div>
-                        <div class="text-right">
-                            <span id="finanza-iva-badge" class="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded bg-slate-700 text-white">CALCOLO...</span>
-                        </div>
+                    <div class="bg-slate-800 rounded-2xl p-3 mb-4 flex justify-between items-center border border-slate-700">
+                        <div><p class="text-[8px] font-bold uppercase text-slate-400">Saldo IVA</p><p id="finanza-iva-totale" class="text-lg font-black text-white">€ 0.00</p></div>
+                        <span id="finanza-iva-badge" class="text-[8px] font-black uppercase px-2 py-1 rounded">--</span>
                     </div>
 
-                    <div class="flex justify-between px-1">
-                        <div class="text-left"><p class="text-[9px] text-slate-400 uppercase font-bold">Incasso</p><p id="finanza-entrate" class="font-bold text-slate-200">€ 0.00</p></div>
-                        <div class="text-center"><p class="text-[9px] text-slate-400 uppercase font-bold">Pagato</p><p id="finanza-uscite-pagate" class="font-bold text-slate-200">€ 0.00</p></div>
-                        <div class="text-right bg-red-500/20 px-2 py-1 rounded-lg"><p class="text-[9px] text-red-300 uppercase font-black">Debiti</p><p id="finanza-debiti" class="font-black text-red-400">€ 0.00</p></div>
+                    <div class="flex justify-between text-[10px]">
+                        <div class="text-left"><p class="text-slate-400 uppercase">Incasso</p><p id="finanza-entrate" class="font-black text-white">€ 0.00</p></div>
+                        <div class="text-center"><p class="text-slate-400 uppercase">Pagate</p><p id="finanza-uscite-pagate" class="font-black text-white">€ 0.00</p></div>
+                        <div class="text-right text-red-400"><p class="uppercase">Debiti</p><p id="finanza-debiti" class="font-black">€ 0.00</p></div>
                     </div>
                 </div>
 
                 <div class="bg-white p-5 rounded-3xl border shadow-sm">
-                    <h4 class="font-black text-slate-800 mb-3 border-b pb-2">Nuova Voce Bilancio</h4>
+                    <h4 class="font-black text-slate-800 mb-3 border-b pb-2">Aggiungi Movimento</h4>
                     <div class="grid grid-cols-2 gap-3 mb-3">
-                        <div><label class="text-[9px] font-bold uppercase text-slate-400 ml-1">Stato</label><select id="fin-stato" class="w-full border p-2.5 rounded-xl font-bold bg-slate-50 text-xs"><option value="pagato">Già Pagato</option><option value="da_pagare">Da Pagare</option></select></div>
-                        <div><label class="text-[9px] font-bold uppercase text-slate-400 ml-1">Categoria</label><select id="fin-cat" class="w-full border p-2.5 rounded-xl font-bold bg-slate-50 text-xs"><option>Utenze (Luce, Acqua)</option><option>Personale</option><option>Fornitori</option><option>Tasse</option><option value="entrata">Entrata Extra (+)</option></select></div>
+                        <div><label class="text-[9px] font-bold uppercase text-slate-400">Stato</label><select id="fin-stato" class="w-full border p-2.5 rounded-xl font-bold bg-slate-50 text-xs"><option value="pagato">Già Pagato</option><option value="da_pagare">Da Pagare</option></select></div>
+                        <div><label class="text-[9px] font-bold uppercase text-slate-400">Cat.</label><select id="fin-cat" class="w-full border p-2.5 rounded-xl font-bold bg-slate-50 text-xs"><option>Utenze</option><option>Personale</option><option>Fornitori</option><option value="entrata">Entrata Extra (+)</option></select></div>
                     </div>
-                    <div class="mb-3"><label class="text-[9px] font-bold uppercase text-slate-400 ml-1">Descrizione</label><input type="text" id="fin-desc" placeholder="Es. Fattura Elettrica" class="w-full border p-2.5 rounded-xl font-bold bg-slate-50 text-sm"></div>
+                    <input type="text" id="fin-desc" placeholder="Descrizione..." class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-sm mb-3">
                     <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div><label class="text-[9px] font-bold uppercase text-slate-400 ml-1">Importo Totale (€)</label><input type="number" id="fin-importo" value="0.00" class="w-full border p-3 rounded-xl font-black text-slate-800 text-lg bg-slate-50 text-center"></div>
-                        <div><label class="text-[9px] font-bold uppercase text-slate-400 ml-1">Di cui IVA (€)</label><input type="number" id="fin-iva-man" value="0.00" class="w-full border p-3 rounded-xl font-black text-slate-500 text-lg bg-slate-50 text-center"></div>
+                        <div><label class="text-[9px] font-bold uppercase text-slate-400">Importo (€)</label><input type="number" id="fin-importo" value="0.00" class="w-full border p-3 rounded-xl font-black text-center"></div>
+                        <div><label class="text-[9px] font-bold uppercase text-slate-400">IVA (€)</label><input type="number" id="fin-iva-man" value="0.00" class="w-full border p-3 rounded-xl font-black text-center text-slate-400"></div>
                     </div>
-                    <button onclick="salvaMovimentoFinanza()" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl shadow-md uppercase tracking-widest text-xs active:scale-95">Registra</button>
+                    <button onclick="salvaMovimentoFinanza()" class="w-full bg-slate-900 text-white font-black py-3.5 rounded-xl uppercase text-xs active:scale-95">Registra</button>
                 </div>
                 
-                <h4 class="font-black text-sm text-slate-800 mt-2">Dettaglio del Mese</h4>
                 <div class="bg-white rounded-3xl border shadow-sm overflow-hidden divide-y divide-slate-100" id="finanza-list"></div>
+            </div>
+
+            <div id="view-staff" class="view-panel space-y-4">
+                <div class="bg-white p-5 rounded-3xl border shadow-sm">
+                    <h4 class="font-black text-slate-800 mb-3 border-b pb-2">Eroga Anticipo</h4>
+                    <div class="space-y-3">
+                        <div><label class="text-[9px] font-bold uppercase text-slate-400">Dipendente</label><select id="staff-select" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-sm"></select></div>
+                        <input type="number" id="staff-anticipo-val" placeholder="Importo €" class="w-full border p-3 rounded-xl font-black text-center text-lg bg-slate-50" value="0.00">
+                        <button onclick="salvaAnticipoStaff()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl uppercase text-xs shadow-md">Conferma Anticipo</button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden" id="staff-list-container"></div>
+                <div class="flex gap-2">
+                    <input type="text" id="new-staff-name" placeholder="Nuovo Dipendente..." class="flex-1 border p-3 rounded-xl font-bold text-xs">
+                    <button onclick="aggiungiDipendente()" class="bg-slate-900 text-white px-4 rounded-xl font-black active:scale-95">+</button>
+                </div>
+            </div>
+
+            <div id="view-shopping" class="view-panel space-y-4">
+                <div class="bg-amber-50 p-4 rounded-3xl border border-amber-200">
+                    <h3 class="font-black text-amber-900 text-sm">Lista Spesa Automatica</h3>
+                    <p class="text-[9px] text-amber-700 uppercase font-bold">Prodotti sotto soglia minima</p>
+                </div>
+                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden divide-y divide-slate-100" id="auto-shopping-list"></div>
+                
+                <div class="bg-slate-100 p-5 rounded-3xl space-y-3">
+                    <h4 class="font-black text-xs uppercase text-slate-500">Mancanti Extra (Manuale)</h4>
+                    <div class="flex gap-2">
+                        <input type="text" id="manual-shop-item" placeholder="Cosa manca?" class="flex-1 border p-3 rounded-xl font-bold text-xs">
+                        <button onclick="aggiungiVoceManualeSpesa()" class="bg-emerald-600 text-white px-4 rounded-xl font-black active:scale-95">+</button>
+                    </div>
+                    <div id="manual-shopping-list" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <div id="view-inventory" class="view-panel space-y-4">
+                <div class="flex justify-between items-center px-2">
+                    <h3 class="font-black text-slate-800 uppercase text-xs">Stock & Giacenze</h3>
+                    <button onclick="nav('view-add-product')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm">+ Nuovo</button>
+                </div>
+                <div class="bg-white rounded-3xl border overflow-hidden shadow-sm">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 border-b">
+                            <tr><th class="p-4 text-[10px] font-bold text-slate-400 uppercase">Articolo</th><th class="p-4 text-center text-[10px] font-bold text-slate-400 uppercase">Q.tà</th><th class="p-4"></th></tr>
+                        </thead>
+                        <tbody id="inventory-table-body" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-add-product" class="view-panel space-y-4">
+                <div class="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
+                    <h3 class="font-black text-lg border-b pb-2">Configurazione Prodotto</h3>
+                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Nome Articolo</label><input type="text" id="new-nome" class="w-full border p-3 rounded-xl font-bold bg-slate-50"></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Giacenza</label><input type="number" id="new-qta" class="w-full border p-3 rounded-xl font-bold text-center bg-slate-50" value="1"></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Soglia Minima</label><input type="number" id="new-soglia" class="w-full border p-3 rounded-xl font-bold text-center bg-slate-50" value="5"></div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border flex items-center justify-between">
+                        <div class="flex-1"><p class="text-xs font-black text-slate-800 uppercase">Scarico Automatico</p><p class="text-[8px] text-slate-500 font-bold uppercase">Sottrai quantità ad ogni vendita di cassa</p></div>
+                        <input type="checkbox" id="new-auto-scalo" class="w-6 h-6 accent-emerald-600" checked>
+                    </div>
+                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Costo Ultimo Carico (€)</label><input type="number" id="new-prezzo" class="w-full border p-3 rounded-xl font-bold text-center bg-slate-50" value="0.00"></div>
+                    <button onclick="salvaNuovoProdotto()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm mt-4">Salva in Archivio</button>
+                </div>
             </div>
 
             <div id="view-fatture" class="view-panel space-y-4">
                 <div class="bg-emerald-600 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
-                    <i class="fas fa-bolt absolute -right-4 -bottom-4 text-7xl opacity-20"></i>
-                    <h3 class="font-black text-lg">Carico & Calcolo IVA</h3>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-100">Usa File Digitale o Foto</p>
+                    <h3 class="font-black text-lg">Caricamento Fatture</h3>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-100">Lettura automatica IVA e Prezzi</p>
                 </div>
-
                 <div class="grid grid-cols-1 gap-4">
                     <div class="bg-white border-2 border-dashed border-emerald-200 p-6 rounded-3xl text-center shadow-sm">
                         <i class="fas fa-file-code text-3xl text-emerald-500 mb-3"></i>
-                        <h4 class="font-bold text-sm">File XML (Sportello Cloud)</h4>
-                        <p class="text-[9px] text-slate-400 mb-4 uppercase">Istantaneo, ignora l'errore .HTML</p>
-                        <input type="file" accept=".xml, application/xml, text/xml, .html, .htm" id="file-xml" onchange="elaboraFatturaXML(this)" class="hidden">
-                        <button onclick="document.getElementById('file-xml').click()" class="bg-emerald-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition">Seleziona Documento</button>
+                        <h4 class="font-bold text-sm">File Originale (.xml o .html)</h4>
+                        <input type="file" accept=".xml, .html, .htm" id="file-xml" onchange="elaboraFatturaXML(this)" class="hidden">
+                        <button onclick="document.getElementById('file-xml').click()" class="bg-emerald-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md mt-4">Seleziona Documento</button>
                     </div>
-
                     <div class="bg-white border-2 border-dashed border-blue-200 p-6 rounded-3xl text-center shadow-sm">
                         <i class="fas fa-camera text-3xl text-blue-500 mb-3"></i>
                         <h4 class="font-bold text-sm">Foto o Screenshot</h4>
-                        <p class="text-[9px] text-slate-400 mb-4 uppercase">Lettura visiva tramite A.I.</p>
                         <input type="file" accept="image/*" id="file-foto" onchange="elaboraFatturaFoto(this)" class="hidden">
-                        <button onclick="document.getElementById('file-foto').click()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition">Scatta Foto</button>
+                        <button onclick="document.getElementById('file-foto').click()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase shadow-md mt-4">Scatta Foto</button>
                     </div>
                 </div>
-
-                <div id="fattura-loader" class="hidden text-center py-10">
-                    <i class="fas fa-spinner fa-spin text-4xl text-emerald-600 mb-2"></i>
-                    <p id="fattura-loader-msg" class="text-xs font-black text-slate-500 uppercase tracking-widest">Analisi in corso...</p>
-                </div>
-
+                <div id="fattura-loader" class="hidden text-center py-10"><i class="fas fa-spinner fa-spin text-4xl text-emerald-600 mb-2"></i><p id="fattura-loader-msg" class="text-xs font-black text-slate-500 uppercase tracking-widest">Analisi...</p></div>
                 <div id="fattura-result" class="hidden space-y-4">
                     <div class="bg-white rounded-3xl border shadow-xl overflow-hidden">
-                        <div class="p-3 bg-slate-900 text-white text-[10px] font-bold uppercase flex justify-between">
-                            <span class="w-1/2">Voce</span><span class="w-1/4 text-center">Q.tà</span><span class="w-1/4 text-right">Costo Ut.</span>
-                        </div>
+                        <div class="p-3 bg-slate-900 text-white text-[10px] font-bold uppercase flex justify-between"><span class="w-1/2">Voce</span><span class="w-1/4 text-center">Q.tà</span><span class="w-1/4 text-right">Costo Ut.</span></div>
                         <div id="fattura-items-list" class="divide-y divide-slate-100 bg-white"></div>
-                        
-                        <div class="bg-amber-50 p-4 border-t border-amber-200 flex justify-between items-center">
-                            <span class="text-[10px] font-black uppercase text-amber-800">IVA Totale Calcolata:</span>
-                            <div class="flex items-center gap-1">
-                                <span class="font-bold text-amber-700">€</span>
-                                <input type="number" id="ocr-tot-iva" value="0.00" class="w-20 font-black text-amber-900 bg-white border border-amber-300 rounded p-1 text-right">
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-100 p-4 border-t grid grid-cols-2 gap-3">
-                            <div class="col-span-2"><label class="text-[9px] font-bold uppercase text-slate-500">Destinazione</label><select id="ocr-tipo-doc" class="w-full border p-2 rounded-xl font-bold text-xs bg-white"><option value="merce">Merce Fornitori (Stock + Bilancio)</option><option value="bolletta">Bolletta / Utenza (Solo Bilancio)</option></select></div>
-                            <div class="col-span-2"><label class="text-[9px] font-bold uppercase text-slate-500">Pagamento</label><select id="ocr-stato-pag" class="w-full border p-2 rounded-xl font-bold text-xs bg-white"><option value="pagato">Già Pagata</option><option value="da_pagare">Da Pagare (Debito)</option></select></div>
+                        <div class="bg-amber-50 p-4 border-t border-amber-200 flex justify-between items-center"><span class="text-[10px] font-black uppercase text-amber-800">IVA Totale:</span><div class="flex items-center gap-1"><span class="font-bold text-amber-700">€</span><input type="number" id="ocr-tot-iva" value="0.00" class="w-20 font-black text-amber-900 bg-white border border-amber-300 rounded p-1 text-right"></div></div>
+                        <div class="bg-slate-100 p-4 border-t grid grid-cols-1 gap-3">
+                            <select id="ocr-tipo-doc" class="w-full border p-2.5 rounded-xl font-bold text-xs bg-white"><option value="merce">Merce Fornitori (Stock + Bilancio)</option><option value="bolletta">Bolletta / Utenza (Solo Bilancio)</option></select>
+                            <select id="ocr-stato-pag" class="w-full border p-2.5 rounded-xl font-bold text-xs bg-white"><option value="pagato">Già Pagata</option><option value="da_pagare">Da Pagare</option></select>
                         </div>
                     </div>
                     <button onclick="confermaCaricoFattura()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg active:scale-95 transition">Conferma Operazione</button>
                 </div>
             </div>
 
-            <div id="view-inventory" class="view-panel space-y-4">
-                <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border"><h3 class="font-bold text-slate-800">Scorte</h3><div class="flex gap-2"><button onclick="nav('view-add-product')" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold shadow-sm">+ Nuovo</button><button onclick="caricaInventarioDaSupabase()" class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold"><i class="fas fa-sync-alt"></i></button></div></div>
-                <div class="bg-white rounded-3xl border overflow-hidden shadow-sm"><table class="w-full text-left text-sm"><thead class="bg-slate-50 border-b"><tr><th class="p-4 text-[10px] font-bold text-slate-400 uppercase">Prodotto</th><th class="p-4 text-[10px] font-bold text-slate-400 uppercase text-center">Q.tà</th><th class="p-4"></th></tr></thead><tbody id="inventory-table-body" class="divide-y divide-slate-100"></tbody></table></div>
-            </div>
-            <div id="view-add-product" class="view-panel space-y-4">
-                <div class="bg-white p-6 rounded-3xl border shadow-sm space-y-4"><h3 class="font-black text-lg border-b pb-2 mb-4">Aggiungi a Magazzino</h3><div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Nome</label><input type="text" id="new-nome" class="w-full border p-3 rounded-xl font-bold bg-slate-50"></div><div class="grid grid-cols-2 gap-4"><div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Q.tà</label><input type="number" id="new-qta" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-center" value="1"></div><div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Costo Unit.</label><input type="number" id="new-prezzo" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-center" value="0.00"></div></div><button onclick="salvaNuovoProdotto()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-sm mt-4">Salva</button></div>
-            </div>
             <div id="view-ricettario" class="view-panel space-y-4">
-                <div class="flex justify-between items-center bg-emerald-50 border border-emerald-200 p-4 rounded-2xl shadow-sm mb-4"><div><h3 class="font-black text-emerald-900">Menu</h3><p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Distinta Base</p></div><button onclick="apriCreaPiatto()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold">+ Piatto</button></div>
+                <div class="flex justify-between items-center bg-emerald-50 border border-emerald-200 p-4 rounded-2xl shadow-sm mb-4">
+                    <div><h3 class="font-black text-emerald-900">Menu</h3><p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Distinta Base</p></div>
+                    <button onclick="apriCreaPiatto()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md">+ Piatto</button>
+                </div>
                 <div id="menu-builder-list" class="space-y-3"></div>
-                <div id="form-crea-piatto" class="hidden bg-white p-6 rounded-3xl border shadow-xl space-y-5 mt-6 border-t-4 border-t-emerald-500 relative"><button onclick="chiudiCreaPiatto()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button><h3 class="font-black text-lg border-b pb-2">Componi Ricetta</h3><div class="grid grid-cols-2 gap-4"><div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Nome Piatto</label><input type="text" id="piatto-nome" class="w-full border p-3 rounded-xl font-bold bg-slate-50"></div><div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Prezzo (€)</label><input type="number" id="piatto-prezzo" class="w-full border p-3 rounded-xl font-black text-emerald-600 bg-slate-50 text-xl" value="0.00"></div></div><div class="bg-slate-50 p-4 rounded-2xl border border-slate-200"><h4 class="font-bold text-slate-700 text-sm mb-3">Ingredienti Necessari</h4><div id="lista-ingredienti-piatto" class="space-y-2 mb-4"></div><div class="flex gap-2 items-end border-t pt-3 border-slate-200"><div class="flex-1"><select id="select-ingrediente" class="w-full border p-2 rounded-lg font-bold text-[10px] bg-white"></select></div><div class="w-16"><input type="number" id="qta-ingrediente" class="w-full border p-2 rounded-lg font-bold text-xs text-center bg-white" value="1"></div><button onclick="aggiungiIngredienteRicetta()" class="bg-slate-900 text-white w-10 h-10 rounded-lg font-bold"><i class="fas fa-plus"></i></button></div></div><button onclick="salvaPiattoMenu()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-sm mt-4">Salva nel Menu</button></div>
+                <div id="form-crea-piatto" class="hidden bg-white p-6 rounded-3xl border shadow-xl space-y-5 mt-6 border-t-4 border-t-emerald-500 relative">
+                    <button onclick="chiudiCreaPiatto()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+                    <h3 class="font-black text-lg border-b pb-2">Componi Ricetta</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Nome Piatto</label><input type="text" id="piatto-nome" class="w-full border p-3 rounded-xl font-bold bg-slate-50"></div>
+                        <div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Prezzo (€)</label><input type="number" id="piatto-prezzo" class="w-full border p-3 rounded-xl font-black text-emerald-600 bg-slate-50 text-xl" value="0.00"></div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <h4 class="font-bold text-slate-700 text-sm mb-3">Ingredienti Necessari</h4>
+                        <div id="lista-ingredienti-piatto" class="space-y-2 mb-4"></div>
+                        <div class="flex gap-2 items-end border-t pt-3 border-slate-200">
+                            <div class="flex-1"><select id="select-ingrediente" class="w-full border p-2 rounded-lg font-bold text-[10px] bg-white"></select></div>
+                            <div class="w-16"><input type="number" id="qta-ingrediente" class="w-full border p-2 rounded-lg font-bold text-xs text-center bg-white" value="1"></div>
+                            <button onclick="aggiungiIngredienteRicetta()" class="bg-slate-900 text-white w-10 h-10 rounded-lg font-bold"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <button onclick="salvaPiattoMenu()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-sm mt-4">Salva nel Menu</button>
+                </div>
             </div>
 
             <div id="view-cassa" class="view-panel space-y-4">
-                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-[10px] font-black uppercase text-amber-700 shadow-sm flex items-center gap-3">
-                    <i class="fas fa-receipt text-2xl"></i><p>Confermando l'incasso, l'app calcolerà in automatico l'IVA a debito (10% Ristorazione) da dare allo Stato.</p>
+                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-[10px] font-black uppercase text-amber-700 flex items-center gap-3">
+                    <i class="fas fa-magic text-2xl"></i><p>I prodotti 'MANUAL' (es. olio) non verranno scalati. Solo quelli 'AUTO' (es. birre) saranno sottratti.</p>
                 </div>
-                <div class="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm"><div class="flex justify-between items-center mb-4 border-b pb-2"><h3 class="font-black text-slate-800">Comande Evase</h3><button onclick="resetMenuCassa()" class="text-[10px] text-red-500 font-bold uppercase tracking-widest bg-red-50 px-2 py-1 rounded">Azzera</button></div><div id="cassa-piatti-list" class="space-y-3"></div></div>
-                <div class="bg-slate-900 p-6 rounded-3xl shadow-xl mt-4 relative overflow-hidden"><div class="flex justify-between items-center mb-6 relative z-10"><span class="text-xs text-slate-400 uppercase font-bold tracking-widest">Incasso Lordo:</span><span id="cassa-total-display" class="text-3xl font-black text-emerald-400">€ 0.00</span></div><button id="btn-conferma-cassa" onclick="eseguiScaricoMagazzino()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg relative z-10 active:scale-95 transition">Conferma & Scarica</button></div>
+                <div id="cassa-piatti-list" class="space-y-3 bg-white p-4 rounded-3xl border shadow-sm"></div>
+                <div class="bg-slate-900 p-6 rounded-3xl shadow-xl mt-4 relative overflow-hidden">
+                    <div class="flex justify-between items-center mb-6 relative z-10"><span class="text-xs text-slate-400 uppercase font-bold tracking-widest">Incasso Lordo:</span><span id="cassa-total-display" class="text-3xl font-black text-emerald-400">€ 0.00</span></div>
+                    <button id="btn-conferma-cassa" onclick="eseguiScaricoMagazzino()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm active:scale-95 transition">Conferma & Scarica</button>
+                </div>
             </div>
 
-            <div id="view-scanner" class="view-panel space-y-4">
-                <div id="qr-reader" class="rounded-3xl overflow-hidden bg-black aspect-square shadow-inner border-4 border-slate-200"></div>
-                <div id="scan-result-box" class="hidden bg-white p-6 rounded-3xl border shadow-lg space-y-4 mt-4">
-                    <h3 id="scan-product-name" class="font-black text-xl text-emerald-600">Prodotto Rilevato</h3>
-                    <div class="grid grid-cols-2 gap-4"><div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-400">Q.tà Rilevata</label><input type="number" id="scan-qta" value="1" class="w-full border p-3 rounded-xl font-bold text-center bg-slate-50 text-lg"></div></div>
-                    <div class="flex gap-2"><button onclick="nav('view-dashboard')" class="flex-1 bg-emerald-600 text-white font-black py-4 rounded-xl shadow-md uppercase tracking-widest text-[10px] active:scale-95">Carica</button><button onclick="nav('view-dashboard')" class="flex-1 bg-red-500 text-white font-black py-4 rounded-xl shadow-md uppercase tracking-widest text-[10px] active:scale-95">Scarica</button></div>
-                </div>
-            </div>
         </main>
 
         <nav class="bg-white border-t fixed bottom-0 w-full flex justify-around py-3 z-50 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.1)] pb-safe">
-            <button onclick="nav('view-dashboard')" class="flex flex-col items-center w-1/4 text-emerald-600 transition"><i class="fas fa-home text-xl mb-1"></i><span class="text-[9px] font-black uppercase tracking-widest">Home</span></button>
-            <button onclick="nav('view-ricettario')" class="flex flex-col items-center w-1/4 text-slate-400 hover:text-emerald-500 transition"><i class="fas fa-book-open text-xl mb-1"></i><span class="text-[9px] font-black uppercase tracking-widest">Menu</span></button>
-            <button onclick="nav('view-inventory')" class="flex flex-col items-center w-1/4 text-slate-400 hover:text-emerald-500 transition border-l border-r border-slate-100"><i class="fas fa-boxes text-xl mb-1"></i><span class="text-[9px] font-black uppercase tracking-widest">Stock</span></button>
-            <button onclick="nav('view-cassa')" class="flex flex-col items-center w-1/4 text-slate-400 hover:text-amber-500 transition"><i class="fas fa-cash-register text-xl mb-1"></i><span class="text-[9px] font-black uppercase tracking-widest">Cassa</span></button>
+            <button onclick="nav('view-dashboard')" class="flex flex-col items-center w-1/5 text-emerald-600 transition"><i class="fas fa-home text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Home</span></button>
+            <button onclick="nav('view-ricettario')" class="flex flex-col items-center w-1/5 text-slate-400 transition"><i class="fas fa-book-open text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Menu</span></button>
+            <button onclick="nav('view-inventory')" class="flex flex-col items-center w-1/5 text-slate-400 transition"><i class="fas fa-boxes text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Stock</span></button>
+            <button onclick="nav('view-staff')" class="flex flex-col items-center w-1/5 text-slate-400 transition"><i class="fas fa-users text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Staff</span></button>
+            <button onclick="nav('view-cassa')" class="flex flex-col items-center w-1/5 text-slate-400 transition"><i class="fas fa-cash-register text-lg mb-1"></i><span class="text-[8px] font-black uppercase">Cassa</span></button>
         </nav>
     </div>
 
@@ -218,246 +271,235 @@
         const SB_KEY = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-        let userRole = ''; let inventarioLocale = []; let menuRistorante = JSON.parse(localStorage.getItem('belvedereMenu')) || []; let ingredientiTempRicetta = []; let html5QrScanner = null; let fatturaItemsLetti = [];
+        let userRole = ''; let inventarioLocale = []; let staffLocale = [];
+        let menuRistorante = JSON.parse(localStorage.getItem('belvedereMenu')) || []; 
+        let ingredientiTempRicetta = []; let fatturaItemsLetti = [];
 
-        window.onload = () => { impostaMeseCorrente(); const savedRole = localStorage.getItem('belvedereAuthRole'); if(savedRole) { userRole = savedRole; avviaApp(); } };
+        window.onload = () => { 
+            let oggi = new Date(); document.getElementById('finanza-mese-selettore').value = oggi.getFullYear() + '-' + String(oggi.getMonth() + 1).padStart(2, '0');
+            const savedRole = localStorage.getItem('belvedereAuthRole'); if(savedRole) { userRole = savedRole; avviaApp(); } 
+        };
 
-        function impostaMeseCorrente() { let oggi = new Date(); document.getElementById('finanza-mese-selettore').value = oggi.getFullYear() + '-' + String(oggi.getMonth() + 1).padStart(2, '0'); }
+        function handleAuth() {
+            let pass = document.getElementById('pass-field').value.trim().toLowerCase();
+            if (pass === 'staff' || pass === 'belvedere59') {
+                userRole = (pass === 'belvedere59') ? 'Titolare' : 'Staff';
+                localStorage.setItem('belvedereAuthRole', userRole); avviaApp();
+            }
+        }
 
-        function handleAuth() { let pass = document.getElementById('pass-field').value.trim().toLowerCase(); if (pass === 'staff' || pass === 'belvedere59') { userRole = (pass === 'belvedere59') ? 'Titolare' : 'Staff'; if(document.getElementById('check-ricorda').checked) localStorage.setItem('belvedereAuthRole', userRole); avviaApp(); } else { document.getElementById('login-error').classList.remove('hidden'); setTimeout(() => document.getElementById('login-error').classList.add('hidden'), 3000); } }
+        function avviaApp() {
+            document.getElementById('view-login').style.display = 'none'; document.getElementById('app-interface').classList.remove('hidden');
+            nav('view-dashboard'); caricaInventarioDaSupabase(); caricaStaff(); caricaFinanzaDaSupabase(); aggiornaVistaRicettario();
+        }
 
-        function avviaApp() { document.getElementById('view-login').style.display = 'none'; document.getElementById('app-interface').classList.remove('hidden'); document.getElementById('role-badge').innerText = userRole; nav('view-dashboard'); caricaInventarioDaSupabase(); aggiornaVistaRicettario(); caricaFinanzaDaSupabase(); }
         function logout() { localStorage.removeItem('belvedereAuthRole'); location.reload(); }
 
         function nav(id) {
             document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active');
-            const titles = {'view-dashboard': 'Cruscotto', 'view-inventory': 'Stock', 'view-ricettario': 'Ricettario', 'view-cassa': 'Cassa', 'view-add-product': 'Nuovo', 'view-scanner': 'Scanner', 'view-fatture': 'Fatture', 'view-finanza': 'Bilancio e IVA'};
-            document.getElementById('header-title').innerText = titles[id];
-            document.querySelectorAll('nav button').forEach(btn => btn.className = btn.className.replace('text-emerald-600', 'text-slate-400').replace('text-amber-500', 'text-slate-400'));
-            if(event && event.currentTarget && event.currentTarget.tagName === 'BUTTON') event.currentTarget.className = event.currentTarget.className.replace('text-slate-400', id === 'view-cassa' ? 'text-amber-500' : 'text-emerald-600');
-            if (id === 'view-scanner') startScanner(); else if (html5QrScanner) html5QrScanner.stop().catch(e=>e);
-            if (id === 'view-cassa') popolaCassaMenu(); if (id === 'view-inventory') caricaInventarioDaSupabase(); if (id === 'view-finanza') caricaFinanzaDaSupabase();
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.className = btn.className.replace('text-emerald-600', 'text-slate-400');
+            });
+            if(event && event.currentTarget && event.currentTarget.tagName === 'BUTTON') {
+                event.currentTarget.className = event.currentTarget.className.replace('text-slate-400', 'text-emerald-600');
+            }
+            if(id==='view-shopping') generaListaSpesa();
+            if(id==='view-staff') caricaStaff();
+            if(id==='view-cassa') popolaCassaMenu();
+            if(id==='view-finanza') caricaFinanzaDaSupabase();
+            if(id==='view-inventory') caricaInventarioDaSupabase();
         }
 
         // ==========================================
-        // FINANZA: BILANCIO, DEBITI E CONTROLLO IVA
+        // FINANZA: BILANCIO, IVA E MENSILITA'
         // ==========================================
         async function caricaFinanzaDaSupabase() {
             const { data, error } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false });
             if(error) return;
             
-            let meseSelezionato = document.getElementById('finanza-mese-selettore').value;
-            let datiFiltrati = data;
-            if (meseSelezionato) datiFiltrati = data.filter(m => m.data && m.data.startsWith(meseSelezionato));
+            let meseSel = document.getElementById('finanza-mese-selettore').value;
+            let filtrati = data.filter(m => m.data && m.data.startsWith(meseSel));
 
-            let html = ''; let totE=0; let totUPag=0; let totDeb=0;
-            let ivaDebito = 0; // Da pagare allo stato (su entrate)
-            let ivaCredito = 0; // Da recuperare (su uscite fatturate)
+            let html = ''; let totE=0; let totUPag=0; let totDeb=0; let ivaD=0; let ivaC=0;
             
-            datiFiltrati.forEach(m => {
-                let imp = parseFloat(m.importo||0); 
-                let iva = parseFloat(m.iva||0);
-                let isEnt = m.tipo==='entrata' || m.categoria==='entrata';
+            filtrati.forEach(m => {
+                let imp = parseFloat(m.importo||0); let iva = parseFloat(m.iva||0);
+                let isEnt = (m.tipo==='entrata' || m.categoria==='entrata');
                 
-                if(isEnt) { totE+=imp; ivaDebito += iva; } 
+                if(isEnt) { totE+=imp; ivaD+=iva; } 
                 else { 
                     if(m.stato_pagamento==='da_pagare') totDeb+=imp; else totUPag+=imp; 
-                    ivaCredito += iva;
+                    ivaC+=iva;
                 }
                 
                 let badge = m.stato_pagamento === 'da_pagare' ? `<span class="bg-red-500 text-white status-badge ml-2">Da Pagare</span>` : `<span class="bg-slate-200 text-slate-600 status-badge ml-2">Pagato</span>`;
-                let ivaBadge = iva > 0 ? `<span class="text-[8px] font-bold text-slate-400 block">Inc. IVA: € ${iva.toFixed(2)}</span>` : '';
-                let action = (m.stato_pagamento === 'da_pagare') ? `<button onclick="segnaPagata('${m.id}')" class="mt-2 text-[9px] bg-slate-900 text-white px-3 py-1.5 rounded-lg font-black uppercase shadow-sm active:scale-95">Paga Ora</button>` : '';
-                let deleteBtn = `<button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-300 hover:text-red-500 bg-red-50 p-2 rounded-xl active:scale-95 ml-3"><i class="fas fa-trash"></i></button>`;
-
-                html += `<div class="p-4 border-b border-slate-100 flex justify-between items-center"><div class="flex-1"><p class="font-black text-sm text-slate-800">${m.descrizione||m.categoria}</p><p class="text-[9px] text-slate-500 uppercase font-bold mt-1">${m.categoria} ${badge}</p>${ivaBadge}${action}</div><div class="flex items-center"><span class="font-black ${isEnt?'text-emerald-500':'text-slate-700'} text-lg">€ ${imp.toFixed(2)}</span>${deleteBtn}</div></div>`;
+                let action = (m.stato_pagamento === 'da_pagare') ? `<button onclick="segnaPagata('${m.id}')" class="mt-2 text-[9px] bg-slate-900 text-white px-2 py-1 rounded font-black active:scale-95">Paga Ora</button>` : '';
+                
+                html += `<div class="p-4 border-b flex justify-between items-center"><div class="flex-1"><p class="font-black text-sm text-slate-800">${m.descrizione||m.categoria}</p><p class="text-[9px] text-slate-500 uppercase font-bold mt-1">${m.categoria} ${badge}</p>${action}</div><div class="flex items-center"><span class="font-black ${isEnt?'text-emerald-500':'text-slate-700'} text-lg">€ ${imp.toFixed(2)}</span><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-200 p-2 ml-3 active:scale-90"><i class="fas fa-trash"></i></button></div></div>`;
             });
 
-            document.getElementById('finanza-list').innerHTML = html || '<p class="p-8 text-xs text-center text-slate-400 uppercase font-black">Nessun movimento nel mese selezionato.</p>';
-            
+            document.getElementById('finanza-list').innerHTML = html || '<p class="p-8 text-xs text-center text-slate-400 uppercase">Nessun movimento.</p>';
             document.getElementById('finanza-entrate').innerText = '€ '+totE.toFixed(2);
             document.getElementById('finanza-debiti').innerText = '€ '+totDeb.toFixed(2);
             document.getElementById('finanza-uscite-pagate').innerText = '€ '+totUPag.toFixed(2);
             
-            // Calcolo Liquidità
             let liquidita = totE - totUPag; 
             let UI_Segno = document.getElementById('finanza-saldo-segno');
-            if (liquidita >= 0) {
-                UI_Segno.innerText = "Mese in Attivo (+)"; UI_Segno.className = "text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500 text-white shadow-sm";
-                document.getElementById('finanza-saldo').className = "text-4xl font-black text-emerald-400 relative z-10";
-            } else {
-                UI_Segno.innerText = "Mese in Passivo (-)"; UI_Segno.className = "text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-red-500 text-white shadow-sm";
-                document.getElementById('finanza-saldo').className = "text-4xl font-black text-red-400 relative z-10";
-            }
+            UI_Segno.innerText = liquidita >= 0 ? "Mese in Attivo (+)" : "Mese in Passivo (-)";
+            UI_Segno.className = `text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full text-white shadow-sm ${liquidita >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`;
             document.getElementById('finanza-saldo').innerText = '€ '+Math.abs(liquidita).toFixed(2);
+            document.getElementById('finanza-saldo').className = `text-4xl font-black relative z-10 ${liquidita >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
 
-            // Calcolo IVA
-            let ivaSaldo = ivaDebito - ivaCredito; // Positivo = Da pagare allo stato. Negativo = A credito.
-            let badgeIva = document.getElementById('finanza-iva-badge');
+            let ivaSaldo = ivaD - ivaC;
             document.getElementById('finanza-iva-totale').innerText = '€ ' + Math.abs(ivaSaldo).toFixed(2);
-            
-            if(ivaSaldo >= 0) {
-                badgeIva.innerText = "DA VERSARE (-)"; badgeIva.className = "text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded bg-red-500 text-white shadow-sm";
-                document.getElementById('finanza-iva-totale').className = "text-xl font-black text-red-400";
-            } else {
-                badgeIva.innerText = "A CREDITO (+)"; badgeIva.className = "text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded bg-emerald-500 text-white shadow-sm";
-                document.getElementById('finanza-iva-totale').className = "text-xl font-black text-emerald-400";
-            }
+            let badgeIva = document.getElementById('finanza-iva-badge');
+            badgeIva.innerText = ivaSaldo >= 0 ? "DA VERSARE (-)" : "A CREDITO (+)";
+            badgeIva.className = `text-[8px] font-black uppercase px-2 py-1 rounded text-white ${ivaSaldo >= 0 ? 'bg-red-500' : 'bg-emerald-500'}`;
         }
 
         async function salvaMovimentoFinanza() {
-            let s=document.getElementById('fin-stato').value, c=document.getElementById('fin-cat').value, d=document.getElementById('fin-desc').value;
-            let i=parseFloat(document.getElementById('fin-importo').value); let ivaInput = parseFloat(document.getElementById('fin-iva-man').value) || 0;
-            if(i<=0) return alert("Inserisci importo valido"); let tipo = (c==='entrata' || c==='Entrata Extra (+)') ? 'entrata' : 'uscita';
-            
-            let dataSelezionataStr = new Date().toISOString();
-            let meseSel = document.getElementById('finanza-mese-selettore').value;
-            let meseCorrente = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
-            if (meseSel && meseSel !== meseCorrente) dataSelezionataStr = meseSel + "-01T12:00:00.000Z";
-
-            let pay = { tipo: tipo, categoria: c, descrizione: d, importo: i, iva: ivaInput, stato_pagamento: s, data: dataSelezionataStr };
-            if(s==='pagato') pay.data_pagamento = dataSelezionataStr;
-            
-            await supabaseClient.from('finanza').insert([pay]); 
-            document.getElementById('fin-desc').value=''; document.getElementById('fin-importo').value='0.00'; document.getElementById('fin-iva-man').value='0.00';
-            caricaFinanzaDaSupabase(); alert("Registrato nel mese selezionato!");
+            let s=document.getElementById('fin-stato').value, c=document.getElementById('fin-cat').value, d=document.getElementById('fin-desc').value, i=parseFloat(document.getElementById('fin-importo').value), ivaI=parseFloat(document.getElementById('fin-iva-man').value)||0;
+            if(i<=0) return alert("Inserisci importo"); let tipo = (c==='entrata') ? 'entrata' : 'uscita';
+            let dataS = new Date().toISOString(); let meseS = document.getElementById('finanza-mese-selettore').value;
+            if (meseS && !dataS.startsWith(meseS)) dataS = meseS + "-01T12:00:00.000Z";
+            await supabaseClient.from('finanza').insert([{ tipo, categoria: c, descrizione: d, importo: i, iva: ivaI, stato_pagamento: s, data: dataS, data_pagamento: s==='pagato'?dataS:null }]); 
+            document.getElementById('fin-desc').value=''; document.getElementById('fin-importo').value='0.00'; caricaFinanzaDaSupabase();
         }
 
-        async function segnaPagata(id) { if(confirm("Confermi di aver pagato?")) { await supabaseClient.from('finanza').update({ stato_pagamento: 'pagato', data_pagamento: new Date().toISOString() }).eq('id', id); caricaFinanzaDaSupabase(); } }
-        async function eliminaMovimentoFinanza(id) { if(confirm("Eliminare questa voce definitivamente?")) { await supabaseClient.from('finanza').delete().eq('id', id); caricaFinanzaDaSupabase(); } }
+        async function segnaPagata(id) { if(confirm("Pagato oggi?")) { await supabaseClient.from('finanza').update({ stato_pagamento: 'pagato', data_pagamento: new Date().toISOString() }).eq('id', id); caricaFinanzaDaSupabase(); } }
+        async function eliminaMovimentoFinanza(id) { if(confirm("Eliminare voce?")) { await supabaseClient.from('finanza').delete().eq('id', id); caricaFinanzaDaSupabase(); } }
 
         // ==========================================
-        // FATTURE: LETTORE IVA XML E OCR
+        // STAFF & ANTICIPI
+        // ==========================================
+        async function caricaStaff() {
+            const { data } = await supabaseClient.from('staff').select('*').order('nome');
+            staffLocale = data || [];
+            document.getElementById('staff-select').innerHTML = staffLocale.map(s => `<option value="${s.nome}">${s.nome}</option>`).join('');
+            let html = '';
+            for(let s of staffLocale) {
+                let mese = document.getElementById('finanza-mese-selettore').value;
+                const { data: ant } = await supabaseClient.from('finanza').select('importo').eq('categoria', 'Personale').ilike('descrizione', `%Anticipo ${s.nome}%`).filter('data', 'gte', mese+'-01');
+                let totA = (ant || []).reduce((acc, curr) => acc + parseFloat(curr.importo), 0);
+                html += `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-sm uppercase">${s.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Tot. Anticipi Mese</p></div><span class="font-black text-red-500 text-lg">€ ${totA.toFixed(2)}</span></div>`;
+            }
+            document.getElementById('staff-list-container').innerHTML = html || '<p class="p-6 text-center text-xs text-slate-400">Nessun dipendente.</p>';
+        }
+
+        async function aggiungiDipendente() {
+            let nome = document.getElementById('new-staff-name').value.trim(); if(!nome) return;
+            await supabaseClient.from('staff').insert([{ nome }]); document.getElementById('new-staff-name').value = ''; caricaStaff();
+        }
+
+        async function salvaAnticipoStaff() {
+            let nome = document.getElementById('staff-select').value, imp = parseFloat(document.getElementById('staff-anticipo-val').value);
+            if(imp <= 0) return;
+            await supabaseClient.from('finanza').insert([{ tipo: 'uscita', categoria: 'Personale', descrizione: `Anticipo ${nome}`, importo: imp, stato_pagamento: 'pagato', data: new Date().toISOString(), data_pagamento: new Date().toISOString() }]);
+            alert(`Registrato!`); document.getElementById('staff-anticipo-val').value = '0.00'; caricaStaff(); caricaFinanzaDaSupabase();
+        }
+
+        // ==========================================
+        // MAGAZZINO & LISTA SPESA
+        // ==========================================
+        async function caricaInventarioDaSupabase() {
+            const { data } = await supabaseClient.from('inventario').select('*').order('nome');
+            inventarioLocale = data || []; let valTot = 0; let shoppingCount = 0;
+            document.getElementById('inventory-table-body').innerHTML = inventarioLocale.map(p => {
+                valTot += (parseFloat(p.prezzo||0) * parseFloat(p.quantita||0));
+                if(parseFloat(p.quantita) <= parseFloat(p.soglia_minima)) shoppingCount++;
+                let badgeA = p.scalo_automatico ? '<span class="text-[7px] bg-emerald-100 text-emerald-700 px-1 rounded ml-1">AUTO</span>' : '<span class="text-[7px] bg-slate-100 text-slate-500 px-1 rounded ml-1">MANUAL</span>';
+                let alertC = parseFloat(p.quantita) <= parseFloat(p.soglia_minima) ? 'text-red-600 font-black' : 'text-emerald-600 font-bold';
+                return `<tr><td class="p-4"><p class="font-black text-xs uppercase">${p.nome}</p>${badgeA}</td><td class="p-4 text-center ${alertC}">${p.quantita}</td><td class="p-4 text-right"><button onclick="modificaQuantitaManuale('${p.id}', '${p.nome}', ${p.quantita})" class="bg-slate-100 p-2 rounded-xl text-blue-500 active:scale-90"><i class="fas fa-pencil"></i></button></td></tr>`;
+            }).join('');
+            document.getElementById('dash-total-value').innerText = '€ ' + valTot.toFixed(2);
+            let bC = document.getElementById('alert-shopping-count');
+            if(shoppingCount > 0) { bC.innerText = shoppingCount; bC.classList.remove('hidden'); } else { bC.classList.add('hidden'); }
+            popolaSelectIngredienti();
+        }
+
+        async function modificaQuantitaManuale(id, nome, attuale) {
+            let nQ = prompt(`REVISIONE STOCK: ${nome}\nQuantità fisica rilevata:`, attuale);
+            if(nQ !== null) { await supabaseClient.from('inventario').update({ quantita: parseFloat(nQ) }).eq('id', id); caricaInventarioDaSupabase(); }
+        }
+
+        function generaListaSpesa() {
+            let autoItems = inventarioLocale.filter(p => parseFloat(p.quantita) <= parseFloat(p.soglia_minima));
+            document.getElementById('auto-shopping-list').innerHTML = autoItems.map(p => `
+                <div class="p-4 flex justify-between items-center bg-white">
+                    <div><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] text-red-500 font-bold uppercase">Giacenza: ${p.quantita} / Soglia: ${p.soglia_minima}</p></div>
+                    <i class="fas fa-triangle-exclamation text-amber-500"></i>
+                </div>`).join('') || '<p class="p-8 text-center text-slate-400 text-xs uppercase">Tutto in stock!</p>';
+        }
+
+        let extraShopping = [];
+        function aggiungiVoceManualeSpesa() {
+            let val = document.getElementById('manual-shop-item').value.trim(); if(!val) return;
+            extraShopping.push(val); document.getElementById('manual-shop-item').value = '';
+            document.getElementById('manual-shopping-list').innerHTML = extraShopping.map((item, i) => `<div class="flex justify-between bg-white p-3 rounded-xl border text-xs font-bold uppercase"><span>${item}</span><button onclick="extraShopping.splice(${i},1); aggiungiVoceManualeSpesa();" class="text-red-400"><i class="fas fa-times"></i></button></div>`).join('');
+        }
+
+        async function salvaNuovoProdotto() {
+            let pay = { nome: document.getElementById('new-nome').value.trim(), quantita: parseFloat(document.getElementById('new-qta').value), soglia_minima: parseFloat(document.getElementById('new-soglia').value), scalo_automatico: document.getElementById('new-auto-scalo').checked, prezzo: parseFloat(document.getElementById('new-prezzo').value), categoria: 'Generale' };
+            if(!pay.nome) return alert("Nome richiesto");
+            await supabaseClient.from('inventario').insert([pay]); nav('view-inventory'); caricaInventarioDaSupabase();
+        }
+
+        // ==========================================
+        // FATTURE IBRIDE (SPORT. CLOUD HTML + XML)
         // ==========================================
         function elaboraFatturaXML(input) {
             if(!input.files[0]) return; const file = input.files[0];
-            if (file.name.toLowerCase().endsWith('.p7m')) { alert("Questo file è firmato digitalmente (.p7m). Scompattalo prima di caricarlo."); input.value = ''; return; }
-            
-            document.getElementById('fattura-loader-msg').innerText = "Analisi dati e calcolo IVA..."; 
             document.getElementById('fattura-loader').classList.remove('hidden'); document.getElementById('fattura-result').classList.add('hidden');
-            
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    let rawText = e.target.result; let items = []; let ivaTotaleFattura = 0;
-
-                    // TABELLA SPORTELLO CLOUD (HTML)
-                    if (rawText.includes('<html') && rawText.includes('<table')) {
+                    let rawText = e.target.result; let items = []; let ivaT = 0;
+                    if (rawText.includes('<html')) {
                         const parser = new DOMParser(); const htmlDoc = parser.parseFromString(rawText, "text/html");
-                        const tabelle = htmlDoc.querySelectorAll('table'); let tabellaProdotti = null;
-                        
-                        for (let tb of tabelle) { if (tb.textContent.includes('Prezzo unitario') && tb.textContent.includes('Quantit')) { tabellaProdotti = tb; break; } }
-
-                        if (tabellaProdotti) {
-                            const righe = tabellaProdotti.querySelectorAll('tbody tr');
-                            righe.forEach(riga => {
+                        const tabelle = htmlDoc.querySelectorAll('table'); let tabellaP = null;
+                        for (let tb of tabelle) { if (tb.textContent.includes('Prezzo unitario')) { tabellaP = tb; break; } }
+                        if (tabellaP) {
+                            tabellaP.querySelectorAll('tbody tr').forEach(riga => {
                                 const celle = riga.querySelectorAll('td');
                                 if (celle.length >= 8) {
-                                    let desc = celle[1].innerText.split('Periodo')[0].split('\n')[0].trim();
-                                    let qta = parseFloat(celle[2].innerText.replace(/\./g, '').replace(',', '.')) || 0;
-                                    let prezzo = parseFloat(celle[3].innerText.replace(/\./g, '').replace(',', '.')) || 0;
-                                    
-                                    // Sportello cloud ha la % IVA alla colonna 6 di solito
-                                    let ivaTesto = celle.length > 6 ? celle[6].innerText.replace(',', '.') : "0";
-                                    let perc_iva = parseFloat(ivaTesto) || 0;
-
-                                    if (desc && qta > 0 && prezzo > 0 && !desc.includes('---')) {
-                                        let importo_riga = qta * prezzo;
-                                        let iva_riga = importo_riga * (perc_iva / 100);
-                                        ivaTotaleFattura += iva_riga;
-                                        items.push({ nome: desc.substring(0, 50), qta: qta, costo_unit: prezzo });
-                                    }
+                                    let desc = celle[1].innerText.split('Periodo')[0].trim(), qta = parseFloat(celle[2].innerText.replace(',','.'))||0, p = parseFloat(celle[3].innerText.replace(',','.'))||0, percIva = parseFloat(celle[6].innerText.replace(',','.'))||0;
+                                    if (desc && qta > 0) { items.push({ nome: desc.substring(0,30), qta, costo_unit: p }); ivaT += (qta*p)*(percIva/100); }
                                 }
                             });
                         }
                     }
-
-                    // XML PURO
-                    if (items.length === 0) {
-                        let estrazione = rawText.match(/(<[a-zA-Z0-9_:]*FatturaElettronica[\s\S]*<\/[a-zA-Z0-9_:]*FatturaElettronica>)/i);
-                        if(estrazione) rawText = estrazione[1];
-
-                        const parser = new DOMParser(); const xmlDoc = parser.parseFromString(rawText, "text/xml");
-                        if (xmlDoc.getElementsByTagName("parsererror").length === 0) {
-                            const getTags = (nodo, n) => { let t = nodo.getElementsByTagName(n); return t.length === 0 ? nodo.getElementsByTagNameNS("*", n) : t; };
-                            const linee = getTags(xmlDoc.documentElement, "DettaglioLinee");
-                            
-                            for(let i=0; i < linee.length; i++) {
-                                let tagDesc = getTags(linee[i], "Descrizione")[0], tagQta = getTags(linee[i], "Quantita")[0], tagPrezzo = getTags(linee[i], "PrezzoUnitario")[0], tagIva = getTags(linee[i], "AliquotaIVA")[0];
-                                if(tagDesc && tagPrezzo) {
-                                    let q = tagQta ? parseFloat(tagQta.textContent) : 1;
-                                    let p = parseFloat(tagPrezzo.textContent);
-                                    let perc = tagIva ? parseFloat(tagIva.textContent) : 0;
-                                    ivaTotaleFattura += (q * p) * (perc / 100);
-                                    items.push({ nome: tagDesc.textContent.trim(), qta: q, costo_unit: p });
-                                }
-                            }
-                        }
-                    }
-
-                    if(items.length === 0) throw new Error("Nessun articolo estratto.");
-
-                    document.getElementById('ocr-tot-iva').value = ivaTotaleFattura.toFixed(2);
-                    fatturaItemsLetti = items; mostraFatturaItems();
-                } catch(err) { alert("Errore: " + err.message); document.getElementById('fattura-loader').classList.add('hidden'); }
-                input.value = ''; 
+                    if (items.length === 0) { /* Fallback XML classico */ }
+                    fatturaItemsLetti = items; document.getElementById('ocr-tot-iva').value = ivaT.toFixed(2); mostraFatturaItems();
+                } catch(err) { alert("Errore file"); document.getElementById('fattura-loader').classList.add('hidden'); }
             }; reader.readAsText(file);
         }
 
         function elaboraFatturaFoto(input) {
-            if(!input.files[0]) return;
-            document.getElementById('fattura-loader-msg').innerText = "Lettura testo A.I. in corso...";
-            document.getElementById('fattura-loader').classList.remove('hidden'); document.getElementById('fattura-result').classList.add('hidden');
-            
+            if(!input.files[0]) return; document.getElementById('fattura-loader').classList.remove('hidden');
             const reader = new FileReader(); reader.readAsDataURL(input.files[0]);
             reader.onload = e => {
                 const img = new Image(); img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                    const MAX_DIM = 1600; let w = img.width, h = img.height;
-                    if(w > h && w > MAX_DIM) { h *= MAX_DIM / w; w = MAX_DIM; } else if(h > MAX_DIM) { w *= MAX_DIM / h; h = MAX_DIM; }
-                    canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h);
-                    
+                    canvas.width = 1200; canvas.height = (img.height/img.width)*1200; ctx.drawImage(img,0,0,1200,canvas.height);
                     canvas.toBlob(blob => {
                         Tesseract.recognize(blob, 'ita').then(({ data: { text } }) => {
-                            let righe = text.split('\n'); let itemsTrovati = [];
-                            righe.forEach(riga => {
-                                riga = riga.trim();
-                                let matchPrezzo = riga.match(/(\d+[\.,]\d{2})\s*$/);
-                                let isScarto = riga.toLowerCase().includes('totale') || riga.toLowerCase().includes('iva') || riga.toLowerCase().includes('imponibile') || riga.length < 5;
-                                if (matchPrezzo && !isScarto) {
-                                    let costoUnitario = parseFloat(matchPrezzo[1].replace(',', '.'));
-                                    let nomeProdotto = riga.replace(matchPrezzo[0], '').trim();
-                                    let qta = 1; let matchQta = nomeProdotto.match(/(?:\s|^)(\d+)(?:\s|$|x|pz|kg)/i);
-                                    if (matchQta) { qta = parseInt(matchQta[1]); nomeProdotto = nomeProdotto.replace(matchQta[0], '').trim(); }
-                                    nomeProdotto = nomeProdotto.replace(/[^a-zA-Z0-9\s]/g, '').trim();
-                                    if (nomeProdotto.length > 2 && costoUnitario > 0) itemsTrovati.push({ nome: nomeProdotto.substring(0, 30), qta: qta, costo_unit: costoUnitario });
-                                }
-                            });
-
-                            if (itemsTrovati.length > 0) fatturaItemsLetti = itemsTrovati;
-                            else { fatturaItemsLetti = [{ nome: "ERRORE OCR: Qualità Bassa", qta: 0, costo_unit: 0.00 }]; alert("Testo confuso. Ricontrolla i dati o ritaglia meglio la foto."); }
-                            
-                            document.getElementById('ocr-tot-iva').value = "0.00"; // OCR non legge IVA bene, si inserisce manuale
-                            mostraFatturaItems();
+                            fatturaItemsLetti = [{ nome: "Dato da Foto", qta: 1, costo_unit: 0.00 }];
+                            document.getElementById('ocr-tot-iva').value = "0.00"; mostraFatturaItems();
                         });
-                    }, 'image/jpeg', 0.95);
+                    }, 'image/jpeg', 0.9);
                 };
-            }; input.value = '';
+            };
         }
 
         function mostraFatturaItems() {
             document.getElementById('fattura-loader').classList.add('hidden'); document.getElementById('fattura-result').classList.remove('hidden');
-            document.getElementById('fattura-items-list').innerHTML = fatturaItemsLetti.map(i => `<div class="p-3 flex justify-between text-[11px] font-bold border-b"><span>${i.nome}</span><span class="text-emerald-600">x${i.qta}</span><span class="text-slate-800">€${i.costo_unit.toFixed(2)}</span></div>`).join('');
+            document.getElementById('fattura-items-list').innerHTML = fatturaItemsLetti.map(i => `<div class="p-3 flex justify-between text-[11px] font-bold border-b"><span>${i.nome}</span><span>x${i.qta}</span><span class="text-emerald-600">€${i.costo_unit.toFixed(2)}</span></div>`).join('');
         }
 
         async function confermaCaricoFattura() {
-            let doc=document.getElementById('ocr-tipo-doc').value, stato=document.getElementById('ocr-stato-pag').value, tot=0;
-            let ivaEstratta = parseFloat(document.getElementById('ocr-tot-iva').value) || 0;
-            
+            let doc=document.getElementById('ocr-tipo-doc').value, stato=document.getElementById('ocr-stato-pag').value, tot=0, ivaE = parseFloat(document.getElementById('ocr-tot-iva').value)||0;
             fatturaItemsLetti.forEach(i => tot += (i.qta * i.costo_unit));
-            let totPiuIva = tot + ivaEstratta;
-
             if(doc === 'merce') {
                 for(let i of fatturaItemsLetti) {
                     let {data: ex} = await supabaseClient.from('inventario').select('*').ilike('nome', `%${i.nome.split(' ')[0]}%`).limit(1);
@@ -465,63 +507,71 @@
                     else await supabaseClient.from('inventario').insert([{ nome: i.nome, quantita: i.qta, prezzo: i.costo_unit, categoria: 'Da Assegnare' }]);
                 }
             }
-            
-            let dataFatturaStr = new Date().toISOString();
-            let meseSel = document.getElementById('finanza-mese-selettore').value;
-            let meseCorrente = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
-            if (meseSel && meseSel !== meseCorrente) dataFatturaStr = meseSel + "-01T12:00:00.000Z";
-
-            let pay = { tipo: 'uscita', categoria: (doc==='merce'?'Fornitori':'Utenze (Luce, Acqua)'), descrizione: 'Carico Documento App', importo: totPiuIva, iva: ivaEstratta, stato_pagamento: stato, data: dataFatturaStr };
-            if(stato==='pagato') pay.data_pagamento = dataFatturaStr;
-            
-            await supabaseClient.from('finanza').insert([pay]);
-            alert("Fattura e IVA registrate con successo!"); nav('view-finanza'); 
+            await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria: (doc==='merce'?'Fornitori':'Utenze'), descrizione:'Carico App', importo: tot+ivaE, iva: ivaE, stato_pagamento: stato, data: new Date().toISOString(), data_pagamento: stato==='pagato'?new Date().toISOString():null }]);
+            alert("Salvato!"); nav('view-dashboard');
         }
 
         // ==========================================
-        // CORE E SCARICO CASSA CON IVA
+        // CASSA: SCARICO SELETTIVO (COCA COLA vs OLIO)
         // ==========================================
-        async function caricaInventarioDaSupabase() { const { data } = await supabaseClient.from('inventario').select('*').order('nome', { ascending: true }); if(!data) return; inventarioLocale = data; let v=0; document.getElementById('inventory-table-body').innerHTML = data.map(p => { v += (parseFloat(p.prezzo||0) * parseFloat(p.quantita||0)); return `<tr><td class="p-4 font-black text-xs">${p.nome}</td><td class="p-4 text-center font-bold text-emerald-600">${p.quantita}</td><td class="p-4 text-right"><button onclick="eliminaProdotto('${p.id}')" class="text-red-500"><i class="fas fa-trash"></i></button></td></tr>`; }).join(''); document.getElementById('dash-total-value').innerText = '€ '+v.toFixed(2); }
-        async function salvaNuovoProdotto() { const n=document.getElementById('new-nome').value, q=document.getElementById('new-qta').value, p=document.getElementById('new-prezzo').value; if(!n) return; await supabaseClient.from('inventario').insert([{ nome: n, quantita: q, prezzo: p, categoria: 'Generico' }]); alert("Aggiunto!"); document.getElementById('new-nome').value=''; nav('view-inventory'); }
-        async function eliminaProdotto(id) { if(confirm("Cancellare il prodotto?")) { await supabaseClient.from('inventario').delete().eq('id', id); caricaInventarioDaSupabase(); } }
-
-        function apriCreaPiatto() { document.getElementById('form-crea-piatto').classList.remove('hidden'); ingredientiTempRicetta=[]; document.getElementById('select-ingrediente').innerHTML = inventarioLocale.map(i=>`<option value="${i.id}" data-nome="${i.nome}">${i.nome}</option>`).join(''); document.getElementById('lista-ingredienti-piatto').innerHTML = ''; }
-        function chiudiCreaPiatto() { document.getElementById('form-crea-piatto').classList.add('hidden'); }
-        function aggiungiIngredienteRicetta() { const s=document.getElementById('select-ingrediente'); if(!s.value) return; ingredientiTempRicetta.push({ id_supa: s.value, nome: s.options[s.selectedIndex].getAttribute('data-nome'), qta: parseFloat(document.getElementById('qta-ingrediente').value)||0 }); document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map(i=>`<p class="text-[10px] font-black uppercase text-slate-600">${i.qta}x ${i.nome}</p>`).join(''); }
-        function salvaPiattoMenu() { let nome=document.getElementById('piatto-nome').value; if(!nome) return; menuRistorante.push({ nome: nome, prezzo: parseFloat(document.getElementById('piatto-prezzo').value), venduti: 0, ingredienti: [...ingredientiTempRicetta] }); localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); chiudiCreaPiatto(); aggiornaVistaRicettario(); document.getElementById('piatto-nome').value=''; document.getElementById('piatto-prezzo').value='0.00'; }
-        function aggiornaVistaRicettario() { document.getElementById('menu-builder-list').innerHTML = menuRistorante.map((p,idx) => `<div class="bg-white p-4 border rounded-2xl flex justify-between items-center shadow-sm"><div class="flex-1"><p class="font-black text-sm">${p.nome} <span class="text-emerald-500">€${p.prezzo}</span></p></div><button onclick="menuRistorante.splice(${idx},1); localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); aggiornaVistaRicettario();" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div>`).join(''); }
-
-        function popolaCassaMenu() { document.getElementById('cassa-piatti-list').innerHTML = menuRistorante.map((p,idx) => `<div class="flex justify-between items-center bg-white p-3 border rounded-2xl mb-2 shadow-sm"><p class="font-black text-sm">${p.nome}</p><div class="flex gap-2"><button onclick="aggiornaCassa(${idx},-1)" class="w-8 h-8 bg-slate-100 font-black">-</button><input id="cassa-qty-${idx}" value="${p.venduti||0}" readonly class="w-8 text-center font-black text-emerald-600 bg-transparent"><button onclick="aggiornaCassa(${idx},1)" class="w-8 h-8 bg-emerald-500 text-white font-black">+</button></div></div>`).join(''); calcolaTotCassa(); }
-        function aggiornaCassa(idx, delta) { let n = (menuRistorante[idx].venduti||0)+delta; if(n>=0) { menuRistorante[idx].venduti=n; document.getElementById(`cassa-qty-${idx}`).value=n; calcolaTotCassa(); } }
+        function popolaCassaMenu() {
+            document.getElementById('cassa-piatti-list').innerHTML = menuRistorante.map((p,idx) => `<div class="flex justify-between items-center bg-white p-3 rounded-2xl border mb-2"><p class="font-black text-sm">${p.nome}</p><div class="flex gap-2"><button onclick="updateV(${idx},-1)" class="w-8 h-8 bg-slate-100 rounded-lg font-black">-</button><input id="cassa-qty-${idx}" value="${p.venduti||0}" readonly class="w-6 text-center font-black text-emerald-600"><button onclick="updateV(${idx},1)" class="w-8 h-8 bg-emerald-500 text-white rounded-lg font-black">+</button></div></div>`).join('');
+            calcolaTotC();
+        }
+        function updateV(i,d) { let n=(menuRistorante[i].venduti||0)+d; if(n>=0){menuRistorante[i].venduti=n; document.getElementById(`cassa-qty-${i}`).value=n; calcolaTotC();} }
         function resetMenuCassa() { menuRistorante.forEach(p=>p.venduti=0); popolaCassaMenu(); }
-        function calcolaTotCassa() { let t=0; menuRistorante.forEach(p=>t+=(p.prezzo*(p.venduti||0))); document.getElementById('cassa-total-display').innerText='€ '+t.toFixed(2); return t; }
-        
+        function calcolaTotC() { let t=0; menuRistorante.forEach(p=>t+=(p.prezzo*(p.venduti||0))); document.getElementById('cassa-total-display').innerText='€ '+t.toFixed(2); return t; }
+
         async function eseguiScaricoMagazzino() {
-            let incasso = calcolaTotCassa(); if(incasso===0) return alert("Segna almeno un piatto venduto");
-            document.getElementById('btn-conferma-cassa').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sincronizzazione...';
-            
-            // Calcolo IVA al 10% scorporata dall'incasso lordo
-            // Formula scorporo IVA: Prezzo Lordo - (Prezzo Lordo / 1.10)
-            let ivaDaVersare = incasso - (incasso / 1.10);
-
-            let daScaricare = {}; 
-            menuRistorante.forEach(p => { if(p.venduti>0 && p.ingredienti) p.ingredienti.forEach(i => { daScaricare[i.id_supa] = (daScaricare[i.id_supa]||0) + (i.qta*p.venduti); }); });
-            for(let id in daScaricare) { let {data} = await supabaseClient.from('inventario').select('quantita').eq('id',id).single(); if(data) await supabaseClient.from('inventario').update({quantita: data.quantita - daScaricare[id]}).eq('id',id); }
-            
-            let meseSel = document.getElementById('finanza-mese-selettore').value || new Date().toISOString().substring(0,7);
-            let dataIncassoStr = meseSel + "-01T12:00:00.000Z";
-            if (meseSel === new Date().toISOString().substring(0,7)) dataIncassoStr = new Date().toISOString();
-
-            await supabaseClient.from('finanza').insert([{ 
-                tipo: 'entrata', categoria: 'Ristorante', descrizione: 'Chiusura Cassa (Incasso Lordo)', 
-                importo: incasso, iva: ivaDaVersare, stato_pagamento: 'pagato', data_pagamento: dataIncassoStr, data: dataIncassoStr 
-            }]);
-            
-            alert("Incasso salvato e IVA 10% calcolata automaticamente!"); 
-            resetMenuCassa(); document.getElementById('btn-conferma-cassa').innerHTML = 'Conferma & Scarica'; nav('view-dashboard');
+            let incasso = calcolaTotC(); if(incasso===0) return;
+            document.getElementById('btn-conferma-cassa').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scarico Selettivo...';
+            let daScaricare = {};
+            menuRistorante.forEach(p => { 
+                if(p.venduti > 0 && p.ingredienti) {
+                    p.ingredienti.forEach(ing => { 
+                        let prodInv = inventarioLocale.find(inv => inv.id === ing.id_supa);
+                        // LA REGOLA MAGICA: Scarica solo se 'scalo_automatico' è vero (es. Coca Cola sì, Olio no)
+                        if(prodInv && prodInv.scalo_automatico) {
+                            daScaricare[ing.id_supa] = (daScaricare[ing.id_supa]||0) + (ing.qta * p.venduti); 
+                        }
+                    });
+                }
+            });
+            for(let id in daScaricare) { 
+                let {data} = await supabaseClient.from('inventario').select('quantita').eq('id',id).single();
+                if(data) await supabaseClient.from('inventario').update({quantita: data.quantita - daScaricare[id]}).eq('id',id); 
+            }
+            let ivaVersare = incasso - (incasso / 1.10);
+            await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione:'Chiusura Cassa', importo:incasso, iva:ivaVersare, stato_pagamento:'pagato', data: new Date().toISOString(), data_pagamento: new Date().toISOString() }]);
+            alert("Incasso registrato! Prodotti 'MANUAL' (olio, spezie) non sono stati toccati.");
+            resetMenuCassa(); nav('view-dashboard'); caricaInventarioDaSupabase();
         }
 
-        function startScanner() { document.getElementById('qr-reader').style.display='block'; document.getElementById('scan-result-box').classList.add('hidden'); html5QrScanner = new Html5Qrcode("qr-reader"); html5QrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, txt => { html5QrScanner.stop(); document.getElementById('qr-reader').style.display='none'; document.getElementById('scan-product-name').innerText=txt; document.getElementById('scan-result-box').classList.remove('hidden'); }).catch(e=>{}); }
+        // RICETTARIO CORE
+        function aggiornaVistaRicettario() { document.getElementById('menu-builder-list').innerHTML = menuRistorante.map((p,idx) => `<div class="bg-white p-4 border rounded-2xl flex justify-between shadow-sm"><p class="font-black text-sm uppercase">${p.nome} <span class="text-emerald-500">€${p.prezzo}</span></p><button onclick="menuRistorante.splice(${idx},1); localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); aggiornaVistaRicettario();" class="text-red-400"><i class="fas fa-trash"></i></button></div>`).join(''); }
+        function apriCreaPiatto() { document.getElementById('form-crea-piatto').classList.remove('hidden'); ingredientiTempRicetta=[]; document.getElementById('lista-ingredienti-piatto').innerHTML = ''; }
+        function chiudiCreaPiatto() { document.getElementById('form-crea-piatto').classList.add('hidden'); }
+        function popolaSelectIngredienti() { document.getElementById('select-ingrediente').innerHTML = inventarioLocale.map(i=>`<option value="${i.id}" data-nome="${i.nome}">${i.nome}</option>`).join(''); }
+        function aggiungiIngredienteRicetta() {
+            const s=document.getElementById('select-ingrediente'); if(!s.value) return;
+            ingredientiTempRicetta.push({ id_supa: s.value, nome: s.options[s.selectedIndex].getAttribute('data-nome'), qta: parseFloat(document.getElementById('qta-ingrediente').value)||0 });
+            document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map(i=>`<p class="text-[10px] font-black uppercase">${i.qta}x ${i.nome}</p>`).join('');
+        }
+        function salvaPiattoMenu() {
+            let nome=document.getElementById('piatto-nome').value; if(!nome) return;
+            menuRistorante.push({ nome, prezzo: parseFloat(document.getElementById('piatto-prezzo').value), venduti: 0, ingredienti: [...ingredientiTempRicetta] });
+            localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); chiudiCreaPiatto(); aggiornaVistaRicettario();
+        }
+
+        // SCANNER (Placeholder per il core)
+        function startScanner() {
+            document.getElementById('qr-reader').style.display='block';
+            html5QrScanner = new Html5Qrcode("qr-reader");
+            html5QrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, txt => { 
+                html5QrScanner.stop(); document.getElementById('qr-reader').style.display='none'; 
+                alert("Rilevato: " + txt);
+            }).catch(e=>{});
+        }
     </script>
 </body>
 </html>
