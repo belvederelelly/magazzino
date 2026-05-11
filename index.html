@@ -3,222 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belvedere - Magazzino & Cassa</title>
+    <title>Belvedere Smart - Gestione Totale</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+    
+    <style>
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        .view-panel { display: none; }
+        .view-panel.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans text-gray-800 h-screen flex flex-col overflow-hidden">
+<body class="bg-gray-50 font-sans text-slate-900 h-screen overflow-hidden flex flex-col">
 
-    <div id="view-login" class="h-full flex flex-col justify-center items-center bg-slate-900 px-6 z-50">
-        <div class="text-center mb-10">
-            <div class="bg-emerald-500 text-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/30">
-                <i class="fas fa-utensils text-4xl"></i>
+    <div id="view-login" class="view-panel active h-full flex flex-col justify-center items-center bg-slate-900 px-6 fixed inset-0 z-[100]">
+        <div class="text-center mb-8">
+            <div class="bg-emerald-500 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4 rotate-3 shadow-xl">
+                <i class="fas fa-utensils text-4xl text-white -rotate-3"></i>
             </div>
-            <h1 class="text-3xl font-bold text-white tracking-tight">Belvedere Smart</h1>
+            <h1 class="text-3xl font-black text-white tracking-tight italic">BELVEDERE</h1>
+            <p class="text-slate-400 text-sm mt-2">Warehouse & Finance Management</p>
         </div>
-        <div class="w-full max-w-sm bg-slate-800 p-6 rounded-3xl shadow-2xl border border-slate-700">
-            <input type="password" id="pass-input" class="w-full bg-slate-900 border border-slate-700 text-white rounded-2xl py-4 px-6 mb-4 focus:outline-none focus:border-emerald-500" placeholder="Password">
-            <button onclick="checkLogin()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-emerald-500 transition">Entra</button>
+        
+        <div class="w-full max-w-sm space-y-4">
+            <div class="relative">
+                <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                <input type="password" id="pass-field" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all" placeholder="Password di accesso">
+            </div>
+            <button onclick="handleAuth()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 uppercase tracking-widest text-sm">
+                Accedi al Sistema
+            </button>
+            <p id="login-error" class="text-red-400 text-center text-xs hidden">Password errata. Riprova.</p>
         </div>
     </div>
 
-    <div id="main-app" class="hidden h-full flex flex-col">
+    <div id="app-interface" class="hidden h-full flex flex-col">
         
-        <header class="bg-white border-b p-4 flex justify-between items-center z-40">
-            <h1 id="current-view-title" class="font-bold text-xl text-slate-800">Dashboard</h1>
-            <div class="bg-slate-100 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter" id="role-tag">Ruolo</div>
+        <header class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
+            <div>
+                <h2 id="header-title" class="text-xl font-black text-slate-800">Dashboard</h2>
+                <div id="role-badge" class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1">Ruolo</div>
+            </div>
+            <button onclick="logout()" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-red-500 transition">
+                <i class="fas fa-power-off"></i>
+            </button>
         </header>
 
-        <main id="content-area" class="flex-1 overflow-y-auto p-4 pb-32">
+        <main class="flex-1 overflow-y-auto p-6 pb-32">
             
-            <div id="view-dashboard" class="view-panel space-y-6">
+            <div id="view-dashboard" class="view-panel active space-y-6">
                 <div class="grid grid-cols-2 gap-4">
-                    <button onclick="switchView('view-scanner')" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center gap-3 active:scale-95 transition">
-                        <div class="bg-emerald-100 text-emerald-600 w-12 h-12 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-barcode"></i></div>
-                        <span class="font-bold text-sm">Carico Merce</span>
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Entrate (Oggi)</p>
+                        <p id="dash-income" class="text-2xl font-black text-emerald-600">€ 0.00</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Uscite (Oggi)</p>
+                        <p id="dash-expense" class="text-2xl font-black text-red-500">€ 0.00</p>
+                    </div>
+                </div>
+
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Azioni Rapide</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="nav('view-barcode')" class="bg-slate-900 p-6 rounded-3xl text-white flex flex-col items-center gap-3 active:scale-95 transition">
+                        <i class="fas fa-barcode text-2xl text-emerald-400"></i>
+                        <span class="text-xs font-bold uppercase">Carico Merce</span>
                     </button>
-                    <button onclick="switchView('view-chiusura')" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center gap-3 active:scale-95 transition">
-                        <div class="bg-amber-100 text-amber-600 w-12 h-12 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-receipt"></i></div>
-                        <span class="font-bold text-sm">Chiusura Serale</span>
+                    <button onclick="nav('view-ocr')" class="bg-white p-6 rounded-3xl border border-slate-200 flex flex-col items-center gap-3 active:scale-95 transition shadow-sm">
+                        <i class="fas fa-receipt text-2xl text-amber-500"></i>
+                        <span class="text-xs font-bold uppercase">Chiusura</span>
                     </button>
                 </div>
 
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase mb-4">Situazione Finanziaria (Oggi)</h3>
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="text-3xl font-black text-emerald-600" id="today-income">€ 0.00</p>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Entrate Totali</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-xl font-bold text-red-500" id="today-expense">€ 0.00</p>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Uscite / Acquisti</p>
-                        </div>
+                <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="p-4 bg-slate-50 border-b">
+                        <h4 class="text-xs font-bold uppercase tracking-widest text-slate-500">Movimenti Recenti</h4>
+                    </div>
+                    <div id="history-list" class="divide-y divide-slate-100">
+                        <p class="p-8 text-center text-xs text-slate-400 italic">Nessun movimento oggi</p>
                     </div>
                 </div>
             </div>
 
-            <div id="view-scanner" class="view-panel hidden space-y-4">
-                <div id="reader" class="rounded-3xl overflow-hidden bg-black min-h-[300px]"></div>
-                <div id="scan-result" class="bg-white p-4 rounded-2xl border hidden">
-                    <h4 id="res-name" class="font-bold text-lg">Prodotto</h4>
-                    <p id="res-brand" class="text-sm text-slate-500 mb-4">Marca</p>
-                    <input type="number" id="scan-qnt" value="1" class="w-full p-4 border rounded-xl mb-3 text-center text-xl font-bold">
-                    <button onclick="confirmScan()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold">Conferma Carico</button>
+            <div id="view-barcode" class="view-panel space-y-4">
+                <div id="qr-reader" class="rounded-3xl overflow-hidden bg-black aspect-square"></div>
+                <div id="scan-feedback" class="bg-emerald-500 text-white p-4 rounded-2xl hidden text-center font-bold">
+                    Prodotto Rilevato!
                 </div>
             </div>
 
-            <div id="view-chiusura" class="view-panel hidden space-y-6">
-                <div class="bg-amber-50 p-6 rounded-3xl border border-amber-100 text-center">
-                    <i class="fas fa-camera text-4xl text-amber-500 mb-4"></i>
-                    <h2 class="font-bold text-lg text-amber-900">Analisi Corrispettivi</h2>
-                    <p class="text-sm text-amber-700 mb-6">Carica la foto del report di chiusura per calcolare le entrate e scalare il magazzino.</p>
-                    <label class="bg-amber-500 text-white px-8 py-4 rounded-2xl font-bold cursor-pointer inline-block shadow-lg active:scale-95 transition">
-                        Seleziona Foto
-                        <input type="file" class="hidden" accept="image/*" onchange="handleChiusura(event)">
-                    </label>
-                </div>
-                <div id="ocr-loader" class="hidden text-center p-4">
-                    <i class="fas fa-spinner fa-spin text-2xl text-slate-400 mb-2"></i>
-                    <p class="text-sm font-bold text-slate-500">Lettura in corso... Attendere</p>
-                </div>
-                <div id="chiusura-result" class="hidden bg-white p-6 rounded-3xl border border-slate-200">
-                    <h3 class="font-bold text-slate-800 mb-4 border-b pb-2">Riepilogo Rilevato</h3>
-                    <div class="flex justify-between mb-4">
-                        <span class="text-slate-500">Totale Vendite:</span>
-                        <span class="font-black text-xl text-emerald-600" id="detected-total">€ 0.00</span>
+            <div id="view-ocr" class="view-panel space-y-6">
+                <div class="text-center py-8">
+                    <div class="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-camera text-3xl text-amber-600"></i>
                     </div>
-                    <button onclick="applyChiusura()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold">Salva in Cassa</button>
+                    <h3 class="font-bold text-lg">Scansiona Resoconto</h3>
+                    <p class="text-xs text-slate-500 px-10">Carica la foto della chiusura di cassa per calcolare entrate e scaricare scorte.</p>
+                </div>
+                
+                <label class="block w-full">
+                    <span class="sr-only">Scegli foto</span>
+                    <input type="file" accept="image/*" onchange="runOCR(this)" class="block w-full text-sm text-slate-500 file:mr-4 file:py-4 file:px-8 file:rounded-2xl file:border-0 file:text-sm file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 transition cursor-pointer">
+                </label>
+
+                <div id="ocr-loader" class="hidden text-center">
+                    <i class="fas fa-circle-notch fa-spin text-emerald-600 text-2xl"></i>
+                    <p class="text-xs font-bold mt-2 text-slate-400">Analisi scontrino in corso...</p>
+                </div>
+
+                <div id="ocr-result" class="hidden bg-white p-6 rounded-3xl border-2 border-emerald-100 shadow-xl space-y-4">
+                    <div class="flex justify-between items-center border-b pb-4">
+                        <span class="font-bold text-slate-500 text-sm">TOTALE RILEVATO:</span>
+                        <input type="number" id="final-total" class="text-2xl font-black text-emerald-600 w-32 text-right focus:outline-none">
+                    </div>
+                    <button onclick="confirmClosure()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs">Registra Chiusura</button>
                 </div>
             </div>
 
         </main>
 
-        <nav class="bg-white border-t p-2 pb-safe fixed bottom-0 w-full flex justify-around items-center z-50">
-            <button onclick="switchView('view-dashboard')" class="flex flex-col items-center p-2 text-emerald-600">
-                <i class="fas fa-chart-pie text-xl"></i>
-                <span class="text-[10px] font-bold">Home</span>
+        <nav class="bg-white border-t fixed bottom-0 w-full flex justify-around py-3 pb-safe z-50">
+            <button onclick="nav('view-dashboard')" class="flex flex-col items-center gap-1 text-emerald-600">
+                <i class="fas fa-home text-xl"></i>
+                <span class="text-[10px] font-bold uppercase">Home</span>
             </button>
-            <button onclick="switchView('view-scanner')" class="flex flex-col items-center p-2 text-slate-400">
+            <button onclick="nav('view-barcode')" class="flex flex-col items-center gap-1 text-slate-400">
                 <i class="fas fa-barcode text-xl"></i>
-                <span class="text-[10px] font-bold">Scanner</span>
+                <span class="text-[10px] font-bold uppercase">Carico</span>
             </button>
-            <button onclick="alert('Area Giacenze in arrivo')" class="flex flex-col items-center p-2 text-slate-400">
-                <i class="fas fa-boxes text-xl"></i>
-                <span class="text-[10px] font-bold">Scorte</span>
+            <button onclick="nav('view-ocr')" class="flex flex-col items-center gap-1 text-slate-400">
+                <i class="fas fa-receipt text-xl"></i>
+                <span class="text-[10px] font-bold uppercase">Cassa</span>
             </button>
         </nav>
     </div>
 
     <script>
-        const supabaseUrl = 'https://nizktofcamulygzszydw.supabase.co';
-        const supabaseKey = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        // Configurazione
+        const SB_URL = 'https://nizktofcamulygzszydw.supabase.co';
+        const SB_KEY = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
+        const supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        let currentUserRole = '';
-        let detectedTotalValue = 0;
-        let html5QrCode;
+        let userRole = '';
+        let html5QrScanner = null;
 
-        // 1. GESTIONE LOGIN
-        function checkLogin() {
-            const pass = document.getElementById('pass-input').value;
-            if (pass === 'staff') {
-                currentUserRole = 'staff';
-                startApp();
-            } else if (pass === 'belvedere59') {
-                currentUserRole = 'titolare';
-                startApp();
-            } else {
-                alert("Password Errata");
-            }
-        }
-
-        function startApp() {
-            document.getElementById('view-login').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-            document.getElementById('role-tag').innerText = currentUserRole;
-            switchView('view-dashboard');
-        }
-
-        // 2. NAVIGAZIONE VISTE
-        function switchView(viewId) {
-            document.querySelectorAll('.view-panel').forEach(v => v.classList.add('hidden'));
-            document.getElementById(viewId).classList.remove('hidden');
+        // LOGIN
+        function handleAuth() {
+            const pass = document.getElementById('pass-field').value;
+            const error = document.getElementById('login-error');
             
-            // Titoli dinamici
-            const titles = { 'view-dashboard': 'Dashboard', 'view-scanner': 'Carico Merce', 'view-chiusura': 'Chiusura Serale' };
-            document.getElementById('current-view-title').innerText = titles[viewId];
-
-            // Attiva fotocamera solo se siamo in scanner
-            if (viewId === 'view-scanner') {
-                startScanner();
-            } else if (html5QrCode) {
-                html5QrCode.stop();
-            }
-        }
-
-        // 3. LOGICA SCANNER
-        function startScanner() {
-            html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess);
-        }
-
-        async function onScanSuccess(decodedText) {
-            html5QrCode.stop();
-            document.getElementById('scan-result').classList.remove('hidden');
-            
-            // Ricerca API Mondiale (Open Food Facts)
-            const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${decodedText}.json`);
-            const data = await res.json();
-            
-            if(data.status === 1) {
-                document.getElementById('res-name').innerText = data.product.product_name;
-                document.getElementById('res-brand').innerText = data.product.brands;
-            } else {
-                document.getElementById('res-name').innerText = "Prodotto ignoto (" + decodedText + ")";
-            }
-        }
-
-        // 4. CHIUSURA SERALE & OCR (Entrate)
-        async function handleChiusura(event) {
-            const file = event.target.files[0];
-            const loader = document.getElementById('ocr-loader');
-            const resultBox = document.getElementById('chiusura-result');
-            
-            loader.classList.remove('hidden');
-            resultBox.classList.add('hidden');
-
-            // OCR con Tesseract
-            Tesseract.recognize(file, 'ita').then(({ data: { text } }) => {
-                console.log("Testo estratto:", text);
+            if (pass === 'staff' || pass === 'belvedere59') {
+                userRole = (pass === 'belvedere59') ? 'titolare' : 'staff';
+                document.getElementById('view-login').style.display = 'none';
+                document.getElementById('app-interface').classList.remove('hidden');
                 
-                // Cerchiamo cifre che sembrano un totale (es: dopo la parola TOTALE o CORRISPETTIVI)
-                // Questa è una logica semplificata: cerca l'ultimo valore numerico alto nello scontrino
-                const prices = text.match(/\d+[\.,]\d{2}/g);
-                if (prices) {
-                    const values = prices.map(p => parseFloat(p.replace(',', '.')));
-                    detectedTotalValue = Math.max(...values); // Prendiamo il valore più alto trovato
-                    document.getElementById('detected-total').innerText = "€ " + detectedTotalValue.toFixed(2);
-                } else {
-                    alert("Impossibile leggere il totale. Inserimento manuale richiesto.");
-                    detectedTotalValue = prompt("Inserisci il totale chiusura manualmente:");
-                    document.getElementById('detected-total').innerText = "€ " + parseFloat(detectedTotalValue).toFixed(2);
-                }
+                // Personalizza interfaccia
+                const badge = document.getElementById('role-badge');
+                badge.innerText = userRole;
+                badge.className = (userRole === 'titolare') ? 
+                    'inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1 bg-amber-100 text-amber-700' : 
+                    'inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1 bg-blue-100 text-blue-700';
+                
+                nav('view-dashboard');
+            } else {
+                error.classList.remove('hidden');
+            }
+        }
 
-                loader.classList.add('hidden');
-                resultBox.classList.remove('hidden');
+        // NAVIGAZIONE
+        function nav(id) {
+            document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            // Titoli
+            const titles = { 'view-dashboard': 'Dashboard', 'view-barcode': 'Scanner Barcode', 'view-ocr': 'Chiusura Cassa' };
+            document.getElementById('header-title').innerText = titles[id];
+
+            // Gestione Scanner
+            if (id === 'view-barcode') {
+                startScanner();
+            } else if (html5QrScanner) {
+                html5QrScanner.stop();
+            }
+        }
+
+        // SCANNER
+        function startScanner() {
+            html5QrScanner = new Html5Qrcode("qr-reader");
+            html5QrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
+                document.getElementById('scan-feedback').classList.remove('hidden');
+                alert("Prodotto " + text + " caricato a magazzino!");
+                nav('view-dashboard');
             });
         }
 
-        async function applyChiusura() {
-            // Qui invieremo il dato a Supabase nella tabella Entrate
-            const income = parseFloat(detectedTotalValue);
-            document.getElementById('today-income').innerText = "€ " + income.toFixed(2);
-            alert("Chiusura salvata correttamente. Le scorte sono state aggiornate.");
-            switchView('view-dashboard');
+        // OCR CHIUSURA
+        async function runOCR(input) {
+            if (!input.files[0]) return;
+            const loader = document.getElementById('ocr-loader');
+            const result = document.getElementById('ocr-result');
+            
+            loader.classList.remove('hidden');
+            result.classList.add('hidden');
+
+            Tesseract.recognize(input.files[0], 'ita').then(({ data: { text } }) => {
+                loader.classList.add('hidden');
+                result.classList.remove('hidden');
+                
+                // Logica estrazione prezzo (cerca il valore più alto)
+                const matches = text.match(/\d+[\.,]\d{2}/g);
+                if (matches) {
+                    const values = matches.map(m => parseFloat(m.replace(',', '.')));
+                    const max = Math.max(...values);
+                    document.getElementById('final-total').value = max.toFixed(2);
+                }
+            });
+        }
+
+        function confirmClosure() {
+            const val = document.getElementById('final-total').value;
+            document.getElementById('dash-income').innerText = '€ ' + val;
+            
+            // Aggiungi allo storico
+            const list = document.getElementById('history-list');
+            const item = `
+                <div class="p-4 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs font-bold">Chiusura Cassa</p>
+                        <p class="text-[10px] text-slate-400">${new Date().toLocaleTimeString()}</p>
+                    </div>
+                    <span class="text-sm font-black text-emerald-600">+ € ${val}</span>
+                </div>
+            `;
+            list.innerHTML = item + list.innerHTML;
+            
+            alert("Entrata registrata!");
+            nav('view-dashboard');
+        }
+
+        function logout() {
+            location.reload();
         }
     </script>
 </body>
