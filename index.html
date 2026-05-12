@@ -142,11 +142,11 @@
                 <div id="fattura-result" class="hidden space-y-4">
                     <div class="bg-white p-4 rounded-3xl border shadow-sm">
                         <div class="flex justify-between items-center mb-1">
-                            <label class="text-[10px] font-black uppercase text-slate-500">Fornitore Fattura</label>
+                            <label class="text-[10px] font-black uppercase text-slate-500">Intestatario Fattura</label>
                             <div><span class="text-[9px] font-black uppercase text-slate-400 mr-1">Data Doc:</span><input type="date" id="ocr-data-doc" class="border p-1 rounded font-bold text-[10px] text-slate-600 bg-slate-50"></div>
                         </div>
                         <select id="fattura-fornitore-select" onchange="checkFornitoreCustom()" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-sm uppercase mt-1"></select>
-                        <input type="text" id="fattura-fornitore-custom" placeholder="Scrivi nome fornitore..." class="w-full border-b-2 border-emerald-500 p-2 font-black text-slate-800 uppercase outline-none mt-2 hidden">
+                        <input type="text" id="fattura-fornitore-custom" placeholder="Scrivi NOME FORNITORE..." class="w-full border-b-2 border-emerald-500 p-2 font-black text-slate-800 uppercase outline-none mt-2 hidden">
                     </div>
                     <div class="bg-white rounded-3xl border overflow-hidden shadow-sm">
                         <div class="p-3 bg-slate-100 text-[9px] font-black uppercase text-slate-500 border-b">Associazione Articoli al Magazzino</div>
@@ -188,7 +188,7 @@
                                 <th class="p-4 w-10 text-center"><input type="checkbox" onclick="toggleAllDivs('chk-stock')" class="w-4 h-4 accent-emerald-600"></th>
                                 <th class="p-4 text-[10px] font-bold text-slate-400 uppercase">Articolo</th>
                                 <th class="p-4 text-center text-[10px] font-bold text-slate-400 uppercase">Q.tà</th>
-                                <th class="p-4"></th>
+                                <th class="p-4 text-right">Azioni</th>
                             </tr>
                         </thead>
                         <tbody id="inventory-table-body" class="divide-y divide-slate-100"></tbody>
@@ -255,7 +255,18 @@
             </div>
 
             <div id="view-shopping" class="view-panel space-y-4 titolare-only">
-                <div class="bg-amber-50 p-4 rounded-3xl border border-amber-200"><h3 class="font-black text-amber-900 text-sm">Lista Spesa</h3><div id="auto-shopping-list"></div></div>
+                <div class="bg-amber-50 p-4 rounded-3xl border border-amber-200">
+                    <h3 class="font-black text-amber-900 text-sm mb-4"><i class="fas fa-shopping-basket mr-2"></i>Lista Spesa Automatica</h3>
+                    <div id="auto-shopping-list" class="space-y-2"></div>
+                </div>
+                <div class="bg-white p-4 rounded-3xl border shadow-sm">
+                    <h3 class="font-black text-slate-800 text-sm mb-3">Da comprare (Manuale)</h3>
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="manual-shop-item" placeholder="Aggiungi prodotto..." class="flex-1 border p-3 rounded-xl font-bold text-xs uppercase bg-slate-50">
+                        <button onclick="aggiungiVoceManualeSpesa()" class="bg-slate-900 text-white px-4 rounded-xl font-black active:scale-95">+</button>
+                    </div>
+                    <div id="manual-shopping-list" class="space-y-2"></div>
+                </div>
             </div>
 
             <div id="view-add-product" class="view-panel space-y-4">
@@ -291,6 +302,7 @@
         let finanzaDatiGlobali = []; let currentFinanzaTab = 'TUTTE';
         let menuRistorante = []; let ingredientiTempRicetta = []; let fatturaItemsLetti = [];
         let fornitoriDict = {}; let categorieDB = [];
+        let extraShopping = [];
 
         window.onload = () => { 
             let oggi = new Date(); document.getElementById('finanza-mese-selettore').value = oggi.getFullYear() + '-' + String(oggi.getMonth() + 1).padStart(2, '0');
@@ -307,7 +319,6 @@
             } else { alert("Password errata."); }
         }
 
-        // FUNZIONE SICUREZZA ANTI PAGINA BIANCA
         async function checkTable(tableName) {
             const { error } = await supabaseClient.from(tableName).select('id').limit(1);
             if (error && error.code === '42P01') { 
@@ -341,7 +352,6 @@
             }
         }
 
-        // AGGIUNTO REFRESH FORZATO DELLE CATEGORIE QUANDO SI APRE + MATERIA O RICETTARIO
         function nav(id) {
             if (userRole === 'Staff' && !['view-inventory', 'view-add-product', 'view-categorie'].includes(id)) return;
             document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active');
@@ -353,72 +363,48 @@
             if(id === 'view-inventory') caricaInventarioDaSupabase();
             if(id === 'view-finanza') caricaFinanzaDaSupabase();
             if(id === 'view-staff') caricaStaff();
-            
-            if(id === 'view-add-product' || id === 'view-ricettario' || id === 'view-categorie') {
-                aggiornaVistaCategorie();
-            }
+            if(id === 'view-add-product' || id === 'view-ricettario' || id === 'view-categorie') aggiornaVistaCategorie();
+            if(id === 'view-shopping') generaListaSpesa(); // RI-AGGIUNTO: Aggiorna la lista quando ci entri
         }
 
         function logout() { localStorage.removeItem('belvedereAuthRole'); location.reload(); }
 
         // ==========================================
+        // GESTIONE LISTA SPESA (RE-INSERITA)
+        // ==========================================
+        function generaListaSpesa() { 
+            let autoItems = inventarioLocale.filter(p => parseFloat(p.quantita) <= parseFloat(p.soglia_minima)); 
+            document.getElementById('auto-shopping-list').innerHTML = autoItems.map(p => `<div class="p-4 flex justify-between items-center bg-white rounded-xl border border-amber-200"><div><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] text-red-500 font-bold uppercase">Stock: ${p.quantita} / Soglia minima: ${p.soglia_minima}</p></div><i class="fas fa-triangle-exclamation text-amber-500 text-lg"></i></div>`).join('') || '<p class="p-8 text-center text-xs text-slate-400">Magazzino pieno, nessun allarme!</p>'; 
+        }
+        
+        function aggiungiVoceManualeSpesa() { 
+            let v = document.getElementById('manual-shop-item').value.trim(); 
+            if(v) { 
+                extraShopping.push(v); 
+                document.getElementById('manual-shop-item').value=''; 
+                document.getElementById('manual-shopping-list').innerHTML = extraShopping.map((item, i) => `<div class="flex justify-between items-center bg-white p-3 rounded-xl border text-xs font-bold uppercase"><span>${item}</span><button onclick="extraShopping.splice(${i},1); document.getElementById('manual-shopping-list').innerHTML = extraShopping.map((it, idx) => \`<div class='flex justify-between items-center bg-white p-3 rounded-xl border text-xs font-bold uppercase'><span>\${it}</span><button onclick='extraShopping.splice(\${idx},1); document.getElementById(\\\'manual-shopping-list\\\').innerHTML = extraShopping.map((it2, idx2) => \\\\\\\`<div class=\\\\\\\'flex justify-between items-center bg-white p-3 rounded-xl border text-xs font-bold uppercase\\\\\\\'><span>\\\\\\$\\\\{it2\\\\}</span><button onclick=\\\\\\\'extraShopping.splice(\\\\\\$\\\\{idx2\\\\},1);\\\\\\\' class=\\\\\\\'text-red-400\\\\\\\'><i class=\\\\\\\'fas fa-times\\\\\\\'></i></button></div>\\\\\\\`).join(\\\\\\\'\\\\\\\');' class='text-red-400'><i class='fas fa-times'></i></button></div>\`).join('');" class="text-red-400"><i class="fas fa-times"></i></button></div>`).join(''); 
+            } 
+        }
+
+        // ==========================================
         // GESTIONE SELEZIONE MULTIPLA E CANCELLAZIONE
         // ==========================================
-        function toggleAllDivs(className) {
-            let chks = document.querySelectorAll('.' + className);
-            let allChecked = Array.from(chks).every(c => c.checked);
-            chks.forEach(c => c.checked = !allChecked);
-            toggleDeleteBulkBtn(className.split('-')[1]);
-        }
-        function toggleDeleteBulkBtn(type) {
-            let selected = document.querySelectorAll('.chk-' + type + ':checked').length;
-            let btn = document.getElementById('btn-bulk-' + type);
-            if(btn) {
-                btn.classList.toggle('hidden', selected === 0);
-                let countSpan = document.getElementById('count-' + type);
-                if(countSpan) countSpan.innerText = selected;
-            }
-        }
-        async function eliminaSelezionati(tabella, className) {
-            let ids = Array.from(document.querySelectorAll('.' + className + ':checked')).map(c => c.value);
-            if(ids.length === 0) return;
-            if(confirm(`Sei sicuro di voler eliminare in blocco ${ids.length} elementi?\nQuesta azione rimuoverà i dati dal Cloud e non può essere annullata.`)) {
-                await supabaseClient.from(tabella).delete().in('id', ids);
-                if(tabella === 'inventario') await caricaInventarioDaSupabase();
-                if(tabella === 'finanza') await caricaFinanzaDaSupabase();
-                if(tabella === 'menu') await caricaMenuCloud();
-                toggleDeleteBulkBtn(className.split('-')[1]);
-            }
-        }
+        function toggleAllDivs(className) { let chks = document.querySelectorAll('.' + className); let allChecked = Array.from(chks).every(c => c.checked); chks.forEach(c => c.checked = !allChecked); toggleDeleteBulkBtn(className.split('-')[1]); }
+        function toggleDeleteBulkBtn(type) { let selected = document.querySelectorAll('.chk-' + type + ':checked').length; let btn = document.getElementById('btn-bulk-' + type); if(btn) { btn.classList.toggle('hidden', selected === 0); let countSpan = document.getElementById('count-' + type); if(countSpan) countSpan.innerText = selected; } }
+        async function eliminaSelezionati(tabella, className) { let ids = Array.from(document.querySelectorAll('.' + className + ':checked')).map(c => c.value); if(ids.length === 0) return; if(confirm(`Sei sicuro di voler eliminare in blocco ${ids.length} elementi?\nQuesta azione rimuoverà i dati dal Cloud e non può essere annullata.`)) { await supabaseClient.from(tabella).delete().in('id', ids); if(tabella === 'inventario') await caricaInventarioDaSupabase(); if(tabella === 'finanza') await caricaFinanzaDaSupabase(); if(tabella === 'menu') await caricaMenuCloud(); toggleDeleteBulkBtn(className.split('-')[1]); } }
 
         // ==========================================
-        // CONNESSIONE SUPABASE: CATEGORIE E INGREDIENTI
+        // CONNESSIONE SUPABASE: CATEGORIE
         // ==========================================
         async function caricaCategorieCloud() { const { data } = await supabaseClient.from('categorie').select('*'); if(data && data.length > 0) { categorieDB = data.map(c => ({ id: c.id, nome: c.nome })); } else { let defaultCats = ['CANTINA', 'BEVANDE', 'CAFFETTERIA', 'CUCINA', 'PIZZERIA', 'VARIE']; await supabaseClient.from('categorie').insert(defaultCats.map(c => ({nome: c}))); const res = await supabaseClient.from('categorie').select('*'); categorieDB = res.data.map(c => ({ id: c.id, nome: c.nome })); } aggiornaVistaCategorie(); }
-        
-        function aggiornaVistaCategorie() { 
-            // 1. Aggiorna lista in "vista categorie"
-            document.getElementById('lista-categorie').innerHTML = categorieDB.map(c => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border"><span class="font-black text-xs uppercase text-slate-700">${c.nome}</span><button onclick="eliminaCategoria('${c.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div>`).join(''); 
-            
-            // 2. Aggiorna tendina "Nuova Materia"
-            let sel = document.getElementById('new-cat'); 
-            if(sel) sel.innerHTML = categorieDB.map(c => `<option value="${c.nome}">${c.nome}</option>`).join(''); 
-            
-            // 3. Aggiorna tendina "Nuova Ricetta"
-            let selRicetta = document.getElementById('piatto-categoria'); 
-            if(selRicetta) selRicetta.innerHTML = categorieDB.map(c => `<option value="${c.nome}">${c.nome}</option>`).join(''); 
-        }
-
+        function aggiornaVistaCategorie() { document.getElementById('lista-categorie').innerHTML = categorieDB.map(c => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border"><span class="font-black text-xs uppercase text-slate-700">${c.nome}</span><button onclick="eliminaCategoria('${c.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div>`).join(''); let sel = document.getElementById('new-cat'); if(sel) sel.innerHTML = categorieDB.map(c => `<option value="${c.nome}">${c.nome}</option>`).join(''); let selRicetta = document.getElementById('piatto-categoria'); if(selRicetta) selRicetta.innerHTML = categorieDB.map(c => `<option value="${c.nome}">${c.nome}</option>`).join(''); }
         async function aggiungiCategoria() { let v = document.getElementById('nuova-cat-input').value.trim().toUpperCase(); if(v && !categorieDB.find(c=>c.nome===v)) { await supabaseClient.from('categorie').insert([{ nome: v }]); document.getElementById('nuova-cat-input').value = ''; await caricaCategorieCloud(); } }
         async function eliminaCategoria(id) { if(confirm("Eliminare la categoria dal database cloud?")) { await supabaseClient.from('categorie').delete().eq('id', id); await caricaCategorieCloud(); } }
 
         // ==========================================
-        // LA FUNZIONE RIPRISTINATA CHE CAUSAVA IL CRASH
+        // LA FUNZIONE PRECEDENTEMENTE SALTATA
         // ==========================================
-        function popolaSelectIngredienti() { 
-            let sel = document.getElementById('select-ingrediente'); 
-            if(sel) sel.innerHTML = inventarioLocale.map(i=>`<option value="${i.id}" data-nome="${i.nome}">${i.nome} (${i.categoria||'VARIE'})</option>`).join(''); 
-        }
+        function popolaSelectIngredienti() { let sel = document.getElementById('select-ingrediente'); if(sel) sel.innerHTML = inventarioLocale.map(i=>`<option value="${i.id}" data-nome="${i.nome}">${i.nome} (${i.categoria||'VARIE'})</option>`).join(''); }
 
         // ==========================================
         // CONNESSIONE SUPABASE: FORNITORI
@@ -433,17 +419,7 @@
         // CONNESSIONE SUPABASE: MENU / RICETTARIO
         // ==========================================
         async function caricaMenuCloud() { const { data } = await supabaseClient.from('menu').select('*').order('categoria').order('nome'); menuRistorante = data || []; aggiornaVistaRicettario(); }
-        function aggiornaVistaRicettario() { 
-            let html = ''; let cats = [...new Set(menuRistorante.map(i => i.categoria || 'GENERALE'))]; 
-            cats.forEach(c => { 
-                html += `<div class="bg-slate-200 p-2 mt-4 rounded-lg font-black text-[9px] uppercase">${c}</div>`; 
-                menuRistorante.filter(m => (m.categoria||'GENERALE') === c).forEach((p) => { 
-                    html += `<div class="bg-white p-4 border rounded-2xl flex justify-between mt-2 items-center"><input type="checkbox" class="chk-menu w-4 h-4 accent-emerald-600 mr-3" value="${p.id}" onchange="toggleDeleteBulkBtn('menu')"><div class="flex-1" onclick="modificaPiattoEsistente('${p.id}')"><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">${p.ingredienti?p.ingredienti.length:0} ASSOCIAZIONI IN CLOUD</p></div></div>`; 
-                }); 
-            }); 
-            document.getElementById('menu-builder-list').innerHTML = html || '<p class="text-center text-xs text-slate-400">Nessuna ricetta in cloud</p>'; 
-            toggleDeleteBulkBtn('menu');
-        }
+        function aggiornaVistaRicettario() { let html = ''; let cats = [...new Set(menuRistorante.map(i => i.categoria || 'GENERALE'))]; cats.forEach(c => { html += `<div class="bg-slate-200 p-2 mt-4 rounded-lg font-black text-[9px] uppercase">${c}</div>`; menuRistorante.filter(m => (m.categoria||'GENERALE') === c).forEach((p) => { html += `<div class="bg-white p-4 border rounded-2xl flex justify-between mt-2 items-center"><input type="checkbox" class="chk-menu w-4 h-4 accent-emerald-600 mr-3" value="${p.id}" onchange="toggleDeleteBulkBtn('menu')"><div class="flex-1" onclick="modificaPiattoEsistente('${p.id}')"><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">${p.ingredienti?p.ingredienti.length:0} ASSOCIAZIONI IN CLOUD</p></div></div>`; }); }); document.getElementById('menu-builder-list').innerHTML = html || '<p class="text-center text-xs text-slate-400">Nessuna ricetta in cloud</p>'; toggleDeleteBulkBtn('menu'); }
         async function salvaPiattoMenu() { let n = document.getElementById('piatto-nome').value.toUpperCase().trim(); let c = document.getElementById('piatto-categoria').value.toUpperCase().trim() || 'GENERALE'; let idMod = document.getElementById('piatto-id-modifica').value; if(!n) return; if(idMod) { await supabaseClient.from('menu').update({ nome: n, categoria: c, ingredienti: ingredientiTempRicetta }).eq('id', idMod); } else { let ex = menuRistorante.find(m => m.nome === n); if(ex) await supabaseClient.from('menu').update({ ingredienti: ingredientiTempRicetta, categoria: c }).eq('id', ex.id); else await supabaseClient.from('menu').insert([{ nome: n, categoria: c, prezzo: 0, ingredienti: ingredientiTempRicetta }]); } chiudiCreaPiatto(); await caricaMenuCloud(); }
         function apriCreaPiatto() { document.getElementById('form-crea-piatto').classList.remove('hidden'); ingredientiTempRicetta = []; document.getElementById('lista-ingredienti-piatto').innerHTML = ''; document.getElementById('piatto-id-modifica').value = ''; document.getElementById('piatto-nome').value=''; window.scrollTo(0, document.body.scrollHeight); }
         function chiudiCreaPiatto() { document.getElementById('form-crea-piatto').classList.add('hidden'); }
@@ -525,7 +501,7 @@
                 }
             }
             await salvaStoricoFornitoreCloud(fornitore, fornitoriDict[fornitore]);
-            await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria: 'Fornitori', descrizione: `Fattura: ${fornitore}`, importo: tot+ivaE, iva: ivaE, stato_pagamento: stato, data: isoData, data_pagamento: stato==='pagato'?isoData:null }]);
+            await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria: 'Fornitori', descrizione: `FATTURA: ${fornitore}`, importo: tot+ivaE, iva: ivaE, stato_pagamento: stato, data: isoData, data_pagamento: stato==='pagato'?isoData:null }]);
             alert("Fattura Registrata in Cloud!"); nav('view-dashboard'); await caricaInventarioDaSupabase(); await caricaFornitoriCloud();
         }
 
@@ -580,15 +556,23 @@
         }
 
         // ==========================================
-        // STOCK E ASSOCIAZIONI
+        // STOCK E ASSOCIAZIONI (CON TASTO ELIMINA RIPRISTINATO)
         // ==========================================
         async function caricaInventarioDaSupabase() {
             const { data } = await supabaseClient.from('inventario').select('*').order('categoria').order('nome'); inventarioLocale = data || [];
-            document.getElementById('inventory-table-body').innerHTML = inventarioLocale.map(p => `<tr><td class="p-4 w-10 text-center"><input type="checkbox" class="chk-stock w-4 h-4 accent-emerald-600" value="${p.id}" onchange="toggleDeleteBulkBtn('stock')"></td><td class="p-4"><p class="font-black text-xs uppercase">${p.nome}</p><span class="text-[7px] bg-slate-200 px-1 rounded">${p.categoria||'VARIE'}</span></td><td class="p-4 text-center font-black ${p.quantita<0?'text-red-500':'text-emerald-600'}">${p.quantita}</td><td class="p-4 text-right"><button onclick="apriModificaStock('${p.id}')" class="text-blue-500"><i class="fas fa-pencil"></i></button></td></tr>`).join('');
+            document.getElementById('inventory-table-body').innerHTML = inventarioLocale.map(p => `<tr><td class="p-4 w-10 text-center"><input type="checkbox" class="chk-stock w-4 h-4 accent-emerald-600" value="${p.id}" onchange="toggleDeleteBulkBtn('stock')"></td><td class="p-4"><p class="font-black text-xs uppercase">${p.nome}</p><span class="text-[7px] bg-slate-200 px-1 rounded">${p.categoria||'VARIE'}</span></td><td class="p-4 text-center font-black ${p.quantita<0?'text-red-500':'text-emerald-600'}">${p.quantita}</td><td class="p-4 text-right whitespace-nowrap"><button onclick="apriModificaStock('${p.id}')" class="text-blue-500 p-2"><i class="fas fa-pencil"></i></button><button onclick="eliminaProdottoStock('${p.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></td></tr>`).join('');
             popolaSelectIngredienti();
             toggleDeleteBulkBtn('stock');
         }
+        
         async function apriModificaStock(id) { let p = inventarioLocale.find(x => x.id === id); let nQ = prompt(`Giacenza in Cloud:`, p.quantita); if(nQ !== null) { await supabaseClient.from('inventario').update({ quantita: parseFloat(nQ.replace(',','.')) }).eq('id', id); await caricaInventarioDaSupabase(); } }
+        
+        async function eliminaProdottoStock(id) {
+            if(confirm("Vuoi eliminare questa singola materia prima dal Magazzino Cloud?")) {
+                await supabaseClient.from('inventario').delete().eq('id', id);
+                await caricaInventarioDaSupabase();
+            }
+        }
         
         async function salvaNuovoProdotto() { 
             let pay = { 
@@ -600,11 +584,8 @@
             }; 
             if(!pay.nome) return; 
             await supabaseClient.from('inventario').insert([pay]); 
-            
-            // Pulisce i campi
             document.getElementById('new-nome').value = '';
             document.getElementById('new-qta').value = '1';
-            
             nav('view-inventory'); 
         }
 
