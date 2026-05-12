@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belvedere Smart - ERP Business Manager</title>
+    <title>Belvedere Smart - Gestione Avanzata Fornitori</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -105,8 +105,11 @@
                 
                 <div id="fattura-result" class="hidden space-y-4">
                     <div class="bg-white p-4 rounded-3xl border shadow-sm">
-                        <label class="text-[10px] font-black uppercase text-slate-500">Nome Fornitore (Azienda)</label>
-                        <input type="text" id="fattura-fornitore-nome" placeholder="Es. Partesa, Metro..." class="w-full border-b-2 border-emerald-500 p-2 font-black text-slate-800 uppercase outline-none bg-transparent">
+                        <label class="text-[10px] font-black uppercase text-slate-500">Fornitore (Intestatario)</label>
+                        <div class="flex flex-col gap-2 mt-1">
+                            <select id="fattura-fornitore-select" onchange="checkFornitoreCustom()" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-sm uppercase"></select>
+                            <input type="text" id="fattura-fornitore-custom" placeholder="Oppure scrivi nuovo fornitore..." class="w-full border-b-2 border-emerald-500 p-2 font-black text-slate-800 uppercase outline-none bg-transparent hidden">
+                        </div>
                     </div>
 
                     <div class="bg-white rounded-3xl border overflow-hidden shadow-sm">
@@ -124,9 +127,12 @@
             </div>
 
             <div id="view-fornitori" class="view-panel space-y-4 titolare-only">
-                <div class="bg-purple-50 p-5 rounded-3xl border border-purple-200">
-                    <h3 class="font-black text-purple-900 text-sm uppercase"><i class="fas fa-truck mr-2"></i>Registro Fornitori</h3>
-                    <p class="text-[9px] font-bold text-purple-700 uppercase mt-1">Storico prezzi dalle fatture caricate</p>
+                <div class="bg-purple-50 p-5 rounded-3xl border border-purple-200 mb-2">
+                    <h3 class="font-black text-purple-900 text-sm uppercase"><i class="fas fa-truck mr-2"></i>Aggiungi Fornitore</h3>
+                    <div class="flex gap-2 mt-2">
+                        <input type="text" id="new-fornitore-name" placeholder="Es. PARTESA, METRO..." class="flex-1 border p-3 rounded-xl font-bold text-xs uppercase">
+                        <button onclick="aggiungiFornitoreManuale()" class="bg-purple-600 text-white px-4 rounded-xl font-black active:scale-95">+</button>
+                    </div>
                 </div>
                 <div id="fornitori-list-container" class="space-y-4"></div>
             </div>
@@ -134,7 +140,7 @@
             <div id="view-cassa" class="view-panel space-y-4 titolare-only">
                 <div class="bg-emerald-600 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
                     <h3 class="font-black text-lg uppercase"><i class="fas fa-bolt mr-2"></i>Sincro RCH XStore</h3>
-                    <p class="text-[10px] font-bold text-emerald-100 mb-4 mt-2 leading-relaxed">Carica il file "Statistiche". L'app creerà i nuovi piatti, calcolerà l'IVA e scaricherà il magazzino.</p>
+                    <p class="text-[10px] font-bold text-emerald-100 mb-4 mt-2 leading-relaxed">Carica il file "Statistiche". L'app creerà i nuovi piatti, calcolerà l'IVA e scaricherà il magazzino in automatico.</p>
                     <input type="file" accept=".xlsx, .xls, .csv" id="file-rch-vendite" onchange="elaboraVenditeRCHExcel(this)" class="hidden">
                     <button onclick="document.getElementById('file-rch-vendite').click()" class="w-full bg-white text-emerald-600 px-6 py-4 rounded-xl font-black text-xs uppercase shadow-md active:scale-95 transition">Carica Excel Statistiche</button>
                 </div>
@@ -380,7 +386,11 @@
                 }
                 
                 let badge = m.stato_pagamento === 'da_pagare' ? `<span class="bg-red-500 text-white status-badge ml-2">Da Pagare</span>` : `<span class="bg-slate-200 text-slate-600 status-badge ml-2">Pagato</span>`;
-                return `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-xs uppercase text-slate-800">${m.descrizione.startsWith('RCH')?'Chiusura Serale RCH':m.descrizione}</p><p class="text-[8px] font-bold text-slate-400">${new Date(m.data).toLocaleDateString()} ${badge}</p></div><div class="flex items-center"><span class="font-black ${isE?'text-emerald-500':'text-slate-700'}">€ ${m.importo.toFixed(2)}</span><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-300 p-2 ml-3 bg-red-50 rounded-lg active:scale-90"><i class="fas fa-trash"></i></button></div></div>`;
+                
+                // Mostriamo la data esatta (che per la chiusura RCH o Fattura è importante)
+                let dataStr = new Date(m.data).toLocaleDateString('it-IT');
+                
+                return `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-xs uppercase text-slate-800">${m.descrizione}</p><p class="text-[8px] font-bold text-slate-400 mt-1">${dataStr} ${badge}</p></div><div class="flex items-center"><span class="font-black ${isE?'text-emerald-500':'text-slate-700'}">€ ${m.importo.toFixed(2)}</span><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-300 p-2 ml-3 bg-red-50 rounded-lg active:scale-90"><i class="fas fa-trash"></i></button></div></div>`;
             }).join('') || '<p class="p-8 text-center text-xs text-slate-400 uppercase">Nessun movimento fiscale</p>';
             
             let liq = totE - totUPag; 
@@ -403,13 +413,24 @@
         async function eliminaMovimentoFinanza(id) { if(confirm("Vuoi davvero ELIMINARE DEFINITIVAMENTE questa voce dal bilancio?")) { await supabaseClient.from('finanza').delete().eq('id', id); caricaFinanzaDaSupabase(); } }
 
         // ==========================================
-        // FATTURE CLOUD CON MAPPING FORNITORI
+        // FATTURE CLOUD CON MAPPING FORNITORI & A.I.
         // ==========================================
         function elaboraFatturaXML(input) {
             if(!input.files[0]) return; document.getElementById('fattura-loader').classList.remove('hidden'); document.getElementById('fattura-result').classList.add('hidden');
             const reader = new FileReader(); reader.onload = function(e) {
                 try {
                     let rawText = e.target.result; let items = []; let ivaT = 0;
+                    
+                    // A.I. per cercare il nome del fornitore (Denominazione)
+                    let extractedFornitore = "";
+                    let matchDenom = rawText.match(/<CedentePrestatore>[\s\S]*?<Denominazione>(.*?)<\/Denominazione>/i);
+                    if (matchDenom) extractedFornitore = matchDenom[1].trim().toUpperCase();
+                    else {
+                        // Ricerca basica per Sportello Cloud HTML
+                        let matchHtml = rawText.match(/Cedente \/ Prestatore[\s\S]*?<b>(.*?)<\/b>/i);
+                        if (matchHtml) extractedFornitore = matchHtml[1].trim().toUpperCase();
+                    }
+
                     if (rawText.includes('<html')) {
                         const parser = new DOMParser(); const htmlDoc = parser.parseFromString(rawText, "text/html");
                         const tabelle = htmlDoc.querySelectorAll('table'); let tabellaP = null;
@@ -426,8 +447,27 @@
                                 }
                             });
                         }
+                    } else {
+                        // XML Puro fallback
+                        let estrazione = rawText.match(/(<[a-zA-Z0-9_:]*FatturaElettronica[\s\S]*<\/[a-zA-Z0-9_:]*FatturaElettronica>)/i);
+                        if(estrazione) rawText = estrazione[1];
+                        const parser = new DOMParser(); const xmlDoc = parser.parseFromString(rawText, "text/xml");
+                        const getTags = (nodo, n) => { let t = nodo.getElementsByTagName(n); return t.length === 0 ? nodo.getElementsByTagNameNS("*", n) : t; };
+                        const linee = getTags(xmlDoc.documentElement, "DettaglioLinee");
+                        for(let i=0; i < linee.length; i++) {
+                            let tagDesc = getTags(linee[i], "Descrizione")[0], tagQta = getTags(linee[i], "Quantita")[0], tagPrezzo = getTags(linee[i], "PrezzoUnitario")[0], tagIva = getTags(linee[i], "AliquotaIVA")[0];
+                            if(tagDesc && tagPrezzo) {
+                                let q = tagQta ? parseFloat(tagQta.textContent) : 1; let p = parseFloat(tagPrezzo.textContent); let perc = tagIva ? parseFloat(tagIva.textContent) : 0;
+                                ivaT += (q * p) * (perc / 100);
+                                items.push({ nome: tagDesc.textContent.trim().substring(0,40), qta: q, costo_unit: p });
+                            }
+                        }
                     }
+
                     fatturaItemsLetti = items; document.getElementById('ocr-tot-iva').value = ivaT.toFixed(2);
+                    
+                    // Imposta UI Fornitore
+                    impostaFornitoreUI(extractedFornitore);
                     
                     let optsMagazzino = inventarioLocale.map(inv => `<option value="${inv.id}">${inv.nome} (${inv.categoria||'VARIE'})</option>`).join('');
                     
@@ -447,8 +487,48 @@
             }; reader.readAsText(input.files[0]);
         }
 
+        function aggiornaSelectFornitoriUI() {
+            let sel = document.getElementById('fattura-fornitore-select');
+            if(sel) {
+                let optionsHtml = `<option value="NUOVO">--- INSERISCI NUOVO FORNITORE ---</option>`;
+                Object.keys(fornitoriDB).forEach(f => { optionsHtml += `<option value="${f}">${f}</option>`; });
+                sel.innerHTML = optionsHtml;
+            }
+        }
+
+        function impostaFornitoreUI(fornitoreTrovato) {
+            aggiornaSelectFornitoriUI();
+            let sel = document.getElementById('fattura-fornitore-select');
+            let customInput = document.getElementById('fattura-fornitore-custom');
+            
+            if (fornitoreTrovato) {
+                let options = Array.from(sel.options).map(o => o.value);
+                let found = options.find(o => o.includes(fornitoreTrovato) || fornitoreTrovato.includes(o));
+                
+                if (found && found !== 'NUOVO') {
+                    sel.value = found;
+                    customInput.classList.add('hidden');
+                } else {
+                    sel.value = 'NUOVO';
+                    customInput.value = fornitoreTrovato;
+                    customInput.classList.remove('hidden');
+                }
+            } else {
+                sel.value = 'NUOVO'; customInput.value = ''; customInput.classList.remove('hidden');
+            }
+        }
+
+        function checkFornitoreCustom() {
+            let sel = document.getElementById('fattura-fornitore-select');
+            let customInput = document.getElementById('fattura-fornitore-custom');
+            if (sel.value === 'NUOVO') { customInput.classList.remove('hidden'); } else { customInput.classList.add('hidden'); }
+        }
+
         async function confermaCaricoFattura() {
-            let fornitore = document.getElementById('fattura-fornitore-nome').value.trim().toUpperCase() || 'FORNITORE GENERICO';
+            let selVal = document.getElementById('fattura-fornitore-select').value;
+            let fornitore = selVal === 'NUOVO' ? document.getElementById('fattura-fornitore-custom').value.trim().toUpperCase() : selVal;
+            if(!fornitore) fornitore = 'FORNITORE GENERICO';
+
             let doc=document.getElementById('ocr-tipo-doc').value, stato=document.getElementById('ocr-stato-pag').value, tot=0, ivaE = parseFloat(document.getElementById('ocr-tot-iva').value)||0;
             
             if(!fornitoriDB[fornitore]) fornitoriDB[fornitore] = [];
@@ -462,7 +542,7 @@
                     let idAssociato = null; let nomeAssociato = item.nome;
 
                     if(mapScelta === 'NEW') {
-                        const { data, error } = await supabaseClient.from('inventario').insert([{ nome: item.nome.toUpperCase(), quantita: item.qta, prezzo: item.costo_unit, categoria: 'Da Assegnare', scalo_automatico: false }]).select();
+                        const { data, error } = await supabaseClient.from('inventario').insert([{ nome: item.nome.toUpperCase(), quantita: item.qta, prezzo: item.costo_unit, categoria: 'VARIE', scalo_automatico: false }]).select();
                         if(data) idAssociato = data[0].id;
                     } else {
                         idAssociato = mapScelta;
@@ -480,11 +560,11 @@
             }
 
             await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria: (doc==='merce'?'Fornitori':'Utenze'), descrizione: `Fattura: ${fornitore}`, importo: tot+ivaE, iva: ivaE, stato_pagamento: stato, data: new Date().toISOString(), data_pagamento: stato==='pagato'?new Date().toISOString():null }]);
-            alert("Fattura e Magazzino aggiornati!"); nav('view-dashboard');
+            alert("Fattura Registrata e Magazzino Aggiornato!"); nav('view-dashboard');
         }
 
         // ==========================================
-        // GESTIONE FORNITORI
+        // GESTIONE FORNITORI (Aggiunta Manuale)
         // ==========================================
         function aggiornaVistaFornitori() {
             let html = '';
@@ -498,7 +578,18 @@
 
                 html += `<div class="bg-white p-4 rounded-3xl border shadow-sm"><div class="flex justify-between items-center mb-3"><h4 class="font-black text-sm uppercase text-purple-800">${nomeFornitore}</h4><button onclick="eliminaFornitore('${nomeFornitore}')" class="text-red-300 p-2"><i class="fas fa-trash"></i></button></div>${storico}</div>`;
             }
-            document.getElementById('fornitori-list-container').innerHTML = html || '<p class="text-center text-xs text-slate-400 uppercase p-6">Nessun fornitore registrato. Carica una fattura.</p>';
+            document.getElementById('fornitori-list-container').innerHTML = html || '<p class="text-center text-xs text-slate-400 uppercase p-6">Nessun fornitore registrato.</p>';
+        }
+
+        function aggiungiFornitoreManuale() {
+            let nome = document.getElementById('new-fornitore-name').value.trim().toUpperCase();
+            if(nome && !fornitoriDB[nome]) {
+                fornitoriDB[nome] = [];
+                localStorage.setItem('belvedereFornitori', JSON.stringify(fornitoriDB));
+                document.getElementById('new-fornitore-name').value = '';
+                aggiornaVistaFornitori();
+                alert("Fornitore aggiunto alla lista!");
+            }
         }
 
         function eliminaFornitore(nome) { if(confirm(`Eliminare tutto lo storico di ${nome}?`)) { delete fornitoriDB[nome]; localStorage.setItem('belvedereFornitori', JSON.stringify(fornitoriDB)); aggiornaVistaFornitori(); } }
@@ -546,10 +637,10 @@
                         if(nuoviPiatti.length > 0) { menuRistorante = [...menuRistorante, ...nuoviPiatti]; localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); }
                         for(let id in daScaricare) { let {data: p} = await supabaseClient.from('inventario').select('quantita').eq('id',id).single(); if(p) await supabaseClient.from('inventario').update({quantita: p.quantita - daScaricare[id]}).eq('id',id); }
                         
-                        let dataOggi = new Date().toISOString(); let meseSel = document.getElementById('finanza-mese-selettore').value;
-                        if (meseSel && !dataOggi.startsWith(meseSel)) dataOggi = meseSel + "-01T12:00:00.000Z";
+                        let dataOggi = new Date().toISOString(); 
+                        let dataStringa = new Date(dataOggi).toLocaleDateString('it-IT');
                         
-                        await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione: fileID, importo:lordo, iva:iva, stato_pagamento:'pagato', data: dataOggi, data_pagamento: dataOggi }]);
+                        await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione: `Chiusura Serale RCH del ${dataStringa}`, importo:lordo, iva:iva, stato_pagamento:'pagato', data: dataOggi, data_pagamento: dataOggi }]);
                         alert("Chiusura RCH registrata!"); nav('view-dashboard'); caricaInventarioDaSupabase(); caricaFinanzaDaSupabase();
                     }
                 } catch(e) { alert("Errore: " + e.message); }
@@ -563,11 +654,10 @@
             if(isNaN(lordo) || lordo <= 0) return alert("Inserisci un incasso valido (Es. 1250.50).");
             
             let iva = lordo - (lordo / 1.10);
-            let d = new Date().toISOString(); let meseSel = document.getElementById('finanza-mese-selettore').value;
-            if (meseSel && !d.startsWith(meseSel)) d = meseSel + "-01T12:00:00.000Z";
+            let d = new Date().toISOString(); let dataStringa = new Date(d).toLocaleDateString('it-IT');
             
-            await supabaseClient.from('finanza').insert([{ tipo: 'entrata', categoria: 'Ristorante', descrizione: 'Chiusura Manuale Emergenza', importo: lordo, iva: iva, stato_pagamento: 'pagato', data: d, data_pagamento: d }]);
-            alert(`Incasso di € ${lordo.toFixed(2)} registrato in Bilancio!`);
+            await supabaseClient.from('finanza').insert([{ tipo: 'entrata', categoria: 'Ristorante', descrizione: `Chiusura Manuale del ${dataStringa}`, importo: lordo, iva: iva, stato_pagamento: 'pagato', data: d, data_pagamento: d }]);
+            alert(`Incasso di € ${lordo.toFixed(2)} registrato in Bilancio! (Il magazzino non viene scaricato in modalità d'emergenza).`);
             document.getElementById('manual-incasso-tot').value = ''; nav('view-dashboard'); caricaFinanzaDaSupabase();
         }
 
@@ -633,7 +723,7 @@
         function chiudiCreaPiatto() { document.getElementById('form-crea-piatto').classList.add('hidden'); }
 
         // ==========================================
-        // STAFF E SPESA
+        // STAFF & ALTRO
         // ==========================================
         async function caricaStaff() { const { data } = await supabaseClient.from('staff').select('*').order('nome'); staffLocale = data || []; document.getElementById('staff-select').innerHTML = staffLocale.map(s => `<option value="${s.nome}">${s.nome}</option>`).join(''); let html = ''; for(let s of staffLocale) { let mese = document.getElementById('finanza-mese-selettore').value; const { data: ant } = await supabaseClient.from('finanza').select('importo').eq('categoria', 'Personale').ilike('descrizione', `%Anticipo ${s.nome}%`).filter('data', 'gte', mese+'-01'); let totA = (ant || []).reduce((acc, curr) => acc + parseFloat(curr.importo), 0); html += `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-sm uppercase">${s.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">Anticipi Mese</p></div><div class="flex items-center"><span class="font-black text-red-500 text-lg">€ ${totA.toFixed(2)}</span><button onclick="eliminaStaff('${s.id}')" class="text-red-300 bg-red-50 p-2 rounded-xl ml-3 active:scale-90"><i class="fas fa-trash"></i></button></div></div>`; } document.getElementById('staff-list-container').innerHTML = html || '<p class="p-6 text-center text-xs text-slate-400 uppercase">Nessuno staff</p>'; }
         async function eliminaStaff(id) { if(confirm("Licenziare / Eliminare questo dipendente?")) { await supabaseClient.from('staff').delete().eq('id', id); caricaStaff(); } }
