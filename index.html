@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belvedere Smart - Cloud ERP v8</title>
+    <title>Belvedere Smart - Cloud ERP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -98,6 +98,10 @@
                         </div>
                         <button onclick="apriMovimentoManuale()" class="bg-emerald-600 text-white px-4 rounded-2xl font-black text-[10px] uppercase shadow-md active:scale-95">+ Manuale</button>
                     </div>
+                    <div class="flex gap-2 items-center pt-2 border-t border-slate-100">
+                        <button onclick="toggleAllDivs('chk-finanza')" class="text-[9px] font-black uppercase text-slate-500 bg-slate-100 px-3 py-2 rounded-xl"><i class="fas fa-check-double mr-1"></i> Tutti</button>
+                        <button id="btn-bulk-finanza" onclick="eliminaSelezionati('finanza', 'chk-finanza')" class="hidden bg-red-600 text-white px-3 py-2 rounded-xl text-[9px] font-black uppercase shadow-sm"><i class="fas fa-trash mr-1"></i> Elimina (<span id="count-finanza">0</span>)</button>
+                    </div>
                 </div>
 
                 <div id="form-movimento-manuale" class="hidden bg-white p-6 rounded-3xl border shadow-xl space-y-4 mt-2 relative border-t-4 border-t-emerald-500">
@@ -165,11 +169,24 @@
                 <div class="flex justify-between items-center px-1">
                     <h3 class="font-black text-slate-800 uppercase text-xs">Stock Materie Prime</h3>
                     <div class="flex gap-2">
+                        <button id="btn-bulk-stock" onclick="eliminaSelezionati('inventario', 'chk-stock')" class="hidden bg-red-600 text-white px-3 py-2 rounded-xl text-[9px] font-black uppercase shadow-sm"><i class="fas fa-trash"></i> (<span id="count-stock">0</span>)</button>
                         <button onclick="nav('view-categorie')" class="bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-[9px] font-black uppercase shadow-sm titolare-only">Categorie</button>
                         <button onclick="nav('view-add-product')" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-[9px] font-black uppercase shadow-sm">+ Materia</button>
                     </div>
                 </div>
-                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-slate-50 border-b"><tr><th class="p-4 text-[10px] font-bold text-slate-400 uppercase">Articolo</th><th class="p-4 text-center text-[10px] font-bold text-slate-400 uppercase">Q.tà</th><th class="p-4"></th></tr></thead><tbody id="inventory-table-body" class="divide-y divide-slate-100"></tbody></table></div>
+                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 border-b">
+                            <tr>
+                                <th class="p-4 w-10 text-center"><input type="checkbox" onclick="toggleAllDivs('chk-stock')" class="w-4 h-4 accent-emerald-600"></th>
+                                <th class="p-4 text-[10px] font-bold text-slate-400 uppercase">Articolo</th>
+                                <th class="p-4 text-center text-[10px] font-bold text-slate-400 uppercase">Q.tà</th>
+                                <th class="p-4"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div id="view-categorie" class="view-panel space-y-4 titolare-only">
@@ -196,8 +213,12 @@
 
             <div id="view-ricettario" class="view-panel space-y-4 titolare-only">
                 <div class="flex justify-between items-center bg-emerald-50 p-4 rounded-2xl border border-emerald-200">
-                    <div><h3 class="font-black text-emerald-900 uppercase">Voci RCH <span class="text-emerald-600 font-bold">(Figli)</span></h3><p class="text-[9px] text-emerald-600 font-black">Distinta Base e Food Cost</p></div>
-                    <button onclick="apriCreaPiatto()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md">+ Tasto</button>
+                    <div><h3 class="font-black text-emerald-900 uppercase">Voci RCH</h3><p class="text-[9px] text-emerald-600 font-black">Distinta Base e Food Cost</p></div>
+                    <div class="flex gap-2 items-center">
+                        <button onclick="toggleAllDivs('chk-menu')" class="bg-emerald-200 text-emerald-800 px-3 py-2 rounded-xl text-xs font-bold shadow-sm"><i class="fas fa-check-double"></i></button>
+                        <button id="btn-bulk-menu" onclick="eliminaSelezionati('menu', 'chk-menu')" class="hidden bg-red-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-md"><i class="fas fa-trash"></i> <span id="count-menu">0</span></button>
+                        <button onclick="apriCreaPiatto()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md">+ Tasto</button>
+                    </div>
                 </div>
                 <div id="menu-builder-list" class="space-y-3"></div>
                 <div id="form-crea-piatto" class="hidden bg-white p-6 rounded-3xl border shadow-xl space-y-5 mt-4 border-t-4 border-t-emerald-500 relative">
@@ -261,12 +282,8 @@
 
         let userRole = ''; let inventarioLocale = []; let staffLocale = [];
         let finanzaDatiGlobali = []; let currentFinanzaTab = 'TUTTE';
-        
-        // Nuove variabili Cloud
-        let menuRistorante = []; 
-        let ingredientiTempRicetta = []; let fatturaItemsLetti = [];
-        let fornitoriDict = {}; 
-        let categorieDB = [];
+        let menuRistorante = []; let ingredientiTempRicetta = []; let fatturaItemsLetti = [];
+        let fornitoriDict = {}; let categorieDB = [];
 
         window.onload = () => { 
             let oggi = new Date(); document.getElementById('finanza-mese-selettore').value = oggi.getFullYear() + '-' + String(oggi.getMonth() + 1).padStart(2, '0');
@@ -286,13 +303,7 @@
         async function avviaApp() {
             document.getElementById('view-login').style.display = 'none'; 
             document.getElementById('app-interface').classList.remove('hidden');
-            
-            // CARICAMENTO GLOBALE DA CLOUD
-            await caricaCategorieCloud();
-            await caricaFornitoriCloud();
-            await caricaMenuCloud();
-            await caricaInventarioDaSupabase();
-            
+            await caricaCategorieCloud(); await caricaFornitoriCloud(); await caricaMenuCloud(); await caricaInventarioDaSupabase();
             if (userRole === 'Staff') {
                 document.getElementById('role-badge').innerText = 'Staff Magazzino';
                 document.querySelectorAll('.titolare-only').forEach(el => el.classList.add('hidden'));
@@ -300,9 +311,7 @@
             } else {
                 document.getElementById('role-badge').innerText = 'Titolare';
                 document.querySelectorAll('.titolare-only').forEach(el => el.classList.remove('hidden'));
-                await caricaFinanzaDaSupabase();
-                await caricaStaff();
-                nav('view-dashboard');
+                await caricaFinanzaDaSupabase(); await caricaStaff(); nav('view-dashboard');
             }
         }
 
@@ -321,42 +330,48 @@
         function logout() { localStorage.removeItem('belvedereAuthRole'); location.reload(); }
 
         // ==========================================
+        // GESTIONE SELEZIONE MULTIPLA E CANCELLAZIONE
+        // ==========================================
+        function toggleAllDivs(className) {
+            let chks = document.querySelectorAll('.' + className);
+            let allChecked = Array.from(chks).every(c => c.checked);
+            chks.forEach(c => c.checked = !allChecked);
+            toggleDeleteBulkBtn(className.split('-')[1]);
+        }
+        function toggleDeleteBulkBtn(type) {
+            let selected = document.querySelectorAll('.chk-' + type + ':checked').length;
+            let btn = document.getElementById('btn-bulk-' + type);
+            if(btn) {
+                btn.classList.toggle('hidden', selected === 0);
+                let countSpan = document.getElementById('count-' + type);
+                if(countSpan) countSpan.innerText = selected;
+            }
+        }
+        async function eliminaSelezionati(tabella, className) {
+            let ids = Array.from(document.querySelectorAll('.' + className + ':checked')).map(c => c.value);
+            if(ids.length === 0) return;
+            if(confirm(`Sei sicuro di voler eliminare in blocco ${ids.length} elementi?\n\nQuesta azione è irreversibile e rimuoverà i dati dal Cloud.`)) {
+                await supabaseClient.from(tabella).delete().in('id', ids);
+                if(tabella === 'inventario') await caricaInventarioDaSupabase();
+                if(tabella === 'finanza') await caricaFinanzaDaSupabase();
+                if(tabella === 'menu') await caricaMenuCloud();
+                toggleDeleteBulkBtn(className.split('-')[1]);
+            }
+        }
+
+        // ==========================================
         // CONNESSIONE SUPABASE: CATEGORIE
         // ==========================================
-        async function caricaCategorieCloud() {
-            const { data } = await supabaseClient.from('categorie').select('*');
-            if(data && data.length > 0) {
-                categorieDB = data.map(c => ({ id: c.id, nome: c.nome }));
-            } else {
-                // Inserimento default se vuoto
-                let defaultCats = ['CANTINA', 'BEVANDE', 'CAFFETTERIA', 'CUCINA', 'PIZZERIA', 'VARIE'];
-                await supabaseClient.from('categorie').insert(defaultCats.map(c => ({nome: c})));
-                const res = await supabaseClient.from('categorie').select('*');
-                categorieDB = res.data.map(c => ({ id: c.id, nome: c.nome }));
-            }
-            aggiornaVistaCategorie();
-        }
-        function aggiornaVistaCategorie() {
-            document.getElementById('lista-categorie').innerHTML = categorieDB.map(c => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border"><span class="font-black text-xs uppercase text-slate-700">${c.nome}</span><button onclick="eliminaCategoria('${c.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div>`).join('');
-            let sel = document.getElementById('new-cat'); if(sel) sel.innerHTML = categorieDB.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-        }
+        async function caricaCategorieCloud() { const { data } = await supabaseClient.from('categorie').select('*'); if(data && data.length > 0) { categorieDB = data.map(c => ({ id: c.id, nome: c.nome })); } else { let defaultCats = ['CANTINA', 'BEVANDE', 'CAFFETTERIA', 'CUCINA', 'PIZZERIA', 'VARIE']; await supabaseClient.from('categorie').insert(defaultCats.map(c => ({nome: c}))); const res = await supabaseClient.from('categorie').select('*'); categorieDB = res.data.map(c => ({ id: c.id, nome: c.nome })); } aggiornaVistaCategorie(); }
+        function aggiornaVistaCategorie() { document.getElementById('lista-categorie').innerHTML = categorieDB.map(c => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border"><span class="font-black text-xs uppercase text-slate-700">${c.nome}</span><button onclick="eliminaCategoria('${c.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div>`).join(''); let sel = document.getElementById('new-cat'); if(sel) sel.innerHTML = categorieDB.map(c => `<option value="${c.nome}">${c.nome}</option>`).join(''); }
         async function aggiungiCategoria() { let v = document.getElementById('nuova-cat-input').value.trim().toUpperCase(); if(v && !categorieDB.find(c=>c.nome===v)) { await supabaseClient.from('categorie').insert([{ nome: v }]); document.getElementById('nuova-cat-input').value = ''; await caricaCategorieCloud(); } }
         async function eliminaCategoria(id) { if(confirm("Eliminare la categoria dal database cloud?")) { await supabaseClient.from('categorie').delete().eq('id', id); await caricaCategorieCloud(); } }
 
         // ==========================================
         // CONNESSIONE SUPABASE: FORNITORI
         // ==========================================
-        async function caricaFornitoriCloud() {
-            const { data } = await supabaseClient.from('fornitori_db').select('*');
-            fornitoriDict = {};
-            if(data) data.forEach(f => { fornitoriDict[f.nome] = f.storico || []; });
-            aggiornaVistaFornitori();
-        }
-        async function salvaStoricoFornitoreCloud(nomeFornitore, storicoArray) {
-            const { data } = await supabaseClient.from('fornitori_db').select('id').eq('nome', nomeFornitore);
-            if(data && data.length > 0) { await supabaseClient.from('fornitori_db').update({ storico: storicoArray }).eq('nome', nomeFornitore); } 
-            else { await supabaseClient.from('fornitori_db').insert([{ nome: nomeFornitore, storico: storicoArray }]); }
-        }
+        async function caricaFornitoriCloud() { const { data } = await supabaseClient.from('fornitori_db').select('*'); fornitoriDict = {}; if(data) data.forEach(f => { fornitoriDict[f.nome] = f.storico || []; }); aggiornaVistaFornitori(); }
+        async function salvaStoricoFornitoreCloud(nomeFornitore, storicoArray) { const { data } = await supabaseClient.from('fornitori_db').select('id').eq('nome', nomeFornitore); if(data && data.length > 0) { await supabaseClient.from('fornitori_db').update({ storico: storicoArray }).eq('nome', nomeFornitore); } else { await supabaseClient.from('fornitori_db').insert([{ nome: nomeFornitore, storico: storicoArray }]); } }
         function aggiornaVistaFornitori() { document.getElementById('fornitori-list-container').innerHTML = Object.entries(fornitoriDict).map(([nome, acquisti]) => `<div class="bg-white p-4 rounded-3xl border shadow-sm"><div class="flex justify-between items-center mb-3"><h4 class="font-black text-sm uppercase text-purple-800">${nome}</h4><button onclick="eliminaFornitore('${nome.replace(/'/g, "\\'")}')" class="text-red-300 p-2"><i class="fas fa-trash"></i></button></div>${acquisti.slice(-5).reverse().map(a => `<div class="flex justify-between text-[8px] font-bold border-b pb-1 mb-1"><div><span class="text-slate-800 font-black mr-1">${a.qta ? a.qta + ' ' + (a.um||'PZ') : ''}</span><span class="text-slate-500">${a.nome_fattura}</span></div><span class="text-emerald-600 whitespace-nowrap ml-2">€ ${parseFloat(a.prezzo_unitario||0).toFixed(2)} / ${a.um||'PZ'}</span></div>`).join('')}</div>`).join('') || '<p class="text-center text-xs text-slate-400 p-6">Nessun fornitore nel cloud.</p>'; }
         async function aggiungiFornitoreManuale() { let n = document.getElementById('new-fornitore-name').value.trim().toUpperCase(); if(n && !fornitoriDict[n]) { await salvaStoricoFornitoreCloud(n, []); document.getElementById('new-fornitore-name').value = ''; await caricaFornitoriCloud(); } }
         async function eliminaFornitore(n) { if(confirm(`Eliminare ${n} dal cloud?`)) { await supabaseClient.from('fornitori_db').delete().eq('nome', n); await caricaFornitoriCloud(); } }
@@ -364,49 +379,22 @@
         // ==========================================
         // CONNESSIONE SUPABASE: MENU / RICETTARIO
         // ==========================================
-        async function caricaMenuCloud() {
-            const { data } = await supabaseClient.from('menu').select('*').order('categoria').order('nome');
-            menuRistorante = data || [];
-            aggiornaVistaRicettario();
-        }
+        async function caricaMenuCloud() { const { data } = await supabaseClient.from('menu').select('*').order('categoria').order('nome'); menuRistorante = data || []; aggiornaVistaRicettario(); }
         function aggiornaVistaRicettario() { 
             let html = ''; let cats = [...new Set(menuRistorante.map(i => i.categoria || 'GENERALE'))]; 
             cats.forEach(c => { 
                 html += `<div class="bg-slate-200 p-2 mt-4 rounded-lg font-black text-[9px] uppercase">${c}</div>`; 
                 menuRistorante.filter(m => (m.categoria||'GENERALE') === c).forEach((p) => { 
-                    html += `<div class="bg-white p-4 border rounded-2xl flex justify-between mt-2"><div onclick="modificaPiattoEsistente('${p.id}')"><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">${p.ingredienti?p.ingredienti.length:0} ASSOCIAZIONI IN CLOUD</p></div><button onclick="rimuoviPiatto('${p.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div>`; 
+                    html += `<div class="bg-white p-4 border rounded-2xl flex justify-between mt-2 items-center"><input type="checkbox" class="chk-menu w-4 h-4 accent-emerald-600 mr-3" value="${p.id}" onchange="toggleDeleteBulkBtn('menu')"><div class="flex-1" onclick="modificaPiattoEsistente('${p.id}')"><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">${p.ingredienti?p.ingredienti.length:0} ASSOCIAZIONI IN CLOUD</p></div></div>`; 
                 }); 
             }); 
             document.getElementById('menu-builder-list').innerHTML = html || '<p class="text-center text-xs text-slate-400">Nessuna ricetta in cloud</p>'; 
+            toggleDeleteBulkBtn('menu');
         }
-        async function salvaPiattoMenu() { 
-            let n = document.getElementById('piatto-nome').value.toUpperCase().trim(); 
-            let c = document.getElementById('piatto-categoria').value.toUpperCase().trim() || 'GENERALE'; 
-            let idMod = document.getElementById('piatto-id-modifica').value;
-            if(!n) return; 
-            
-            if(idMod) { 
-                await supabaseClient.from('menu').update({ nome: n, categoria: c, ingredienti: ingredientiTempRicetta }).eq('id', idMod); 
-            } else { 
-                let ex = menuRistorante.find(m => m.nome === n);
-                if(ex) await supabaseClient.from('menu').update({ ingredienti: ingredientiTempRicetta, categoria: c }).eq('id', ex.id);
-                else await supabaseClient.from('menu').insert([{ nome: n, categoria: c, prezzo: 0, ingredienti: ingredientiTempRicetta }]); 
-            } 
-            chiudiCreaPiatto(); await caricaMenuCloud(); 
-        }
-        async function rimuoviPiatto(id) { if(confirm("Vuoi davvero rimuovere questo tasto cassa dal Cloud?")) { await supabaseClient.from('menu').delete().eq('id', id); await caricaMenuCloud(); } }
+        async function salvaPiattoMenu() { let n = document.getElementById('piatto-nome').value.toUpperCase().trim(); let c = document.getElementById('piatto-categoria').value.toUpperCase().trim() || 'GENERALE'; let idMod = document.getElementById('piatto-id-modifica').value; if(!n) return; if(idMod) { await supabaseClient.from('menu').update({ nome: n, categoria: c, ingredienti: ingredientiTempRicetta }).eq('id', idMod); } else { let ex = menuRistorante.find(m => m.nome === n); if(ex) await supabaseClient.from('menu').update({ ingredienti: ingredientiTempRicetta, categoria: c }).eq('id', ex.id); else await supabaseClient.from('menu').insert([{ nome: n, categoria: c, prezzo: 0, ingredienti: ingredientiTempRicetta }]); } chiudiCreaPiatto(); await caricaMenuCloud(); }
         function apriCreaPiatto() { document.getElementById('form-crea-piatto').classList.remove('hidden'); ingredientiTempRicetta = []; document.getElementById('lista-ingredienti-piatto').innerHTML = ''; document.getElementById('piatto-id-modifica').value = ''; document.getElementById('piatto-nome').value=''; document.getElementById('piatto-categoria').value=''; window.scrollTo(0, document.body.scrollHeight); }
         function chiudiCreaPiatto() { document.getElementById('form-crea-piatto').classList.add('hidden'); }
-        function modificaPiattoEsistente(id) { 
-            let p = menuRistorante.find(x => x.id === id); 
-            document.getElementById('piatto-id-modifica').value = p.id;
-            document.getElementById('piatto-nome').value = p.nome; 
-            document.getElementById('piatto-categoria').value = p.categoria || ''; 
-            ingredientiTempRicetta = p.ingredienti ? [...p.ingredienti] : []; 
-            document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map((i, idx)=>`<div class="flex justify-between text-[10px] font-black uppercase border-b pb-1 mb-1"><span>${i.nome}</span><span>${i.qta} <button onclick="ingredientiTempRicetta.splice(${idx},1); document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map((x, i2)=>\`<div class='flex justify-between text-[10px] font-black uppercase border-b pb-1 mb-1'><span>\${x.nome}</span><span>\${x.qta}</span></div>\`).join('');" class="text-red-500 ml-2"><i class="fas fa-times"></i></button></span></div>`).join(''); 
-            document.getElementById('form-crea-piatto').classList.remove('hidden'); 
-            window.scrollTo(0, document.body.scrollHeight);
-        }
+        function modificaPiattoEsistente(id) { let p = menuRistorante.find(x => x.id === id); document.getElementById('piatto-id-modifica').value = p.id; document.getElementById('piatto-nome').value = p.nome; document.getElementById('piatto-categoria').value = p.categoria || ''; ingredientiTempRicetta = p.ingredienti ? [...p.ingredienti] : []; document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map((i, idx)=>`<div class="flex justify-between text-[10px] font-black uppercase border-b pb-1 mb-1"><span>${i.nome}</span><span>${i.qta} <button onclick="ingredientiTempRicetta.splice(${idx},1); document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map((x, i2)=>\`<div class='flex justify-between text-[10px] font-black uppercase border-b pb-1 mb-1'><span>\${x.nome}</span><span>\${x.qta}</span></div>\`).join('');" class="text-red-500 ml-2"><i class="fas fa-times"></i></button></span></div>`).join(''); document.getElementById('form-crea-piatto').classList.remove('hidden'); window.scrollTo(0, document.body.scrollHeight); }
         function aggiungiIngredienteRicetta() { const s = document.getElementById('select-ingrediente'); ingredientiTempRicetta.push({ id_supa: s.value, nome: s.options[s.selectedIndex].getAttribute('data-nome'), qta: parseFloat(document.getElementById('qta-ingrediente').value)||1 }); document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map((i, idx)=>`<div class="flex justify-between text-[10px] font-black uppercase border-b pb-1 mb-1"><span>${i.nome}</span><span>${i.qta} <button onclick="ingredientiTempRicetta.splice(${idx},1); document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map((x, i2)=>\`<div class='flex justify-between text-[10px] font-black uppercase border-b pb-1 mb-1'><span>\${x.nome}</span><span>\${x.qta}</span></div>\`).join('');" class="text-red-500 ml-2"><i class="fas fa-times"></i></button></span></div>`).join(''); }
         function suggerisciGrammatura() { let n = document.getElementById('piatto-nome').value.toUpperCase(); let q = document.getElementById('qta-ingrediente'); if (n.includes('CAFFE') || n.includes('ESPRESSO')) { q.value = n.includes('DOPPIO') ? '0.014' : '0.007'; } else if (n.includes('1/2')) { q.value = '0.5'; } else if (n.includes('CALICE')) { q.value = '0.15'; } }
 
@@ -421,10 +409,10 @@
             filtratiMese.forEach(m => { let isE = (m.tipo === 'entrata'); if(isE) { totE += m.importo; ivaD += (m.iva||0); } else { if(m.stato_pagamento === 'pagato') { totUPag += m.importo; ivaC += (m.iva||0); } else { totDeb += m.importo; ivaC += (m.iva||0); } } });
             let liq = totE - totUPag; document.getElementById('finanza-saldo').innerText = '€ ' + Math.abs(liq).toFixed(2); document.getElementById('finanza-saldo').className = `text-4xl font-black ${liq >= 0 ? 'text-emerald-400' : 'text-red-400'}`; document.getElementById('finanza-saldo-segno').innerText = liq >= 0 ? "ATTIVO MENSILE" : "PASSIVO MENSILE"; document.getElementById('finanza-saldo-segno').className = `inline-block text-[9px] font-black uppercase px-3 py-1 rounded-full mb-2 ${liq >= 0 ? 'bg-emerald-500' : 'bg-red-500'} text-white`; document.getElementById('finanza-iva-totale').innerText = '€ ' + Math.abs(ivaD - ivaC).toFixed(2); document.getElementById('finanza-iva-badge').innerText = (ivaD - ivaC) >= 0 ? "DA VERSARE" : "A CREDITO"; document.getElementById('finanza-iva-badge').className = `text-[8px] font-black uppercase px-2 py-1 rounded text-white ${(ivaD - ivaC) >= 0 ? 'bg-red-500' : 'bg-emerald-500'}`; document.getElementById('finanza-entrate').innerText = '€ ' + totE.toFixed(2); document.getElementById('finanza-uscite-pagate').innerText = '€ ' + totUPag.toFixed(2); document.getElementById('finanza-debiti').innerText = '€ ' + totDeb.toFixed(2); document.getElementById('dash-income').innerText = '€ ' + totE.toFixed(2);
             let viewList = filtratiMese.filter(m => { let desc = (m.descrizione||'').toLowerCase(); let cat = (m.categoria||'').toLowerCase(); if (testo !== "" && !desc.includes(testo) && !cat.includes(testo)) return false; if (currentFinanzaTab === 'ENTRATE') return m.tipo === 'entrata'; if (currentFinanzaTab === 'PAGATE') return m.tipo === 'uscita' && m.stato_pagamento === 'pagato'; if (currentFinanzaTab === 'DA_PAGARE') return m.tipo === 'uscita' && m.stato_pagamento === 'da_pagare'; return true; });
-            document.getElementById('finanza-list').innerHTML = viewList.map(m => { let isE = (m.tipo === 'entrata'); let badge = m.stato_pagamento === 'da_pagare' ? `<span class="bg-red-500 text-white status-badge ml-2">Da Pagare</span>` : (isE ? `<span class="bg-emerald-100 text-emerald-700 status-badge ml-2">Incasso</span>` : `<span class="bg-slate-200 text-slate-600 status-badge ml-2">Pagato</span>`); let dataStr = new Date(m.data).toLocaleDateString('it-IT'); let descJS = (m.descrizione||'').replace(/'/g, "\\'"); return `<div class="p-4 border-b flex justify-between items-center bg-white hover:bg-slate-50 transition"><div class="flex-1 mr-2 overflow-hidden"><p class="font-black text-[11px] uppercase text-slate-800 truncate">${m.descrizione}</p><p class="text-[8px] font-bold text-slate-400 mt-1">${dataStr} ${badge}</p></div><div class="flex items-center gap-1"><span class="font-black ${isE?'text-emerald-500':'text-slate-700'} whitespace-nowrap">€ ${m.importo.toFixed(2)}</span><button onclick="rinominaMovimentoFinanza('${m.id}', '${descJS}')" class="text-blue-400 p-2 bg-blue-50 rounded-lg active:scale-90 ml-2"><i class="fas fa-pencil"></i></button><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-300 p-2 bg-red-50 rounded-lg active:scale-90"><i class="fas fa-trash"></i></button></div></div>`; }).join('') || '<p class="p-8 text-center text-xs text-slate-400 uppercase">Nessun movimento trovato</p>';
+            document.getElementById('finanza-list').innerHTML = viewList.map(m => { let isE = (m.tipo === 'entrata'); let badge = m.stato_pagamento === 'da_pagare' ? `<span class="bg-red-500 text-white status-badge ml-2">Da Pagare</span>` : (isE ? `<span class="bg-emerald-100 text-emerald-700 status-badge ml-2">Incasso</span>` : `<span class="bg-slate-200 text-slate-600 status-badge ml-2">Pagato</span>`); let dataStr = new Date(m.data).toLocaleDateString('it-IT'); let descJS = (m.descrizione||'').replace(/'/g, "\\'"); return `<div class="p-4 border-b flex justify-between items-center bg-white hover:bg-slate-50 transition"><input type="checkbox" class="chk-finanza w-4 h-4 accent-emerald-600 mr-3" value="${m.id}" onchange="toggleDeleteBulkBtn('finanza')"><div class="flex-1 mr-2 overflow-hidden"><p class="font-black text-[11px] uppercase text-slate-800 truncate">${m.descrizione}</p><p class="text-[8px] font-bold text-slate-400 mt-1">${dataStr} ${badge}</p></div><div class="flex items-center gap-1"><span class="font-black ${isE?'text-emerald-500':'text-slate-700'} whitespace-nowrap">€ ${m.importo.toFixed(2)}</span><button onclick="rinominaMovimentoFinanza('${m.id}', '${descJS}')" class="text-blue-400 p-2 bg-blue-50 rounded-lg active:scale-90 ml-2"><i class="fas fa-pencil"></i></button></div></div>`; }).join('') || '<p class="p-8 text-center text-xs text-slate-400 uppercase">Nessun movimento trovato</p>';
+            toggleDeleteBulkBtn('finanza');
         }
         async function rinominaMovimentoFinanza(id, oldName) { let newName = prompt("Modifica intestatario o descrizione:", oldName); if (newName !== null && newName.trim() !== "") { await supabaseClient.from('finanza').update({ descrizione: newName.trim().toUpperCase() }).eq('id', id); caricaFinanzaDaSupabase(); } }
-        async function eliminaMovimentoFinanza(id) { if(confirm("ELIMINAZIONE DAL CLOUD:\nVuoi davvero rimuovere questo movimento?")) { await supabaseClient.from('finanza').delete().eq('id', id); caricaFinanzaDaSupabase(); } }
         function apriMovimentoManuale() { document.getElementById('form-movimento-manuale').classList.remove('hidden'); document.getElementById('man-desc').value=''; document.getElementById('man-importo').value=''; document.getElementById('man-iva').value='0.00'; window.scrollTo(0, 0); }
         function chiudiMovimentoManuale() { document.getElementById('form-movimento-manuale').classList.add('hidden'); }
         async function salvaMovimentoManuale() { let desc = document.getElementById('man-desc').value.trim().toUpperCase(); let imp = parseFloat(document.getElementById('man-importo').value); let iva = parseFloat(document.getElementById('man-iva').value) || 0; let dataSelezionata = document.getElementById('man-data').value; let tipo = document.getElementById('man-tipo').value; let stato = document.getElementById('man-stato').value; if(!desc || isNaN(imp) || !dataSelezionata) return alert("Compila descrizione, importo e data."); let isoData = new Date(dataSelezionata + "T12:00:00.000Z").toISOString(); await supabaseClient.from('finanza').insert([{ tipo: tipo, categoria: (tipo==='entrata'?'Ristorante':'Varie'), descrizione: desc, importo: imp, iva: iva, stato_pagamento: stato, data: isoData, data_pagamento: (stato==='pagato'?isoData:null) }]); chiudiMovimentoManuale(); caricaFinanzaDaSupabase(); alert("Movimento salvato in Cloud!"); }
@@ -531,28 +519,32 @@
             }; reader.readAsArrayBuffer(input.files[0]);
         }
 
+        async function eseguiChiusuraManualePura() {
+            let l = parseFloat(document.getElementById('manual-incasso-tot').value); if(isNaN(l)) return;
+            let d = new Date().toISOString(); let ds = new Date(d).toLocaleDateString('it-IT');
+            await supabaseClient.from('finanza').insert([{ tipo: 'entrata', categoria: 'Ristorante', descrizione: `Chiusura Manuale del ${ds}`, importo: l, iva: l-(l/1.10), stato_pagamento: 'pagato', data: d }]);
+            document.getElementById('manual-incasso-tot').value=''; nav('view-dashboard'); caricaFinanzaDaSupabase();
+        }
+
         // ==========================================
-        // STOCK (PADRE)
+        // STOCK E ASSOCIAZIONI
         // ==========================================
         async function caricaInventarioDaSupabase() {
             const { data } = await supabaseClient.from('inventario').select('*').order('categoria').order('nome'); inventarioLocale = data || [];
-            document.getElementById('inventory-table-body').innerHTML = inventarioLocale.map(p => `<tr><td class="p-4"><p class="font-black text-xs uppercase">${p.nome}</p><span class="text-[7px] bg-slate-200 px-1 rounded">${p.categoria||'VARIE'}</span></td><td class="p-4 text-center font-black ${p.quantita<0?'text-red-500':'text-emerald-600'}">${p.quantita}</td><td class="p-4 text-right"><button onclick="apriModificaStock('${p.id}')" class="text-blue-500 mr-2"><i class="fas fa-pencil"></i></button><button onclick="eliminaProdottoStock('${p.id}')" class="text-red-500"><i class="fas fa-trash"></i></button></td></tr>`).join('');
+            document.getElementById('inventory-table-body').innerHTML = inventarioLocale.map(p => `<tr><td class="p-4 w-10 text-center"><input type="checkbox" class="chk-stock w-4 h-4 accent-emerald-600" value="${p.id}" onchange="toggleDeleteBulkBtn('stock')"></td><td class="p-4"><p class="font-black text-xs uppercase">${p.nome}</p><span class="text-[7px] bg-slate-200 px-1 rounded">${p.categoria||'VARIE'}</span></td><td class="p-4 text-center font-black ${p.quantita<0?'text-red-500':'text-emerald-600'}">${p.quantita}</td><td class="p-4 text-right"><button onclick="apriModificaStock('${p.id}')" class="text-blue-500"><i class="fas fa-pencil"></i></button></td></tr>`).join('');
             popolaSelectIngredienti();
+            toggleDeleteBulkBtn('stock');
         }
         async function apriModificaStock(id) { let p = inventarioLocale.find(x => x.id === id); let nQ = prompt(`Giacenza in Cloud:`, p.quantita); if(nQ !== null) { await supabaseClient.from('inventario').update({ quantita: parseFloat(nQ.replace(',','.')) }).eq('id', id); await caricaInventarioDaSupabase(); } }
-        async function eliminaProdottoStock(id) { if(confirm("ELIMINARE DA CLOUD?")) { await supabaseClient.from('inventario').delete().eq('id', id); await caricaInventarioDaSupabase(); } }
         async function salvaNuovoProdotto() { let pay = { nome: document.getElementById('new-nome').value.trim().toUpperCase(), quantita: parseFloat(document.getElementById('new-qta').value), categoria: document.getElementById('new-cat').value, prezzo: 0 }; if(!pay.nome) return; await supabaseClient.from('inventario').insert([pay]); nav('view-inventory'); }
-        function popolaSelectIngredienti() { document.getElementById('select-ingrediente').innerHTML = inventarioLocale.map(i=>`<option value="${i.id}" data-nome="${i.nome}">${i.nome}</option>`).join(''); }
 
         // ==========================================
-        // STAFF & SPESA
+        // STAFF E ALTRO
         // ==========================================
         async function caricaStaff() { const { data } = await supabaseClient.from('staff').select('*').order('nome'); staffLocale = data || []; document.getElementById('staff-select').innerHTML = staffLocale.map(s => `<option value="${s.nome}">${s.nome}</option>`).join(''); let html = ''; for(let s of staffLocale) { let mese = document.getElementById('finanza-mese-selettore').value; const { data: ant } = await supabaseClient.from('finanza').select('importo').eq('categoria', 'Personale').ilike('descrizione', `%Anticipo ${s.nome}%`).filter('data', 'gte', mese+'-01'); let totA = (ant || []).reduce((acc, curr) => acc + parseFloat(curr.importo), 0); html += `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-sm uppercase">${s.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">Anticipi Mese</p></div><div class="flex items-center"><span class="font-black text-red-500 text-lg">€ ${totA.toFixed(2)}</span><button onclick="eliminaStaff('${s.id}')" class="text-red-300 bg-red-50 p-2 rounded-xl ml-3 active:scale-90"><i class="fas fa-trash"></i></button></div></div>`; } document.getElementById('staff-list-container').innerHTML = html || '<p class="p-6 text-center text-xs text-slate-400 uppercase">Nessuno staff</p>'; }
         async function eliminaStaff(id) { if(confirm("Licenziare / Eliminare dal Cloud?")) { await supabaseClient.from('staff').delete().eq('id', id); caricaStaff(); } }
         async function salvaAnticipoStaff() { let n = document.getElementById('staff-select').value, i = parseFloat(document.getElementById('staff-anticipo-val').value); if(i>0) { await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria:'Personale', descrizione:`Anticipo ${n}`, importo:i, stato_pagamento:'pagato', data:new Date().toISOString() }]); alert("Erogato!"); document.getElementById('staff-anticipo-val').value='0.00'; caricaStaff(); caricaFinanzaDaSupabase(); } }
         async function aggiungiDipendente() { let n = document.getElementById('new-staff-name').value.trim(); if(n) { await supabaseClient.from('staff').insert([{ nome:n }]); document.getElementById('new-staff-name').value=''; caricaStaff(); } }
-        function generaListaSpesa() { let autoItems = inventarioLocale.filter(p => parseFloat(p.quantita) <= parseFloat(p.soglia_minima)); document.getElementById('auto-shopping-list').innerHTML = autoItems.map(p => `<div class="p-4 flex justify-between bg-white"><div><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] text-red-500 font-bold uppercase">Stock: ${p.quantita} / Soglia: ${p.soglia_minima}</p></div><i class="fas fa-triangle-exclamation text-amber-500"></i></div>`).join('') || '<p class="p-8 text-center text-xs text-slate-400">Tutto in stock!</p>'; }
-        let extraShopping = []; function aggiungiVoceManualeSpesa() { let v = document.getElementById('manual-shop-item').value.trim(); if(v) { extraShopping.push(v); document.getElementById('manual-shop-item').value=''; document.getElementById('manual-shopping-list').innerHTML = extraShopping.map((item, i) => `<div class="flex justify-between bg-white p-3 rounded-xl border text-xs font-bold uppercase"><span>${item}</span><button onclick="extraShopping.splice(${i},1); aggiungiVoceManualeSpesa();" class="text-red-400"><i class="fas fa-times"></i></button></div>`).join(''); } }
     </script>
 </body>
 </html>
