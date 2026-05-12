@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belvedere Smart - ERP Business Manager</title>
+    <title>Belvedere Smart - Cloud ERP Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -26,21 +26,20 @@
                 <i class="fas fa-utensils text-4xl text-white -rotate-3"></i>
             </div>
             <h1 class="text-3xl font-black text-white italic tracking-tighter uppercase mb-1">Belvedere</h1>
-            <p class="text-emerald-400 text-[10px] font-bold tracking-widest uppercase">Business Management</p>
+            <p class="text-emerald-400 text-[10px] font-bold tracking-widest uppercase">Cloud Business Manager</p>
         </div>
         <div class="w-full max-w-sm space-y-4">
             <input type="password" id="pass-field" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold tracking-widest text-center" placeholder="PASSWORD">
-            <button onclick="handleAuth()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 uppercase tracking-widest text-sm transition">Accedi</button>
+            <button onclick="handleAuth()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 uppercase tracking-widest text-sm transition">Accedi al Cloud</button>
         </div>
     </div>
 
     <div id="app-interface" class="hidden h-full flex flex-col">
         <header class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm z-20">
             <div><h2 id="header-title" class="text-lg font-black text-slate-800">Dashboard</h2><div id="role-badge" class="inline-block px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest mt-1 bg-amber-100 text-amber-700">Titolare</div></div>
-            <div class="flex gap-2">
-                <button onclick="nav('view-shopping')" class="relative bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center text-slate-600 transition titolare-only">
-                    <i class="fas fa-shopping-basket"></i>
-                    <span id="alert-shopping-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+            <div class="flex gap-2 items-center">
+                <button onclick="sincronizzaCloudManuale()" id="btn-sync-cloud" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm active:scale-95 transition flex items-center gap-1">
+                    <i class="fas fa-cloud-upload-alt"></i> <span>Salva</span>
                 </button>
                 <button onclick="logout()" class="bg-red-50 w-10 h-10 rounded-full flex items-center justify-center text-red-400"><i class="fas fa-power-off"></i></button>
             </div>
@@ -58,12 +57,21 @@
                     <i class="fas fa-chevron-right text-slate-600"></i>
                 </button>
                 <div class="grid grid-cols-2 gap-3 mt-4">
-                    <button onclick="nav('view-inventory')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-boxes text-2xl text-slate-600 mb-2"></i><span class="block text-[10px] font-black uppercase">Stock Magazzino</span></button>
-                    <button onclick="nav('view-ricettario')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-book-open text-2xl text-blue-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Distinta Base</span></button>
+                    <button onclick="nav('view-inventory')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-boxes text-2xl text-slate-600 mb-2"></i><span class="block text-[10px] font-black uppercase">Magazzino</span></button>
+                    <button onclick="nav('view-ricettario')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-book-open text-2xl text-blue-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Ricettario</span></button>
                     <button onclick="nav('view-fatture')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-file-invoice-dollar text-2xl text-amber-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Fatture Cloud</span></button>
                     <button onclick="nav('view-fornitori')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-truck text-2xl text-purple-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Fornitori</span></button>
                     <button onclick="nav('view-staff')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-users text-2xl text-slate-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Staff</span></button>
                     <button onclick="nav('view-cassa')" class="bg-white border p-6 rounded-3xl shadow-sm text-center active:scale-95 transition"><i class="fas fa-sync text-2xl text-emerald-500 mb-2"></i><span class="block text-[10px] font-black uppercase">Sincro RCH</span></button>
+                </div>
+
+                <div class="bg-slate-100 p-5 rounded-3xl border shadow-sm mt-6">
+                    <h3 class="font-black text-slate-800 text-sm mb-3 uppercase"><i class="fas fa-shield-alt mr-2 text-slate-500"></i>Sicurezza Dati</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="esportaBackup()" class="bg-white border-2 border-slate-300 text-slate-700 py-3 rounded-xl font-black uppercase text-[9px] shadow-sm active:scale-95"><i class="fas fa-download mr-1"></i> Scarica Backup</button>
+                        <input type="file" id="file-backup" accept=".json" class="hidden" onchange="importaBackup(this)">
+                        <button onclick="document.getElementById('file-backup').click()" class="bg-red-50 border-2 border-red-200 text-red-600 py-3 rounded-xl font-black uppercase text-[9px] shadow-sm active:scale-95"><i class="fas fa-upload mr-1"></i> Carica Backup</button>
+                    </div>
                 </div>
             </div>
 
@@ -109,9 +117,9 @@
                         </select>
                         <input type="date" id="man-data" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-xs text-slate-700">
                     </div>
-                    <input type="text" id="man-desc" placeholder="Descrizione (Es: Spesa Supermercato, Benzina...)" class="w-full border p-3 rounded-xl font-bold uppercase bg-slate-50 text-sm">
+                    <input type="text" id="man-desc" placeholder="Descrizione (Es: Benzina, Bolletta...)" class="w-full border p-3 rounded-xl font-bold uppercase bg-slate-50 text-sm">
                     <div class="grid grid-cols-2 gap-2">
-                        <div><label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Importo Totale (€)</label><input type="number" id="man-importo" class="w-full border p-3 rounded-xl font-black text-center text-lg text-emerald-600" placeholder="0.00"></div>
+                        <div><label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Importo Tot. (€)</label><input type="number" id="man-importo" class="w-full border p-3 rounded-xl font-black text-center text-lg text-emerald-600" placeholder="0.00"></div>
                         <div><label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Di cui IVA (€)</label><input type="number" id="man-iva" class="w-full border p-3 rounded-xl font-black text-center text-lg text-slate-600" value="0.00"></div>
                     </div>
                     <select id="man-stato" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-xs text-slate-700">
@@ -191,11 +199,6 @@
                     <input type="file" accept=".xlsx, .xls" id="file-rch-vendite" onchange="elaboraVenditeRCHExcel(this)" class="hidden">
                     <button onclick="document.getElementById('file-rch-vendite').click()" class="w-full bg-white text-emerald-600 py-4 rounded-xl font-black text-xs uppercase shadow-md active:scale-95">Carica Statistiche (.xlsx)</button>
                 </div>
-                <div class="bg-white p-5 rounded-3xl border shadow-sm mt-4">
-                    <h3 class="font-black text-slate-800 text-sm mb-4 uppercase">Chiusura Manuale Rapida</h3>
-                    <input type="number" id="manual-incasso-tot" class="w-full border p-4 rounded-xl font-black text-emerald-600 text-2xl text-center mb-4 bg-slate-50" placeholder="Lordo Serata €">
-                    <button onclick="eseguiChiusuraManualePura()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase text-xs shadow-md">Registra Incasso</button>
-                </div>
             </div>
 
             <div id="view-ricettario" class="view-panel space-y-4 titolare-only">
@@ -219,7 +222,7 @@
                     </div>
                     
                     <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                        <h4 class="font-black text-[10px] text-slate-700 uppercase mb-2">Materie Prime da scaricare (Padri)</h4>
+                        <h4 class="font-black text-[10px] text-slate-700 uppercase mb-2">Materie Prime da scaricare</h4>
                         <div id="lista-ingredienti-piatto" class="space-y-2 mb-4"></div>
                         <div class="flex gap-2 items-end border-t border-slate-200 pt-3">
                             <div class="flex-1">
@@ -241,12 +244,6 @@
                 <div class="bg-white p-5 rounded-3xl border shadow-sm"><h4 class="font-black text-slate-800 mb-3 border-b pb-2">Anticipo Stipendio</h4><div class="space-y-3"><select id="staff-select" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-sm"></select><input type="number" id="staff-anticipo-val" placeholder="Importo €" class="w-full border p-3 rounded-xl font-black text-center text-lg bg-slate-50" value="0.00"><button onclick="salvaAnticipoStaff()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl uppercase text-xs">Conferma Anticipo</button></div></div>
                 <div class="bg-white rounded-3xl border shadow-sm overflow-hidden" id="staff-list-container"></div>
                 <div class="flex gap-2"><input type="text" id="new-staff-name" placeholder="Nome Dipendente..." class="flex-1 border p-3 rounded-xl font-bold text-xs"><button onclick="aggiungiDipendente()" class="bg-slate-900 text-white px-4 rounded-xl font-black active:scale-95">+</button></div>
-            </div>
-
-            <div id="view-shopping" class="view-panel space-y-4 titolare-only">
-                <div class="bg-amber-50 p-4 rounded-3xl border border-amber-200"><h3 class="font-black text-amber-900 text-sm">Lista Spesa Automatica</h3><p class="text-[9px] text-amber-700 uppercase font-bold">Prodotti sotto soglia minima</p></div>
-                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden divide-y divide-slate-100" id="auto-shopping-list"></div>
-                <div class="bg-slate-100 p-5 rounded-3xl space-y-3"><div class="flex gap-2"><input type="text" id="manual-shop-item" placeholder="Altro?" class="flex-1 border p-3 rounded-xl font-bold text-xs"><button onclick="aggiungiVoceManualeSpesa()" class="bg-emerald-600 text-white px-4 rounded-xl font-black active:scale-95">+</button></div><div id="manual-shopping-list" class="space-y-2"></div></div>
             </div>
 
             <div id="view-add-product" class="view-panel space-y-4">
@@ -278,18 +275,18 @@
         const SB_KEY = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-        let userRole = ''; let inventarioLocale = []; let staffLocale = [];
-        let menuRistorante = JSON.parse(localStorage.getItem('belvedereMenu')) || []; 
+        let userRole = ''; 
+        let inventarioLocale = []; let staffLocale = [];
+        let menuRistorante = []; // Ora dal Cloud
+        let categorieDB = [];    // Ora dal Cloud
+        let fornitoriDB = {};    // Ora dal Cloud
+        
         let ingredientiTempRicetta = []; let fatturaItemsLetti = [];
-        let fornitoriDB = JSON.parse(localStorage.getItem('belvedereFornitori')) || {};
-        let categorieDB = JSON.parse(localStorage.getItem('belvedereCategorie')) || ['CANTINA', 'BEVANDE', 'CAFFETTERIA', 'CUCINA', 'PIZZERIA', 'VARIE'];
-
         let finanzaDatiGlobali = [];
         let currentFinanzaTab = 'TUTTE';
 
         window.onload = () => { 
             let oggi = new Date(); document.getElementById('finanza-mese-selettore').value = oggi.getFullYear() + '-' + String(oggi.getMonth() + 1).padStart(2, '0');
-            // Init date field in manual form
             document.getElementById('man-data').value = oggi.toISOString().substring(0,10);
             const savedRole = localStorage.getItem('belvedereAuthRole'); 
             if(savedRole) { userRole = savedRole; avviaApp(); } 
@@ -303,9 +300,13 @@
             } else { alert("Password errata."); }
         }
 
-        function avviaApp() {
+        async function avviaApp() {
             document.getElementById('view-login').style.display = 'none'; 
             document.getElementById('app-interface').classList.remove('hidden');
+            
+            // CARICA TUTTO DAL CLOUD AL LOG IN
+            await sincronizzaCloudManuale(false);
+
             if (userRole === 'Staff') {
                 document.getElementById('role-badge').innerText = 'Staff Magazzino';
                 document.querySelectorAll('.titolare-only').forEach(el => el.classList.add('hidden'));
@@ -313,8 +314,44 @@
             } else {
                 document.getElementById('role-badge').innerText = 'Titolare';
                 document.querySelectorAll('.titolare-only').forEach(el => el.classList.remove('hidden'));
-                nav('view-dashboard'); caricaInventarioDaSupabase(); caricaFinanzaDaSupabase(); caricaStaff(); aggiornaVistaFornitori(); aggiornaVistaRicettario();
+                nav('view-dashboard'); 
             }
+        }
+
+        // TASTO SALVA/SINCRO
+        async function sincronizzaCloudManuale(mostraAvviso = true) {
+            let btn = document.getElementById('btn-sync-cloud');
+            if(btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sync...';
+            
+            // 1. Inventario & Staff & Finanza
+            await caricaInventarioDaSupabase();
+            await caricaStaff();
+            await caricaFinanzaDaSupabase();
+
+            // 2. Categorie
+            let {data: catData} = await supabaseClient.from('categorie').select('*');
+            if(catData && catData.length > 0) { categorieDB = catData.map(c => c.nome); } 
+            else { categorieDB = ['CANTINA', 'BEVANDE', 'CAFFETTERIA', 'CUCINA', 'PIZZERIA', 'VARIE']; }
+            
+            // 3. Fornitori
+            let {data: fornData} = await supabaseClient.from('fornitori_db').select('*');
+            fornitoriDB = {};
+            if(fornData) { fornData.forEach(f => fornitoriDB[f.nome] = f.storico || []); }
+
+            // 4. Menu
+            let {data: menuData} = await supabaseClient.from('menu').select('*');
+            menuRistorante = menuData || [];
+
+            // Aggiorna le viste
+            aggiornaVistaCategorie();
+            aggiornaVistaFornitori();
+            aggiornaVistaRicettario();
+
+            if(btn) {
+                btn.innerHTML = '<i class="fas fa-check text-emerald-500"></i> Salvato';
+                setTimeout(() => { btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Salva'; }, 2000);
+            }
+            if(mostraAvviso) alert("App sincronizzata al 100% con il Cloud!");
         }
 
         function nav(id) {
@@ -324,149 +361,116 @@
             if(event && event.currentTarget && event.currentTarget.tagName === 'BUTTON' && event.currentTarget.parentElement.id === 'bottom-nav') {
                 event.currentTarget.className = event.currentTarget.className.replace('text-slate-400', 'text-emerald-600');
             }
-            if(id === 'view-inventory') caricaInventarioDaSupabase();
-            if(id === 'view-categorie') aggiornaVistaCategorie();
-            if(id === 'view-ricettario') aggiornaVistaRicettario();
-            if(id === 'view-finanza') caricaFinanzaDaSupabase();
-            if(id === 'view-fornitori') aggiornaVistaFornitori();
-            if(id === 'view-staff') caricaStaff();
         }
 
         function logout() { localStorage.removeItem('belvedereAuthRole'); location.reload(); }
 
         // ==========================================
-        // FINANZA: LISTA, TABS, RICERCA E MANUALE
+        // BACKUP E RIPRISTINO
         // ==========================================
-        async function caricaFinanzaDaSupabase() {
-            const { data } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false });
-            finanzaDatiGlobali = data || [];
-            renderFinanzaList();
+        async function esportaBackup() {
+            if(!confirm("Creare un file di Backup Globale?")) return;
+            let backup = {};
+            const tabs = ['inventario', 'finanza', 'staff', 'menu', 'categorie', 'fornitori_db'];
+            for(let t of tabs) {
+                let {data} = await supabaseClient.from(t).select('*');
+                backup[t] = data || [];
+            }
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
+            let downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "belvedere_backup_" + new Date().toISOString().substring(0,10) + ".json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
         }
 
-        function setFinanzaTab(tab) {
-            currentFinanzaTab = tab;
-            ['TUTTE', 'ENTRATE', 'PAGATE', 'DA_PAGARE'].forEach(t => {
-                let btn = document.getElementById('tab-' + t);
-                if(t === tab) { btn.className = "flex-1 py-3 text-[9px] font-black uppercase rounded-xl bg-white shadow-sm text-slate-800 transition"; } 
-                else { btn.className = "flex-1 py-3 text-[9px] font-black uppercase rounded-xl text-slate-500 transition hover:bg-slate-200"; }
-            });
-            renderFinanzaList();
+        function importaBackup(input) {
+            if(!input.files[0]) return;
+            if(!confirm("ATTENZIONE: Stai per sovrascrivere o aggiungere dati dal file di backup. Confermi?")) { input.value=''; return; }
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    let backup = JSON.parse(e.target.result);
+                    const tabs = ['inventario', 'finanza', 'staff', 'menu', 'categorie', 'fornitori_db'];
+                    
+                    for(let t of tabs) {
+                        if(backup[t] && backup[t].length > 0) {
+                            // In un sistema avanzato si fa un upsert per ID. Qui facciamo un insert per sicurezza
+                            await supabaseClient.from(t).upsert(backup[t]);
+                        }
+                    }
+                    alert("Backup Ripristinato con successo!");
+                    sincronizzaCloudManuale();
+                } catch(err) { alert("File di backup non valido."); }
+            };
+            reader.readAsText(input.files[0]);
+            input.value='';
         }
 
+        // ==========================================
+        // FINANZA
+        // ==========================================
+        async function caricaFinanzaDaSupabase() { const { data } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false }); finanzaDatiGlobali = data || []; renderFinanzaList(); }
+        function setFinanzaTab(tab) { currentFinanzaTab = tab; ['TUTTE', 'ENTRATE', 'PAGATE', 'DA_PAGARE'].forEach(t => { let btn = document.getElementById('tab-' + t); if(t === tab) { btn.className = "flex-1 py-3 text-[9px] font-black uppercase rounded-xl bg-white shadow-sm text-slate-800 transition"; } else { btn.className = "flex-1 py-3 text-[9px] font-black uppercase rounded-xl text-slate-500 transition hover:bg-slate-200"; } }); renderFinanzaList(); }
         function renderFinanzaList() {
-            let mese = document.getElementById('finanza-mese-selettore').value;
-            let testo = document.getElementById('finanza-filtro-testo').value.toLowerCase();
+            let mese = document.getElementById('finanza-mese-selettore').value; let testo = document.getElementById('finanza-filtro-testo').value.toLowerCase();
             let filtratiMese = finanzaDatiGlobali.filter(m => m.data && m.data.startsWith(mese));
             
             let totE = 0; let totUPag = 0; let totDeb = 0; let ivaD = 0; let ivaC = 0;
-            filtratiMese.forEach(m => {
-                let isE = (m.tipo === 'entrata');
-                if(isE) { totE += m.importo; ivaD += (m.iva||0); } 
-                else { if(m.stato_pagamento === 'pagato') { totUPag += m.importo; ivaC += (m.iva||0); } else { totDeb += m.importo; ivaC += (m.iva||0); } }
-            });
+            filtratiMese.forEach(m => { let isE = (m.tipo === 'entrata'); if(isE) { totE += m.importo; ivaD += (m.iva||0); } else { if(m.stato_pagamento === 'pagato') { totUPag += m.importo; ivaC += (m.iva||0); } else { totDeb += m.importo; ivaC += (m.iva||0); } } });
             
-            let liq = totE - totUPag; 
-            document.getElementById('finanza-saldo').innerText = '€ ' + Math.abs(liq).toFixed(2);
-            document.getElementById('finanza-saldo').className = `text-4xl font-black ${liq >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
-            document.getElementById('finanza-saldo-segno').innerText = liq >= 0 ? "ATTIVO MENSILE" : "PASSIVO MENSILE";
-            document.getElementById('finanza-saldo-segno').className = `inline-block text-[9px] font-black uppercase px-3 py-1 rounded-full mb-2 ${liq >= 0 ? 'bg-emerald-500' : 'bg-red-500'} text-white`;
-            document.getElementById('finanza-iva-totale').innerText = '€ ' + Math.abs(ivaD - ivaC).toFixed(2);
-            document.getElementById('finanza-iva-badge').innerText = (ivaD - ivaC) >= 0 ? "DA VERSARE" : "A CREDITO";
-            document.getElementById('finanza-iva-badge').className = `text-[8px] font-black uppercase px-2 py-1 rounded text-white ${(ivaD - ivaC) >= 0 ? 'bg-red-500' : 'bg-emerald-500'}`;
-            document.getElementById('finanza-entrate').innerText = '€ ' + totE.toFixed(2); document.getElementById('finanza-uscite-pagate').innerText = '€ ' + totUPag.toFixed(2); document.getElementById('finanza-debiti').innerText = '€ ' + totDeb.toFixed(2); document.getElementById('dash-income').innerText = '€ ' + totE.toFixed(2);
+            let liq = totE - totUPag; document.getElementById('finanza-saldo').innerText = '€ ' + Math.abs(liq).toFixed(2); document.getElementById('finanza-saldo').className = `text-4xl font-black ${liq >= 0 ? 'text-emerald-400' : 'text-red-400'}`; document.getElementById('finanza-saldo-segno').innerText = liq >= 0 ? "ATTIVO MENSILE" : "PASSIVO MENSILE"; document.getElementById('finanza-saldo-segno').className = `inline-block text-[9px] font-black uppercase px-3 py-1 rounded-full mb-2 ${liq >= 0 ? 'bg-emerald-500' : 'bg-red-500'} text-white`; document.getElementById('finanza-iva-totale').innerText = '€ ' + Math.abs(ivaD - ivaC).toFixed(2); document.getElementById('finanza-iva-badge').innerText = (ivaD - ivaC) >= 0 ? "DA VERSARE" : "A CREDITO"; document.getElementById('finanza-iva-badge').className = `text-[8px] font-black uppercase px-2 py-1 rounded text-white ${(ivaD - ivaC) >= 0 ? 'bg-red-500' : 'bg-emerald-500'}`; document.getElementById('finanza-entrate').innerText = '€ ' + totE.toFixed(2); document.getElementById('finanza-uscite-pagate').innerText = '€ ' + totUPag.toFixed(2); document.getElementById('finanza-debiti').innerText = '€ ' + totDeb.toFixed(2); document.getElementById('dash-income').innerText = '€ ' + totE.toFixed(2);
 
-            let viewList = filtratiMese.filter(m => {
-                let desc = (m.descrizione||'').toLowerCase(); let cat = (m.categoria||'').toLowerCase();
-                if (testo !== "" && !desc.includes(testo) && !cat.includes(testo)) return false;
-                if (currentFinanzaTab === 'ENTRATE') return m.tipo === 'entrata';
-                if (currentFinanzaTab === 'PAGATE') return m.tipo === 'uscita' && m.stato_pagamento === 'pagato';
-                if (currentFinanzaTab === 'DA_PAGARE') return m.tipo === 'uscita' && m.stato_pagamento === 'da_pagare';
-                return true; 
-            });
-
+            let viewList = filtratiMese.filter(m => { let desc = (m.descrizione||'').toLowerCase(); let cat = (m.categoria||'').toLowerCase(); if (testo !== "" && !desc.includes(testo) && !cat.includes(testo)) return false; if (currentFinanzaTab === 'ENTRATE') return m.tipo === 'entrata'; if (currentFinanzaTab === 'PAGATE') return m.tipo === 'uscita' && m.stato_pagamento === 'pagato'; if (currentFinanzaTab === 'DA_PAGARE') return m.tipo === 'uscita' && m.stato_pagamento === 'da_pagare'; return true; });
             document.getElementById('finanza-list').innerHTML = viewList.map(m => {
-                let isE = (m.tipo === 'entrata');
-                let badge = m.stato_pagamento === 'da_pagare' ? `<span class="bg-red-500 text-white status-badge ml-2">Da Pagare</span>` : (isE ? `<span class="bg-emerald-100 text-emerald-700 status-badge ml-2">Incasso</span>` : `<span class="bg-slate-200 text-slate-600 status-badge ml-2">Pagato</span>`);
-                let dataStr = new Date(m.data).toLocaleDateString('it-IT');
-                let descJS = (m.descrizione||'').replace(/'/g, "\\'");
+                let isE = (m.tipo === 'entrata'); let badge = m.stato_pagamento === 'da_pagare' ? `<span class="bg-red-500 text-white status-badge ml-2">Da Pagare</span>` : (isE ? `<span class="bg-emerald-100 text-emerald-700 status-badge ml-2">Incasso</span>` : `<span class="bg-slate-200 text-slate-600 status-badge ml-2">Pagato</span>`);
+                let dataStr = new Date(m.data).toLocaleDateString('it-IT'); let descJS = (m.descrizione||'').replace(/'/g, "\\'");
                 return `<div class="p-4 border-b flex justify-between items-center bg-white hover:bg-slate-50 transition"><div class="flex-1 mr-2 overflow-hidden"><p class="font-black text-[11px] uppercase text-slate-800 truncate">${m.descrizione}</p><p class="text-[8px] font-bold text-slate-400 mt-1">${dataStr} ${badge}</p></div><div class="flex items-center gap-1"><span class="font-black ${isE?'text-emerald-500':'text-slate-700'} whitespace-nowrap">€ ${m.importo.toFixed(2)}</span><button onclick="rinominaMovimentoFinanza('${m.id}', '${descJS}')" class="text-blue-400 p-2 bg-blue-50 rounded-lg active:scale-90 ml-2"><i class="fas fa-pencil"></i></button><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-300 p-2 bg-red-50 rounded-lg active:scale-90"><i class="fas fa-trash"></i></button></div></div>`;
             }).join('') || '<p class="p-8 text-center text-xs text-slate-400 uppercase">Nessun movimento trovato</p>';
         }
-
         async function rinominaMovimentoFinanza(id, oldName) { let newName = prompt("Modifica intestatario o descrizione:", oldName); if (newName !== null && newName.trim() !== "") { await supabaseClient.from('finanza').update({ descrizione: newName.trim().toUpperCase() }).eq('id', id); caricaFinanzaDaSupabase(); } }
         async function eliminaMovimentoFinanza(id) { if(confirm("ELIMINAZIONE:\nVuoi davvero rimuovere questo movimento dal bilancio?")) { await supabaseClient.from('finanza').delete().eq('id', id); caricaFinanzaDaSupabase(); } }
-
         function apriMovimentoManuale() { document.getElementById('form-movimento-manuale').classList.remove('hidden'); document.getElementById('man-desc').value=''; document.getElementById('man-importo').value=''; document.getElementById('man-iva').value='0.00'; window.scrollTo(0, 0); }
         function chiudiMovimentoManuale() { document.getElementById('form-movimento-manuale').classList.add('hidden'); }
         async function salvaMovimentoManuale() {
-            let desc = document.getElementById('man-desc').value.trim().toUpperCase();
-            let imp = parseFloat(document.getElementById('man-importo').value);
-            let iva = parseFloat(document.getElementById('man-iva').value) || 0;
-            let dataSelezionata = document.getElementById('man-data').value;
-            let tipo = document.getElementById('man-tipo').value;
-            let stato = document.getElementById('man-stato').value;
-
+            let desc = document.getElementById('man-desc').value.trim().toUpperCase(); let imp = parseFloat(document.getElementById('man-importo').value); let iva = parseFloat(document.getElementById('man-iva').value) || 0; let dataSelezionata = document.getElementById('man-data').value; let tipo = document.getElementById('man-tipo').value; let stato = document.getElementById('man-stato').value;
             if(!desc || isNaN(imp) || !dataSelezionata) return alert("Compila descrizione, importo e data.");
-
             let isoData = new Date(dataSelezionata + "T12:00:00.000Z").toISOString();
-            
             await supabaseClient.from('finanza').insert([{ tipo: tipo, categoria: (tipo==='entrata'?'Ristorante':'Varie'), descrizione: desc, importo: imp, iva: iva, stato_pagamento: stato, data: isoData, data_pagamento: (stato==='pagato'?isoData:null) }]);
-            chiudiMovimentoManuale(); caricaFinanzaDaSupabase(); alert("Movimento salvato in bilancio!");
+            chiudiMovimentoManuale(); caricaFinanzaDaSupabase(); alert("Salvato in bilancio!");
         }
 
         // ==========================================
-        // FATTURE CLOUD CON LETTURA DATA
+        // FATTURE CLOUD CON DATA A.I.
         // ==========================================
         function elaboraFatturaXML(input) {
             if(!input.files[0]) return; document.getElementById('fattura-loader').classList.remove('hidden'); document.getElementById('fattura-result').classList.add('hidden');
             const reader = new FileReader(); reader.onload = function(e) {
                 try {
-                    let rawText = e.target.result; let items = []; let ivaT = 0; let extractedFornitore = "";
-                    let extractedDataDoc = new Date().toISOString().substring(0, 10); // default today
-                    
-                    // Estrattore Fornitore
+                    let rawText = e.target.result; let items = []; let ivaT = 0; let extractedFornitore = ""; let extractedDataDoc = new Date().toISOString().substring(0, 10);
                     let matchDenom = rawText.match(/<CedentePrestatore>[\s\S]*?<Denominazione>(.*?)<\/Denominazione>/i);
-                    if (matchDenom) extractedFornitore = matchDenom[1].trim().toUpperCase();
-                    else { let matchHtml = rawText.match(/Cedente \/ Prestatore[\s\S]*?<b>(.*?)<\/b>/i); if (matchHtml) extractedFornitore = matchHtml[1].trim().toUpperCase(); }
+                    if (matchDenom) extractedFornitore = matchDenom[1].trim().toUpperCase(); else { let matchHtml = rawText.match(/Cedente \/ Prestatore[\s\S]*?<b>(.*?)<\/b>/i); if (matchHtml) extractedFornitore = matchHtml[1].trim().toUpperCase(); }
 
-                    // Parser Html o XML
                     if (rawText.includes('<html')) {
-                        // Cerca data nel formato DD/MM/YYYY
-                        let dataMatch = rawText.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-                        if(dataMatch) extractedDataDoc = `${dataMatch[3]}-${dataMatch[2]}-${dataMatch[1]}`;
-
-                        const parser = new DOMParser(); const htmlDoc = parser.parseFromString(rawText, "text/html");
-                        const tabelle = htmlDoc.querySelectorAll('table'); let tabellaP = null;
+                        let dataMatch = rawText.match(/(\d{2})\/(\d{2})\/(\d{4})/); if(dataMatch) extractedDataDoc = `${dataMatch[3]}-${dataMatch[2]}-${dataMatch[1]}`;
+                        const parser = new DOMParser(); const htmlDoc = parser.parseFromString(rawText, "text/html"); const tabelle = htmlDoc.querySelectorAll('table'); let tabellaP = null;
                         for (let tb of tabelle) { if (tb.textContent.includes('Prezzo unitario')) { tabellaP = tb; break; } }
                         if (tabellaP) {
-                            tabellaP.querySelectorAll('tbody tr').forEach(riga => {
-                                const celle = riga.querySelectorAll('td');
-                                if (celle.length >= 8) {
-                                    let desc = celle[1].innerText.split('Periodo')[0].trim(); let qta = parseFloat(celle[2].innerText.replace(/\./g,'').replace(',','.'))||0; let p = parseFloat(celle[3].innerText.replace(/\./g,'').replace(',','.'))||0; let percIva = parseFloat(celle[6].innerText.replace(',','.'))||0;
-                                    if (desc && qta > 0) { items.push({ nome: desc.substring(0,40), qta, costo_unit: p }); ivaT += (qta*p)*(percIva/100); }
-                                }
-                            });
+                            tabellaP.querySelectorAll('tbody tr').forEach(riga => { const celle = riga.querySelectorAll('td'); if (celle.length >= 8) { let desc = celle[1].innerText.split('Periodo')[0].trim(); let qta = parseFloat(celle[2].innerText.replace(/\./g,'').replace(',','.'))||0; let p = parseFloat(celle[3].innerText.replace(/\./g,'').replace(',','.'))||0; let percIva = parseFloat(celle[6].innerText.replace(',','.'))||0; if (desc && qta > 0) { items.push({ nome: desc.substring(0,40), qta, costo_unit: p }); ivaT += (qta*p)*(percIva/100); } } });
                         }
                     } else {
                         let estrazione = rawText.match(/(<[a-zA-Z0-9_:]*FatturaElettronica[\s\S]*<\/[a-zA-Z0-9_:]*FatturaElettronica>)/i); if(estrazione) rawText = estrazione[1];
-                        const parser = new DOMParser(); const xmlDoc = parser.parseFromString(rawText, "text/xml");
-                        const getTags = (nodo, n) => { let t = nodo.getElementsByTagName(n); return t.length === 0 ? nodo.getElementsByTagNameNS("*", n) : t; };
-                        
-                        let dataTag = getTags(xmlDoc.documentElement, "Data")[0];
-                        if(dataTag && dataTag.textContent) extractedDataDoc = dataTag.textContent.substring(0,10);
-
+                        const parser = new DOMParser(); const xmlDoc = parser.parseFromString(rawText, "text/xml"); const getTags = (nodo, n) => { let t = nodo.getElementsByTagName(n); return t.length === 0 ? nodo.getElementsByTagNameNS("*", n) : t; };
+                        let dataTag = getTags(xmlDoc.documentElement, "Data")[0]; if(dataTag && dataTag.textContent) extractedDataDoc = dataTag.textContent.substring(0,10);
                         const linee = getTags(xmlDoc.documentElement, "DettaglioLinee");
                         for(let i=0; i < linee.length; i++) {
                             let tagDesc = getTags(linee[i], "Descrizione")[0], tagQta = getTags(linee[i], "Quantita")[0], tagPrezzo = getTags(linee[i], "PrezzoUnitario")[0], tagIva = getTags(linee[i], "AliquotaIVA")[0];
-                            if(tagDesc && tagPrezzo) {
-                                let q = tagQta ? parseFloat(tagQta.textContent) : 1; let p = parseFloat(tagPrezzo.textContent); let perc = tagIva ? parseFloat(tagIva.textContent) : 0;
-                                ivaT += (q * p) * (perc / 100); items.push({ nome: tagDesc.textContent.trim().substring(0,40), qta: q, costo_unit: p });
-                            }
+                            if(tagDesc && tagPrezzo) { let q = tagQta ? parseFloat(tagQta.textContent) : 1; let p = parseFloat(tagPrezzo.textContent); let perc = tagIva ? parseFloat(tagIva.textContent) : 0; ivaT += (q * p) * (perc / 100); items.push({ nome: tagDesc.textContent.trim().substring(0,40), qta: q, costo_unit: p }); }
                         }
                     }
-                    fatturaItemsLetti = items; document.getElementById('ocr-tot-iva').value = ivaT.toFixed(2);
-                    document.getElementById('ocr-data-doc').value = extractedDataDoc;
-
+                    fatturaItemsLetti = items; document.getElementById('ocr-tot-iva').value = ivaT.toFixed(2); document.getElementById('ocr-data-doc').value = extractedDataDoc;
                     impostaFornitoreUI(extractedFornitore);
                     let opts = inventarioLocale.map(inv => `<option value="${inv.id}">${inv.nome} (${inv.categoria||'VARIE'})</option>`).join('');
                     document.getElementById('fattura-items-list').innerHTML = items.map((i, idx) => `<div class="p-3 border-b"><div class="flex justify-between text-[10px] font-black uppercase mb-1"><span>${i.nome} (x${i.qta})</span><span class="text-emerald-600">€${i.costo_unit.toFixed(2)}</span></div><select id="map-fattura-${idx}" class="w-full border p-2 rounded-lg text-[9px] font-bold bg-emerald-50"><option value="NEW">+ CREA NUOVA MATERIA</option>${opts}</select></div>`).join('');
@@ -474,26 +478,18 @@
                 } catch(err) { alert("File non supportato"); document.getElementById('fattura-loader').classList.add('hidden'); }
             }; reader.readAsText(input.files[0]);
         }
-
         function impostaFornitoreUI(name) {
             let sel = document.getElementById('fattura-fornitore-select'); let customInput = document.getElementById('fattura-fornitore-custom');
             let opts = `<option value="NUOVO">--- INSERISCI NUOVO ---</option>` + Object.keys(fornitoriDB).map(f => `<option value="${f}">${f}</option>`).join('');
             sel.innerHTML = opts;
-            if (name && Object.keys(fornitoriDB).includes(name)) { sel.value = name; customInput.classList.add('hidden'); }
-            else { sel.value = 'NUOVO'; customInput.value = name || ""; customInput.classList.remove('hidden'); }
+            if (name && Object.keys(fornitoriDB).includes(name)) { sel.value = name; customInput.classList.add('hidden'); } else { sel.value = 'NUOVO'; customInput.value = name || ""; customInput.classList.remove('hidden'); }
         }
         function checkFornitoreCustom() { let sel = document.getElementById('fattura-fornitore-select'); document.getElementById('fattura-fornitore-custom').classList.toggle('hidden', sel.value !== 'NUOVO'); }
-
         async function confermaCaricoFattura() {
             let selVal = document.getElementById('fattura-fornitore-select').value; let fornitore = selVal === 'NUOVO' ? document.getElementById('fattura-fornitore-custom').value.trim().toUpperCase() : selVal;
             let doc=document.getElementById('ocr-tipo-doc').value, stato=document.getElementById('ocr-stato-pag').value, tot=0, ivaE = parseFloat(document.getElementById('ocr-tot-iva').value)||0;
-            
-            let dataFattura = document.getElementById('ocr-data-doc').value;
-            if(!dataFattura) dataFattura = new Date().toISOString().substring(0,10);
-            let isoData = new Date(dataFattura + "T12:00:00.000Z").toISOString();
-
+            let dataFattura = document.getElementById('ocr-data-doc').value; if(!dataFattura) dataFattura = new Date().toISOString().substring(0,10); let isoData = new Date(dataFattura + "T12:00:00.000Z").toISOString();
             if(!fornitore) return alert("Inserisci il fornitore"); if(!fornitoriDB[fornitore]) fornitoriDB[fornitore] = [];
-
             for(let i=0; i < fatturaItemsLetti.length; i++) {
                 let item = fatturaItemsLetti[i]; tot += (item.qta * item.costo_unit);
                 if(doc === 'merce') {
@@ -503,27 +499,27 @@
                     fornitoriDB[fornitore].push({ nome_fattura: item.nome, padre_magazzino: nomeAss, prezzo_unitario: item.costo_unit, data: new Date(dataFattura).toLocaleDateString('it-IT') });
                 }
             }
-            localStorage.setItem('belvedereFornitori', JSON.stringify(fornitoriDB));
+            await supabaseClient.from('fornitori_db').upsert([{ nome: fornitore, storico: fornitoriDB[fornitore] }], {onConflict: 'nome'});
             await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria: 'Fornitori', descrizione: `Fattura: ${fornitore}`, importo: tot+ivaE, iva: ivaE, stato_pagamento: stato, data: isoData, data_pagamento: stato==='pagato'?isoData:null }]);
-            alert("Fattura Caricata!"); nav('view-dashboard');
+            alert("Caricata!"); nav('view-dashboard'); sincronizzaCloudManuale(false);
         }
 
         // ==========================================
-        // GESTIONE CATEGORIE
+        // CATEGORIE CLOUD
         // ==========================================
-        function aggiornaVistaCategorie() { document.getElementById('lista-categorie').innerHTML = categorieDB.map((c, i) => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border"><span class="font-black text-xs uppercase text-slate-700">${c}</span><button onclick="eliminaCategoria(${i})" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div>`).join(''); let sel = document.getElementById('new-cat'); if(sel) sel.innerHTML = categorieDB.map(c => `<option value="${c}">${c}</option>`).join(''); }
-        function aggiungiCategoria() { let v = document.getElementById('nuova-cat-input').value.trim().toUpperCase(); if(v && !categorieDB.includes(v)) { categorieDB.push(v); localStorage.setItem('belvedereCategorie', JSON.stringify(categorieDB)); document.getElementById('nuova-cat-input').value = ''; aggiornaVistaCategorie(); } }
-        function eliminaCategoria(i) { if(confirm("Eliminare?")) { categorieDB.splice(i, 1); localStorage.setItem('belvedereCategorie', JSON.stringify(categorieDB)); aggiornaVistaCategorie(); } }
+        function aggiornaVistaCategorie() { document.getElementById('lista-categorie').innerHTML = categorieDB.map((c, i) => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border"><span class="font-black text-xs uppercase text-slate-700">${c}</span><button onclick="eliminaCategoria('${c}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div>`).join(''); let sel = document.getElementById('new-cat'); if(sel) sel.innerHTML = categorieDB.map(c => `<option value="${c}">${c}</option>`).join(''); }
+        async function aggiungiCategoria() { let v = document.getElementById('nuova-cat-input').value.trim().toUpperCase(); if(v && !categorieDB.includes(v)) { await supabaseClient.from('categorie').insert([{ nome: v }]); document.getElementById('nuova-cat-input').value = ''; sincronizzaCloudManuale(false); } }
+        async function eliminaCategoria(nome) { if(confirm("Eliminare?")) { await supabaseClient.from('categorie').delete().eq('nome', nome); sincronizzaCloudManuale(false); } }
 
         // ==========================================
-        // FORNITORI MANUALE
+        // FORNITORI CLOUD
         // ==========================================
-        function aggiornaVistaFornitori() { document.getElementById('fornitori-list-container').innerHTML = Object.entries(fornitoriDB).map(([nome, acquisti]) => `<div class="bg-white p-4 rounded-3xl border shadow-sm"><div class="flex justify-between items-center mb-3"><h4 class="font-black text-sm uppercase text-purple-800">${nome}</h4><button onclick="eliminaFornitore('${nome.replace(/'/g, "\\'")}')" class="text-red-300 p-2"><i class="fas fa-trash"></i></button></div>${acquisti.slice(-3).reverse().map(a => `<div class="flex justify-between text-[8px] font-bold border-b pb-1 mb-1"><span>${a.nome_fattura}</span><span class="text-emerald-600">€ ${a.prezzo_unitario.toFixed(2)}</span></div>`).join('')}</div>`).join('') || '<p class="text-center text-xs text-slate-400 p-6">Nessun fornitore.</p>'; }
-        function aggiungiFornitoreManuale() { let nome = document.getElementById('new-fornitore-name').value.trim().toUpperCase(); if(nome && !fornitoriDB[nome]) { fornitoriDB[nome] = []; localStorage.setItem('belvedereFornitori', JSON.stringify(fornitoriDB)); document.getElementById('new-fornitore-name').value = ''; aggiornaVistaFornitori(); } }
-        function eliminaFornitore(n) { if(confirm(`Eliminare lo storico di ${n}?`)) { delete fornitoriDB[n]; localStorage.setItem('belvedereFornitori', JSON.stringify(fornitoriDB)); aggiornaVistaFornitori(); } }
+        function aggiornaVistaFornitori() { document.getElementById('fornitori-list-container').innerHTML = Object.entries(fornitoriDB).map(([nome, acquisti]) => `<div class="bg-white p-4 rounded-3xl border shadow-sm"><div class="flex justify-between items-center mb-3"><h4 class="font-black text-sm uppercase text-purple-800">${nome}</h4><button onclick="eliminaFornitore('${nome.replace(/'/g, "\\'")}')" class="text-red-300 p-2"><i class="fas fa-trash"></i></button></div>${acquisti.slice(-3).reverse().map(a => `<div class="flex justify-between text-[8px] font-bold border-b pb-1 mb-1"><span>${a.nome_fattura}</span><span class="text-emerald-600">€ ${parseFloat(a.prezzo_unitario).toFixed(2)}</span></div>`).join('')}</div>`).join('') || '<p class="text-center text-xs text-slate-400 p-6">Nessun fornitore.</p>'; }
+        async function aggiungiFornitoreManuale() { let nome = document.getElementById('new-fornitore-name').value.trim().toUpperCase(); if(nome && !fornitoriDB[nome]) { await supabaseClient.from('fornitori_db').insert([{ nome: nome, storico: [] }]); document.getElementById('new-fornitore-name').value = ''; sincronizzaCloudManuale(false); } }
+        async function eliminaFornitore(n) { if(confirm(`Eliminare ${n}?`)) { await supabaseClient.from('fornitori_db').delete().eq('nome', n); sincronizzaCloudManuale(false); } }
 
         // ==========================================
-        // SINCRO RCH & CHIUSURA MANUALE
+        // SINCRO RCH
         // ==========================================
         function elaboraVenditeRCHExcel(input) {
             if(!input.files[0]) return; const reader = new FileReader(); reader.onload = async function(e) {
@@ -534,10 +530,7 @@
                     if(!sheetProdottiName) { alert("File errato! Scarica il report 'Venduto Prodotti' da XStore RCH."); input.value=''; return; }
 
                     let lordo = 0; let iva = 0;
-                    if(sheetIvaName) {
-                        const jsonIva = XLSX.utils.sheet_to_json(workbook.Sheets[sheetIvaName], {header: 1});
-                        if(jsonIva[1]) { lordo = parseFloat(String(jsonIva[1][6]||'0').replace(/\./g, '').replace(',', '.')) || 0; iva = parseFloat(String(jsonIva[1][5]||'0').replace(/\./g, '').replace(',', '.')) || 0; }
-                    }
+                    if(sheetIvaName) { const jsonIva = XLSX.utils.sheet_to_json(workbook.Sheets[sheetIvaName], {header: 1}); if(jsonIva[1]) { lordo = parseFloat(String(jsonIva[1][6]||'0').replace(/\./g, '').replace(',', '.')) || 0; iva = parseFloat(String(jsonIva[1][5]||'0').replace(/\./g, '').replace(',', '.')) || 0; } }
                     const fileID = `RCH_${lordo}_${input.files[0].lastModified}`;
                     const { data: exists } = await supabaseClient.from('finanza').select('id').eq('descrizione', fileID);
                     if(exists && exists.length > 0) { alert("Già caricato!"); return; }
@@ -555,58 +548,41 @@
                         }
                     }
                     if(confirm(`REGISTRARE: € ${lordo.toFixed(2)}?`)) {
-                        if(nuoviPiatti.length > 0) { menuRistorante = [...menuRistorante, ...nuoviPiatti]; localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); }
+                        if(nuoviPiatti.length > 0) { await supabaseClient.from('menu').upsert(nuoviPiatti, {onConflict: 'nome'}); }
                         for(let id in daScaricare) { let {data: p} = await supabaseClient.from('inventario').select('quantita').eq('id',id).single(); if(p) await supabaseClient.from('inventario').update({quantita: p.quantita - daScaricare[id]}).eq('id',id); }
-                        
                         let fileDate = new Date(input.files[0].lastModified); let dateString = fileDate.toLocaleDateString('it-IT');
-                        await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione: fileID, importo:lordo, iva:iva, stato_pagamento:'pagato', data: fileDate.toISOString() }]);
-                        nav('view-dashboard');
+                        await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione: `Chiusura RCH del ${dateString}`, importo:lordo, iva:iva, stato_pagamento:'pagato', data: fileDate.toISOString() }]);
+                        nav('view-dashboard'); sincronizzaCloudManuale(false);
                     }
                 } catch(e) { alert("Errore: " + e.message); }
             }; reader.readAsArrayBuffer(input.files[0]);
         }
-        async function eseguiChiusuraManualePura() {
-            let l = parseFloat(document.getElementById('manual-incasso-tot').value); if(isNaN(l)) return;
-            let d = new Date().toISOString(); let ds = new Date(d).toLocaleDateString('it-IT');
-            await supabaseClient.from('finanza').insert([{ tipo: 'entrata', categoria: 'Ristorante', descrizione: `Chiusura Manuale del ${ds}`, importo: l, iva: l-(l/1.10), stato_pagamento: 'pagato', data: d }]);
-            document.getElementById('manual-incasso-tot').value=''; nav('view-dashboard'); caricaFinanzaDaSupabase();
-        }
 
         // ==========================================
-        // STOCK & MENU (A.I. DOSI)
+        // STOCK & RICETTARIO CLOUD (A.I. DOSI)
         // ==========================================
-        async function caricaInventarioDaSupabase() {
-            const { data } = await supabaseClient.from('inventario').select('*').order('categoria').order('nome'); inventarioLocale = data || [];
-            document.getElementById('inventory-table-body').innerHTML = inventarioLocale.map(p => `<tr><td class="p-4"><p class="font-black text-xs uppercase">${p.nome}</p><span class="text-[7px] bg-slate-200 px-1 rounded">${p.categoria}</span></td><td class="p-4 text-center font-black">${p.quantita}</td><td class="p-4 text-right"><button onclick="apriModificaStock('${p.id}')" class="text-blue-500 mr-2"><i class="fas fa-pencil"></i></button><button onclick="eliminaProdottoStock('${p.id}')" class="text-red-500"><i class="fas fa-trash"></i></button></td></tr>`).join('');
-            popolaSelectIngredienti();
-        }
-        function suggerisciGrammatura() {
-            let n = document.getElementById('piatto-nome').value.toUpperCase(); let q = document.getElementById('qta-ingrediente');
-            if (n.includes('CAFFE') || n.includes('ESPRESSO')) { q.value = n.includes('DOPPIO') ? '0.014' : '0.007'; } 
-            else if (n.includes('1/2')) { q.value = '0.5'; } else if (n.includes('CALICE')) { q.value = '0.15'; }
-        }
+        async function caricaInventarioDaSupabase() { const { data } = await supabaseClient.from('inventario').select('*').order('categoria').order('nome'); inventarioLocale = data || []; document.getElementById('inventory-table-body').innerHTML = inventarioLocale.map(p => `<tr><td class="p-4"><p class="font-black text-xs uppercase">${p.nome}</p><span class="text-[7px] bg-slate-200 px-1 rounded">${p.categoria}</span></td><td class="p-4 text-center font-black">${p.quantita}</td><td class="p-4 text-right"><button onclick="apriModificaStock('${p.id}')" class="text-blue-500 mr-2"><i class="fas fa-pencil"></i></button><button onclick="eliminaProdottoStock('${p.id}')" class="text-red-500"><i class="fas fa-trash"></i></button></td></tr>`).join(''); popolaSelectIngredienti(); }
+        function suggerisciGrammatura() { let n = document.getElementById('piatto-nome').value.toUpperCase(); let q = document.getElementById('qta-ingrediente'); if (n.includes('CAFFE') || n.includes('ESPRESSO')) { q.value = n.includes('DOPPIO') ? '0.014' : '0.007'; } else if (n.includes('1/2')) { q.value = '0.5'; } else if (n.includes('CALICE')) { q.value = '0.15'; } }
         async function apriModificaStock(id) { let p = inventarioLocale.find(x => x.id === id); let nQ = prompt(`Giacenza:`, p.quantita); if(nQ !== null) { await supabaseClient.from('inventario').update({ quantita: parseFloat(nQ.replace(',','.')) }).eq('id', id); caricaInventarioDaSupabase(); } }
         async function eliminaProdottoStock(id) { if(confirm("Vuoi davvero ELIMINARE?")) { await supabaseClient.from('inventario').delete().eq('id', id); caricaInventarioDaSupabase(); } }
         async function salvaNuovoProdotto() { let pay = { nome: document.getElementById('new-nome').value.trim().toUpperCase(), quantita: parseFloat(document.getElementById('new-qta').value), categoria: document.getElementById('new-cat').value, prezzo: 0 }; if(!pay.nome) return; await supabaseClient.from('inventario').insert([pay]); nav('view-inventory'); }
         
-        function aggiornaVistaRicettario() { let html = ''; let cats = [...new Set(menuRistorante.map(i => i.categoria || 'GENERALE'))]; cats.forEach(c => { html += `<div class="bg-slate-200 p-2 mt-4 rounded-lg font-black text-[9px] uppercase">${c}</div>`; menuRistorante.filter(m => (m.categoria||'GENERALE') === c).forEach((p, i) => { let idx = menuRistorante.indexOf(p); html += `<div class="bg-white p-4 border rounded-2xl flex justify-between mt-2"><div onclick="modificaPiattoEsistente(${idx})"><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">${p.ingredienti.length} DOSI</p></div><button onclick="rimuoviPiatto(${idx})" class="text-red-400"><i class="fas fa-trash"></i></button></div>`; }); }); document.getElementById('menu-builder-list').innerHTML = html; }
+        function aggiornaVistaRicettario() { let html = ''; let cats = [...new Set(menuRistorante.map(i => i.categoria || 'GENERALE'))]; cats.forEach(c => { html += `<div class="bg-slate-200 p-2 mt-4 rounded-lg font-black text-[9px] uppercase">${c}</div>`; menuRistorante.filter(m => (m.categoria||'GENERALE') === c).forEach((p, i) => { let idx = menuRistorante.indexOf(p); html += `<div class="bg-white p-4 border rounded-2xl flex justify-between mt-2"><div onclick="modificaPiattoEsistente(${idx})"><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">${(p.ingredienti||[]).length} DOSI</p></div><button onclick="rimuoviPiatto('${p.nome.replace(/'/g, "\\'")}')" class="text-red-400"><i class="fas fa-trash"></i></button></div>`; }); }); document.getElementById('menu-builder-list').innerHTML = html; }
         function popolaSelectIngredienti() { document.getElementById('select-ingrediente').innerHTML = inventarioLocale.map(i=>`<option value="${i.id}" data-nome="${i.nome}">${i.nome}</option>`).join(''); }
         function aggiungiIngredienteRicetta() { const s = document.getElementById('select-ingrediente'); ingredientiTempRicetta.push({ id_supa: s.value, nome: s.options[s.selectedIndex].getAttribute('data-nome'), qta: parseFloat(document.getElementById('qta-ingrediente').value)||1 }); document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map((i, idx)=>`<div class="flex justify-between text-[10px] font-black uppercase border-b pb-1 mb-1"><span>${i.nome}</span><span>${i.qta} <button onclick="ingredientiTempRicetta.splice(${idx},1); document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map((x, i2)=>\`<div class='flex justify-between text-[10px] font-black uppercase border-b pb-1 mb-1'><span>\${x.nome}</span><span>\${x.qta}</span></div>\`).join('');" class="text-red-500 ml-2"><i class="fas fa-times"></i></button></span></div>`).join(''); }
-        function salvaPiattoMenu() { let n = document.getElementById('piatto-nome').value.toUpperCase().trim(); let c = document.getElementById('piatto-categoria').value.toUpperCase().trim() || 'GENERALE'; if(!n) return; let ex = menuRistorante.findIndex(m => m.nome === n); if(ex > -1) { menuRistorante[ex].ingredienti = [...ingredientiTempRicetta]; menuRistorante[ex].categoria = c; } else { menuRistorante.push({ nome: n, categoria: c, ingredienti: [...ingredientiTempRicetta] }); } localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); chiudiCreaPiatto(); aggiornaVistaRicettario(); }
-        function rimuoviPiatto(i) { menuRistorante.splice(i,1); localStorage.setItem('belvedereMenu', JSON.stringify(menuRistorante)); aggiornaVistaRicettario(); }
+        async function salvaPiattoMenu() { let n = document.getElementById('piatto-nome').value.toUpperCase().trim(); let c = document.getElementById('piatto-categoria').value.toUpperCase().trim() || 'GENERALE'; if(!n) return; await supabaseClient.from('menu').upsert([{ nome: n, categoria: c, ingredienti: [...ingredientiTempRicetta] }], {onConflict: 'nome'}); chiudiCreaPiatto(); sincronizzaCloudManuale(false); }
+        async function rimuoviPiatto(nome) { if(confirm("Vuoi davvero rimuovere questo tasto cassa?")) { await supabaseClient.from('menu').delete().eq('nome', nome); sincronizzaCloudManuale(false); } }
         function apriCreaPiatto() { document.getElementById('form-crea-piatto').classList.remove('hidden'); ingredientiTempRicetta = []; document.getElementById('lista-ingredienti-piatto').innerHTML = ''; }
         function chiudiCreaPiatto() { document.getElementById('form-crea-piatto').classList.add('hidden'); }
         function modificaPiattoEsistente(idx) { let p = menuRistorante[idx]; document.getElementById('piatto-nome').value = p.nome; document.getElementById('piatto-categoria').value = p.categoria || ''; ingredientiTempRicetta = [...p.ingredienti]; document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map((i, idx)=>`<div class="flex justify-between text-[10px] font-black uppercase border-b pb-1 mb-1"><span>${i.nome}</span><span>${i.qta} <button onclick="ingredientiTempRicetta.splice(${idx},1); document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map((x, i2)=>\`<div class='flex justify-between text-[10px] font-black uppercase border-b pb-1 mb-1'><span>\${x.nome}</span><span>\${x.qta}</span></div>\`).join('');" class="text-red-500 ml-2"><i class="fas fa-times"></i></button></span></div>`).join(''); document.getElementById('form-crea-piatto').classList.remove('hidden'); }
 
         // ==========================================
-        // STAFF & SPESA
+        // STAFF
         // ==========================================
         async function caricaStaff() { const { data } = await supabaseClient.from('staff').select('*').order('nome'); staffLocale = data || []; document.getElementById('staff-select').innerHTML = staffLocale.map(s => `<option value="${s.nome}">${s.nome}</option>`).join(''); let html = ''; for(let s of staffLocale) { let mese = document.getElementById('finanza-mese-selettore').value; const { data: ant } = await supabaseClient.from('finanza').select('importo').eq('categoria', 'Personale').ilike('descrizione', `%Anticipo ${s.nome}%`).filter('data', 'gte', mese+'-01'); let totA = (ant || []).reduce((acc, curr) => acc + parseFloat(curr.importo), 0); html += `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-sm uppercase">${s.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">Anticipi Mese</p></div><div class="flex items-center"><span class="font-black text-red-500 text-lg">€ ${totA.toFixed(2)}</span><button onclick="eliminaStaff('${s.id}')" class="text-red-300 bg-red-50 p-2 rounded-xl ml-3 active:scale-90"><i class="fas fa-trash"></i></button></div></div>`; } document.getElementById('staff-list-container').innerHTML = html || '<p class="p-6 text-center text-xs text-slate-400 uppercase">Nessuno staff</p>'; }
         async function eliminaStaff(id) { if(confirm("Licenziare / Eliminare questo dipendente?")) { await supabaseClient.from('staff').delete().eq('id', id); caricaStaff(); } }
-        async function salvaAnticipoStaff() { let n = document.getElementById('staff-select').value, i = parseFloat(document.getElementById('staff-anticipo-val').value); if(i>0) { await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria:'Personale', descrizione:`Anticipo ${n}`, importo:i, stato_pagamento:'pagato', data:new Date().toISOString() }]); alert("Erogato!"); document.getElementById('staff-anticipo-val').value='0.00'; caricaStaff(); caricaFinanzaDaSupabase(); } }
-        async function aggiungiDipendente() { let n = document.getElementById('new-staff-name').value.trim(); if(n) { await supabaseClient.from('staff').insert([{ nome:n }]); document.getElementById('new-staff-name').value=''; caricaStaff(); } }
-        function generaListaSpesa() { let autoItems = inventarioLocale.filter(p => parseFloat(p.quantita) <= parseFloat(p.soglia_minima)); document.getElementById('auto-shopping-list').innerHTML = autoItems.map(p => `<div class="p-4 flex justify-between bg-white"><div><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] text-red-500 font-bold uppercase">Stock: ${p.quantita} / Soglia: ${p.soglia_minima}</p></div><i class="fas fa-triangle-exclamation text-amber-500"></i></div>`).join('') || '<p class="p-8 text-center text-xs text-slate-400">Tutto in stock!</p>'; }
-        let extraShopping = []; function aggiungiVoceManualeSpesa() { let v = document.getElementById('manual-shop-item').value.trim(); if(v) { extraShopping.push(v); document.getElementById('manual-shop-item').value=''; document.getElementById('manual-shopping-list').innerHTML = extraShopping.map((item, i) => `<div class="flex justify-between bg-white p-3 rounded-xl border text-xs font-bold uppercase"><span>${item}</span><button onclick="extraShopping.splice(${i},1); aggiungiVoceManualeSpesa();" class="text-red-400"><i class="fas fa-times"></i></button></div>`).join(''); } }
+        async function salvaAnticipoStaff() { let n = document.getElementById('staff-select').value, i = parseFloat(document.getElementById('staff-anticipo-val').value); if(i>0) { await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria:'Personale', descrizione:`Anticipo ${n}`, importo:i, stato_pagamento:'pagato', data:new Date().toISOString() }]); document.getElementById('staff-anticipo-val').value='0.00'; sincronizzaCloudManuale(false); } }
+        async function aggiungiDipendente() { let n = document.getElementById('new-staff-name').value.trim(); if(n) { await supabaseClient.from('staff').insert([{ nome:n }]); document.getElementById('new-staff-name').value=''; sincronizzaCloudManuale(false); } }
     </script>
 </body>
 </html>
