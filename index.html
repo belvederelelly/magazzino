@@ -396,7 +396,7 @@
         }
 
         // ==========================================
-        // FINANZA (SCADENZE E SPUNTA PAGATO)
+        // FINANZA (SCADENZE, SPUNTA PAGATO, ANNULLA PAGATO)
         // ==========================================
         async function caricaFinanzaDaSupabase() { const { data } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false }); finanzaDatiGlobali = data || []; renderFinanzaList(); }
         
@@ -413,7 +413,6 @@
 
             let viewList = filtratiMese.filter(m => { let desc = (m.descrizione||'').toLowerCase(); let cat = (m.categoria||'').toLowerCase(); if (testo !== "" && !desc.includes(testo) && !cat.includes(testo)) return false; if (currentFinanzaTab === 'ENTRATE') return m.tipo === 'entrata'; if (currentFinanzaTab === 'PAGATE') return m.tipo === 'uscita' && m.stato_pagamento === 'pagato'; if (currentFinanzaTab === 'DA_PAGARE') return m.tipo === 'uscita' && m.stato_pagamento === 'da_pagare'; return true; });
             
-            // ORDINAMENTO "DA PAGARE" PER SCADENZA
             if (currentFinanzaTab === 'DA_PAGARE') {
                 viewList.sort((a, b) => {
                     let dateA = a.data_scadenza ? new Date(a.data_scadenza).getTime() : Infinity;
@@ -438,10 +437,15 @@
 
                 let descJS = (m.descrizione||'').replace(/'/g, "\\'");
                 
-                // TASTO SEGNA COME PAGATO
-                let btnPaga = m.stato_pagamento === 'da_pagare' ? `<button onclick="segnaComePagato('${m.id}')" class="text-emerald-600 p-2 bg-emerald-50 rounded-lg active:scale-90 ml-1" title="Segna Pagato Oggi"><i class="fas fa-check-double"></i></button>` : '';
+                // TASTO CAMBIO STATO (PAGATO <-> DA PAGARE)
+                let btnStato = '';
+                if (m.stato_pagamento === 'da_pagare') {
+                    btnStato = `<button onclick="segnaComePagato('${m.id}')" class="text-emerald-600 p-2 bg-emerald-50 rounded-lg active:scale-90 ml-1" title="Segna come Pagato"><i class="fas fa-check-double"></i></button>`;
+                } else if (m.stato_pagamento === 'pagato' && !isE) {
+                    btnStato = `<button onclick="segnaComeDaPagare('${m.id}')" class="text-amber-500 p-2 bg-amber-50 rounded-lg active:scale-90 ml-1" title="Rimetti in 'Da Pagare'"><i class="fas fa-undo"></i></button>`;
+                }
 
-                return `<div class="p-4 border-b flex justify-between items-center bg-white hover:bg-slate-50 transition"><div class="flex-1 mr-2 overflow-hidden"><p class="font-black text-[11px] uppercase text-slate-800 truncate">${m.descrizione}</p><p class="text-[8px] font-bold text-slate-400 mt-1">Emessa: ${dataStr} ${badge}</p>${scadenzaHtml}</div><div class="flex items-center gap-1"><span class="font-black ${isE?'text-emerald-500':'text-slate-700'} whitespace-nowrap">€ ${m.importo.toFixed(2)}</span>${btnPaga}<button onclick="rinominaMovimentoFinanza('${m.id}', '${descJS}')" class="text-blue-400 p-2 bg-blue-50 rounded-lg active:scale-90 ml-1"><i class="fas fa-pencil"></i></button><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-300 p-2 bg-red-50 rounded-lg active:scale-90 ml-1"><i class="fas fa-trash"></i></button></div></div>`;
+                return `<div class="p-4 border-b flex justify-between items-center bg-white hover:bg-slate-50 transition"><div class="flex-1 mr-2 overflow-hidden"><p class="font-black text-[11px] uppercase text-slate-800 truncate">${m.descrizione}</p><p class="text-[8px] font-bold text-slate-400 mt-1">Emessa: ${dataStr} ${badge}</p>${scadenzaHtml}</div><div class="flex items-center gap-1"><span class="font-black ${isE?'text-emerald-500':'text-slate-700'} whitespace-nowrap">€ ${m.importo.toFixed(2)}</span>${btnStato}<button onclick="rinominaMovimentoFinanza('${m.id}', '${descJS}')" class="text-blue-400 p-2 bg-blue-50 rounded-lg active:scale-90 ml-1"><i class="fas fa-pencil"></i></button><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-300 p-2 bg-red-50 rounded-lg active:scale-90 ml-1"><i class="fas fa-trash"></i></button></div></div>`;
             }).join('') || '<p class="p-8 text-center text-xs text-slate-400 uppercase">Nessun movimento</p>';
         }
 
@@ -449,6 +453,13 @@
             if(confirm("Confermi di aver saldato questo debito oggi?")) {
                 let dataOggi = new Date().toISOString();
                 await supabaseClient.from('finanza').update({ stato_pagamento: 'pagato', data_pagamento: dataOggi }).eq('id', id);
+                caricaFinanzaDaSupabase();
+            }
+        }
+
+        async function segnaComeDaPagare(id) {
+            if(confirm("Vuoi rimettere questa spesa tra i DEBITI (Da Pagare)?")) {
+                await supabaseClient.from('finanza').update({ stato_pagamento: 'da_pagare', data_pagamento: null }).eq('id', id);
                 caricaFinanzaDaSupabase();
             }
         }
