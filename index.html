@@ -91,10 +91,33 @@
                         <button onclick="setFinanzaTab('PAGATE')" id="tab-PAGATE" class="flex-1 py-3 text-[9px] font-black uppercase rounded-xl text-slate-500 transition">Pagate</button>
                         <button onclick="setFinanzaTab('DA_PAGARE')" id="tab-DA_PAGARE" class="flex-1 py-3 text-[9px] font-black uppercase rounded-xl text-slate-500 transition">Da Pagare</button>
                     </div>
-                    <div class="relative">
-                        <i class="fas fa-search absolute left-4 top-4 text-slate-400 text-sm"></i>
-                        <input type="text" id="finanza-filtro-testo" onkeyup="renderFinanzaList()" placeholder="Filtra per fornitore, bolletta, chiusura..." class="w-full pl-11 pr-4 py-3 border-2 border-slate-100 rounded-2xl font-bold text-xs uppercase bg-slate-50 outline-none focus:border-emerald-400 transition">
+                    <div class="flex gap-2">
+                        <div class="relative flex-1">
+                            <i class="fas fa-search absolute left-4 top-3.5 text-slate-400 text-sm"></i>
+                            <input type="text" id="finanza-filtro-testo" onkeyup="renderFinanzaList()" placeholder="Cerca..." class="w-full pl-10 pr-4 py-3 border-2 border-slate-100 rounded-2xl font-bold text-xs uppercase bg-slate-50 outline-none focus:border-emerald-400">
+                        </div>
+                        <button onclick="apriMovimentoManuale()" class="bg-emerald-600 text-white px-4 rounded-2xl font-black text-[10px] uppercase shadow-md active:scale-95">+ Manuale</button>
                     </div>
+                </div>
+
+                <div id="form-movimento-manuale" class="hidden bg-white p-6 rounded-3xl border shadow-xl space-y-4 mt-2 relative border-t-4 border-t-emerald-500">
+                    <button onclick="chiudiMovimentoManuale()" class="absolute top-4 right-4 text-slate-400 text-xl"><i class="fas fa-times"></i></button>
+                    <h3 class="font-black text-sm uppercase text-slate-800">Nuovo Movimento Manuale</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="man-tipo" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-xs text-slate-700">
+                            <option value="uscita">USCITA (Spesa/Costo)</option><option value="entrata">ENTRATA (Incasso)</option>
+                        </select>
+                        <input type="date" id="man-data" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-xs text-slate-700">
+                    </div>
+                    <input type="text" id="man-desc" placeholder="Descrizione (Es: Spesa Supermercato, Benzina...)" class="w-full border p-3 rounded-xl font-bold uppercase bg-slate-50 text-sm">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Importo Totale (€)</label><input type="number" id="man-importo" class="w-full border p-3 rounded-xl font-black text-center text-lg text-emerald-600" placeholder="0.00"></div>
+                        <div><label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Di cui IVA (€)</label><input type="number" id="man-iva" class="w-full border p-3 rounded-xl font-black text-center text-lg text-slate-600" value="0.00"></div>
+                    </div>
+                    <select id="man-stato" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-xs text-slate-700">
+                        <option value="pagato">GIÀ PAGATO</option><option value="da_pagare">DA PAGARE (Debito)</option>
+                    </select>
+                    <button onclick="salvaMovimentoManuale()" class="w-full bg-slate-900 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm mt-2">Salva in Bilancio</button>
                 </div>
 
                 <div class="bg-white rounded-3xl border shadow-sm overflow-hidden divide-y divide-slate-100" id="finanza-list"></div>
@@ -104,14 +127,17 @@
                 <div class="bg-white border-2 border-dashed border-emerald-200 p-8 rounded-3xl text-center shadow-sm">
                     <i class="fas fa-file-invoice-dollar text-4xl text-emerald-500 mb-4"></i>
                     <h4 class="font-black text-sm uppercase mb-1">Importa da Sportello Cloud</h4>
-                    <p class="text-[10px] text-slate-400 mb-4 uppercase">Supporta .xml e .xml.html</p>
+                    <p class="text-[10px] text-slate-400 mb-4 uppercase">Supporta file .xml e .xml.html</p>
                     <input type="file" accept=".xml, .html, .htm" id="file-xml" onchange="elaboraFatturaXML(this)" class="hidden">
-                    <button onclick="document.getElementById('file-xml').click()" class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition">Seleziona File</button>
+                    <button onclick="document.getElementById('file-xml').click()" class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition">Seleziona Fattura</button>
                 </div>
                 <div id="fattura-loader" class="hidden text-center py-10"><i class="fas fa-spinner fa-spin text-4xl text-emerald-600"></i></div>
                 <div id="fattura-result" class="hidden space-y-4">
                     <div class="bg-white p-4 rounded-3xl border shadow-sm">
-                        <label class="text-[10px] font-black uppercase text-slate-500">Fornitore Fattura</label>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-[10px] font-black uppercase text-slate-500">Fornitore Fattura</label>
+                            <div><span class="text-[9px] font-black uppercase text-slate-400 mr-1">Data Doc:</span><input type="date" id="ocr-data-doc" class="border p-1 rounded font-bold text-[10px] text-slate-600 bg-slate-50"></div>
+                        </div>
                         <select id="fattura-fornitore-select" onchange="checkFornitoreCustom()" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-sm uppercase mt-1"></select>
                         <input type="text" id="fattura-fornitore-custom" placeholder="Scrivi nome fornitore..." class="w-full border-b-2 border-emerald-500 p-2 font-black text-slate-800 uppercase outline-none mt-2 hidden">
                     </div>
@@ -174,7 +200,7 @@
 
             <div id="view-ricettario" class="view-panel space-y-4 titolare-only">
                 <div class="flex justify-between items-center bg-emerald-50 p-4 rounded-2xl border border-emerald-200">
-                    <div><h3 class="font-black text-emerald-900 uppercase">Voci RCH <span class="text-emerald-600 font-bold">(Figli)</span></h3><p class="text-[9px] text-emerald-600 font-black">Distinta Base e Food Cost</p></div>
+                    <div><h3 class="font-black text-emerald-900 uppercase">Associazioni Cassa</h3><p class="text-[9px] text-emerald-600 font-black">Collega Tasti a Materie</p></div>
                     <button onclick="apriCreaPiatto()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md">+ Tasto</button>
                 </div>
                 <div id="menu-builder-list" class="space-y-3"></div>
@@ -263,6 +289,8 @@
 
         window.onload = () => { 
             let oggi = new Date(); document.getElementById('finanza-mese-selettore').value = oggi.getFullYear() + '-' + String(oggi.getMonth() + 1).padStart(2, '0');
+            // Init date field in manual form
+            document.getElementById('man-data').value = oggi.toISOString().substring(0,10);
             const savedRole = localStorage.getItem('belvedereAuthRole'); 
             if(savedRole) { userRole = savedRole; avviaApp(); } 
         };
@@ -307,17 +335,7 @@
         function logout() { localStorage.removeItem('belvedereAuthRole'); location.reload(); }
 
         // ==========================================
-        // GESTIONE CATEGORIE
-        // ==========================================
-        function aggiornaVistaCategorie() {
-            document.getElementById('lista-categorie').innerHTML = categorieDB.map((c, i) => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border"><span class="font-black text-xs uppercase text-slate-700">${c}</span><button onclick="eliminaCategoria(${i})" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div>`).join('');
-            let sel = document.getElementById('new-cat'); if(sel) sel.innerHTML = categorieDB.map(c => `<option value="${c}">${c}</option>`).join('');
-        }
-        function aggiungiCategoria() { let v = document.getElementById('nuova-cat-input').value.trim().toUpperCase(); if(v && !categorieDB.includes(v)) { categorieDB.push(v); localStorage.setItem('belvedereCategorie', JSON.stringify(categorieDB)); document.getElementById('nuova-cat-input').value = ''; aggiornaVistaCategorie(); } }
-        function eliminaCategoria(i) { if(confirm("Eliminare?")) { categorieDB.splice(i, 1); localStorage.setItem('belvedereCategorie', JSON.stringify(categorieDB)); aggiornaVistaCategorie(); } }
-
-        // ==========================================
-        // FINANZA & BILANCIO (TABS E RICERCA)
+        // FINANZA: LISTA, TABS, RICERCA E MANUALE
         // ==========================================
         async function caricaFinanzaDaSupabase() {
             const { data } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false });
@@ -378,48 +396,82 @@
         async function rinominaMovimentoFinanza(id, oldName) { let newName = prompt("Modifica intestatario o descrizione:", oldName); if (newName !== null && newName.trim() !== "") { await supabaseClient.from('finanza').update({ descrizione: newName.trim().toUpperCase() }).eq('id', id); caricaFinanzaDaSupabase(); } }
         async function eliminaMovimentoFinanza(id) { if(confirm("ELIMINAZIONE:\nVuoi davvero rimuovere questo movimento dal bilancio?")) { await supabaseClient.from('finanza').delete().eq('id', id); caricaFinanzaDaSupabase(); } }
 
+        function apriMovimentoManuale() { document.getElementById('form-movimento-manuale').classList.remove('hidden'); document.getElementById('man-desc').value=''; document.getElementById('man-importo').value=''; document.getElementById('man-iva').value='0.00'; window.scrollTo(0, 0); }
+        function chiudiMovimentoManuale() { document.getElementById('form-movimento-manuale').classList.add('hidden'); }
+        async function salvaMovimentoManuale() {
+            let desc = document.getElementById('man-desc').value.trim().toUpperCase();
+            let imp = parseFloat(document.getElementById('man-importo').value);
+            let iva = parseFloat(document.getElementById('man-iva').value) || 0;
+            let dataSelezionata = document.getElementById('man-data').value;
+            let tipo = document.getElementById('man-tipo').value;
+            let stato = document.getElementById('man-stato').value;
+
+            if(!desc || isNaN(imp) || !dataSelezionata) return alert("Compila descrizione, importo e data.");
+
+            let isoData = new Date(dataSelezionata + "T12:00:00.000Z").toISOString();
+            
+            await supabaseClient.from('finanza').insert([{ tipo: tipo, categoria: (tipo==='entrata'?'Ristorante':'Varie'), descrizione: desc, importo: imp, iva: iva, stato_pagamento: stato, data: isoData, data_pagamento: (stato==='pagato'?isoData:null) }]);
+            chiudiMovimentoManuale(); caricaFinanzaDaSupabase(); alert("Movimento salvato in bilancio!");
+        }
+
         // ==========================================
-        // FATTURE CLOUD & FORNITORI (A.I.)
+        // FATTURE CLOUD CON LETTURA DATA
         // ==========================================
         function elaboraFatturaXML(input) {
             if(!input.files[0]) return; document.getElementById('fattura-loader').classList.remove('hidden'); document.getElementById('fattura-result').classList.add('hidden');
             const reader = new FileReader(); reader.onload = function(e) {
-                let rawText = e.target.result; let items = []; let ivaT = 0; let extractedFornitore = "";
-                let matchDenom = rawText.match(/<CedentePrestatore>[\s\S]*?<Denominazione>(.*?)<\/Denominazione>/i);
-                if (matchDenom) extractedFornitore = matchDenom[1].trim().toUpperCase();
-                else { let matchHtml = rawText.match(/Cedente \/ Prestatore[\s\S]*?<b>(.*?)<\/b>/i); if (matchHtml) extractedFornitore = matchHtml[1].trim().toUpperCase(); }
+                try {
+                    let rawText = e.target.result; let items = []; let ivaT = 0; let extractedFornitore = "";
+                    let extractedDataDoc = new Date().toISOString().substring(0, 10); // default today
+                    
+                    // Estrattore Fornitore
+                    let matchDenom = rawText.match(/<CedentePrestatore>[\s\S]*?<Denominazione>(.*?)<\/Denominazione>/i);
+                    if (matchDenom) extractedFornitore = matchDenom[1].trim().toUpperCase();
+                    else { let matchHtml = rawText.match(/Cedente \/ Prestatore[\s\S]*?<b>(.*?)<\/b>/i); if (matchHtml) extractedFornitore = matchHtml[1].trim().toUpperCase(); }
 
-                if (rawText.includes('<html')) {
-                    const parser = new DOMParser(); const htmlDoc = parser.parseFromString(rawText, "text/html");
-                    const tabelle = htmlDoc.querySelectorAll('table'); let tabellaP = null;
-                    for (let tb of tabelle) { if (tb.textContent.includes('Prezzo unitario')) { tabellaP = tb; break; } }
-                    if (tabellaP) {
-                        tabellaP.querySelectorAll('tbody tr').forEach(riga => {
-                            const celle = riga.querySelectorAll('td');
-                            if (celle.length >= 8) {
-                                let desc = celle[1].innerText.split('Periodo')[0].trim(); let qta = parseFloat(celle[2].innerText.replace(/\./g,'').replace(',','.'))||0; let p = parseFloat(celle[3].innerText.replace(/\./g,'').replace(',','.'))||0; let percIva = parseFloat(celle[6].innerText.replace(',','.'))||0;
-                                if (desc && qta > 0) { items.push({ nome: desc.substring(0,40), qta, costo_unit: p }); ivaT += (qta*p)*(percIva/100); }
+                    // Parser Html o XML
+                    if (rawText.includes('<html')) {
+                        // Cerca data nel formato DD/MM/YYYY
+                        let dataMatch = rawText.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+                        if(dataMatch) extractedDataDoc = `${dataMatch[3]}-${dataMatch[2]}-${dataMatch[1]}`;
+
+                        const parser = new DOMParser(); const htmlDoc = parser.parseFromString(rawText, "text/html");
+                        const tabelle = htmlDoc.querySelectorAll('table'); let tabellaP = null;
+                        for (let tb of tabelle) { if (tb.textContent.includes('Prezzo unitario')) { tabellaP = tb; break; } }
+                        if (tabellaP) {
+                            tabellaP.querySelectorAll('tbody tr').forEach(riga => {
+                                const celle = riga.querySelectorAll('td');
+                                if (celle.length >= 8) {
+                                    let desc = celle[1].innerText.split('Periodo')[0].trim(); let qta = parseFloat(celle[2].innerText.replace(/\./g,'').replace(',','.'))||0; let p = parseFloat(celle[3].innerText.replace(/\./g,'').replace(',','.'))||0; let percIva = parseFloat(celle[6].innerText.replace(',','.'))||0;
+                                    if (desc && qta > 0) { items.push({ nome: desc.substring(0,40), qta, costo_unit: p }); ivaT += (qta*p)*(percIva/100); }
+                                }
+                            });
+                        }
+                    } else {
+                        let estrazione = rawText.match(/(<[a-zA-Z0-9_:]*FatturaElettronica[\s\S]*<\/[a-zA-Z0-9_:]*FatturaElettronica>)/i); if(estrazione) rawText = estrazione[1];
+                        const parser = new DOMParser(); const xmlDoc = parser.parseFromString(rawText, "text/xml");
+                        const getTags = (nodo, n) => { let t = nodo.getElementsByTagName(n); return t.length === 0 ? nodo.getElementsByTagNameNS("*", n) : t; };
+                        
+                        let dataTag = getTags(xmlDoc.documentElement, "Data")[0];
+                        if(dataTag && dataTag.textContent) extractedDataDoc = dataTag.textContent.substring(0,10);
+
+                        const linee = getTags(xmlDoc.documentElement, "DettaglioLinee");
+                        for(let i=0; i < linee.length; i++) {
+                            let tagDesc = getTags(linee[i], "Descrizione")[0], tagQta = getTags(linee[i], "Quantita")[0], tagPrezzo = getTags(linee[i], "PrezzoUnitario")[0], tagIva = getTags(linee[i], "AliquotaIVA")[0];
+                            if(tagDesc && tagPrezzo) {
+                                let q = tagQta ? parseFloat(tagQta.textContent) : 1; let p = parseFloat(tagPrezzo.textContent); let perc = tagIva ? parseFloat(tagIva.textContent) : 0;
+                                ivaT += (q * p) * (perc / 100); items.push({ nome: tagDesc.textContent.trim().substring(0,40), qta: q, costo_unit: p });
                             }
-                        });
-                    }
-                } else {
-                    let estrazione = rawText.match(/(<[a-zA-Z0-9_:]*FatturaElettronica[\s\S]*<\/[a-zA-Z0-9_:]*FatturaElettronica>)/i); if(estrazione) rawText = estrazione[1];
-                    const parser = new DOMParser(); const xmlDoc = parser.parseFromString(rawText, "text/xml");
-                    const getTags = (nodo, n) => { let t = nodo.getElementsByTagName(n); return t.length === 0 ? nodo.getElementsByTagNameNS("*", n) : t; };
-                    const linee = getTags(xmlDoc.documentElement, "DettaglioLinee");
-                    for(let i=0; i < linee.length; i++) {
-                        let tagDesc = getTags(linee[i], "Descrizione")[0], tagQta = getTags(linee[i], "Quantita")[0], tagPrezzo = getTags(linee[i], "PrezzoUnitario")[0], tagIva = getTags(linee[i], "AliquotaIVA")[0];
-                        if(tagDesc && tagPrezzo) {
-                            let q = tagQta ? parseFloat(tagQta.textContent) : 1; let p = parseFloat(tagPrezzo.textContent); let perc = tagIva ? parseFloat(tagIva.textContent) : 0;
-                            ivaT += (q * p) * (perc / 100); items.push({ nome: tagDesc.textContent.trim().substring(0,40), qta: q, costo_unit: p });
                         }
                     }
-                }
-                fatturaItemsLetti = items; document.getElementById('ocr-tot-iva').value = ivaT.toFixed(2);
-                impostaFornitoreUI(extractedFornitore);
-                let opts = inventarioLocale.map(inv => `<option value="${inv.id}">${inv.nome} (${inv.categoria||'VARIE'})</option>`).join('');
-                document.getElementById('fattura-items-list').innerHTML = items.map((i, idx) => `<div class="p-3 border-b"><div class="flex justify-between text-[10px] font-black uppercase mb-1"><span>${i.nome} (x${i.qta})</span><span class="text-emerald-600">€${i.costo_unit.toFixed(2)}</span></div><select id="map-fattura-${idx}" class="w-full border p-2 rounded-lg text-[9px] font-bold bg-emerald-50"><option value="NEW">+ CREA NUOVA MATERIA</option>${opts}</select></div>`).join('');
-                document.getElementById('fattura-loader').classList.add('hidden'); document.getElementById('fattura-result').classList.remove('hidden');
+                    fatturaItemsLetti = items; document.getElementById('ocr-tot-iva').value = ivaT.toFixed(2);
+                    document.getElementById('ocr-data-doc').value = extractedDataDoc;
+
+                    impostaFornitoreUI(extractedFornitore);
+                    let opts = inventarioLocale.map(inv => `<option value="${inv.id}">${inv.nome} (${inv.categoria||'VARIE'})</option>`).join('');
+                    document.getElementById('fattura-items-list').innerHTML = items.map((i, idx) => `<div class="p-3 border-b"><div class="flex justify-between text-[10px] font-black uppercase mb-1"><span>${i.nome} (x${i.qta})</span><span class="text-emerald-600">€${i.costo_unit.toFixed(2)}</span></div><select id="map-fattura-${idx}" class="w-full border p-2 rounded-lg text-[9px] font-bold bg-emerald-50"><option value="NEW">+ CREA NUOVA MATERIA</option>${opts}</select></div>`).join('');
+                    document.getElementById('fattura-loader').classList.add('hidden'); document.getElementById('fattura-result').classList.remove('hidden');
+                } catch(err) { alert("File non supportato"); document.getElementById('fattura-loader').classList.add('hidden'); }
             }; reader.readAsText(input.files[0]);
         }
 
@@ -435,29 +487,37 @@
         async function confermaCaricoFattura() {
             let selVal = document.getElementById('fattura-fornitore-select').value; let fornitore = selVal === 'NUOVO' ? document.getElementById('fattura-fornitore-custom').value.trim().toUpperCase() : selVal;
             let doc=document.getElementById('ocr-tipo-doc').value, stato=document.getElementById('ocr-stato-pag').value, tot=0, ivaE = parseFloat(document.getElementById('ocr-tot-iva').value)||0;
+            
+            let dataFattura = document.getElementById('ocr-data-doc').value;
+            if(!dataFattura) dataFattura = new Date().toISOString().substring(0,10);
+            let isoData = new Date(dataFattura + "T12:00:00.000Z").toISOString();
+
             if(!fornitore) return alert("Inserisci il fornitore"); if(!fornitoriDB[fornitore]) fornitoriDB[fornitore] = [];
 
             for(let i=0; i < fatturaItemsLetti.length; i++) {
                 let item = fatturaItemsLetti[i]; tot += (item.qta * item.costo_unit);
                 if(doc === 'merce') {
                     let mapScelta = document.getElementById(`map-fattura-${i}`).value; let idAss = null; let nomeAss = item.nome;
-                    if(mapScelta === 'NEW') {
-                        const { data } = await supabaseClient.from('inventario').insert([{ nome: item.nome.toUpperCase(), quantita: item.qta, prezzo: item.costo_unit, categoria: 'VARIE' }]).select();
-                        if(data) idAss = data[0].id;
-                    } else {
-                        idAss = mapScelta; let p = inventarioLocale.find(x => x.id === mapScelta);
-                        if(p) { nomeAss = p.nome; await supabaseClient.from('inventario').update({ quantita: parseFloat(p.quantita) + item.qta, prezzo: item.costo_unit }).eq('id', idAss); }
-                    }
-                    fornitoriDB[fornitore].push({ nome_fattura: item.nome, padre_magazzino: nomeAss, prezzo_unitario: item.costo_unit, data: new Date().toLocaleDateString() });
+                    if(mapScelta === 'NEW') { const { data } = await supabaseClient.from('inventario').insert([{ nome: item.nome.toUpperCase(), quantita: item.qta, prezzo: item.costo_unit, categoria: 'VARIE' }]).select(); if(data) idAss = data[0].id; } 
+                    else { idAss = mapScelta; let p = inventarioLocale.find(x => x.id === mapScelta); if(p) { nomeAss = p.nome; await supabaseClient.from('inventario').update({ quantita: parseFloat(p.quantita) + item.qta, prezzo: item.costo_unit }).eq('id', idAss); } }
+                    fornitoriDB[fornitore].push({ nome_fattura: item.nome, padre_magazzino: nomeAss, prezzo_unitario: item.costo_unit, data: new Date(dataFattura).toLocaleDateString('it-IT') });
                 }
             }
             localStorage.setItem('belvedereFornitori', JSON.stringify(fornitoriDB));
-            let dataStringa = new Date().toLocaleDateString('it-IT');
-            await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria: 'Fornitori', descrizione: `Fattura: ${fornitore} del ${dataStringa}`, importo: tot+ivaE, iva: ivaE, stato_pagamento: stato, data: new Date().toISOString() }]);
-            alert("Caricata!"); nav('view-dashboard');
+            await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria: 'Fornitori', descrizione: `Fattura: ${fornitore}`, importo: tot+ivaE, iva: ivaE, stato_pagamento: stato, data: isoData, data_pagamento: stato==='pagato'?isoData:null }]);
+            alert("Fattura Caricata!"); nav('view-dashboard');
         }
 
+        // ==========================================
+        // GESTIONE CATEGORIE
+        // ==========================================
+        function aggiornaVistaCategorie() { document.getElementById('lista-categorie').innerHTML = categorieDB.map((c, i) => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border"><span class="font-black text-xs uppercase text-slate-700">${c}</span><button onclick="eliminaCategoria(${i})" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div>`).join(''); let sel = document.getElementById('new-cat'); if(sel) sel.innerHTML = categorieDB.map(c => `<option value="${c}">${c}</option>`).join(''); }
+        function aggiungiCategoria() { let v = document.getElementById('nuova-cat-input').value.trim().toUpperCase(); if(v && !categorieDB.includes(v)) { categorieDB.push(v); localStorage.setItem('belvedereCategorie', JSON.stringify(categorieDB)); document.getElementById('nuova-cat-input').value = ''; aggiornaVistaCategorie(); } }
+        function eliminaCategoria(i) { if(confirm("Eliminare?")) { categorieDB.splice(i, 1); localStorage.setItem('belvedereCategorie', JSON.stringify(categorieDB)); aggiornaVistaCategorie(); } }
+
+        // ==========================================
         // FORNITORI MANUALE
+        // ==========================================
         function aggiornaVistaFornitori() { document.getElementById('fornitori-list-container').innerHTML = Object.entries(fornitoriDB).map(([nome, acquisti]) => `<div class="bg-white p-4 rounded-3xl border shadow-sm"><div class="flex justify-between items-center mb-3"><h4 class="font-black text-sm uppercase text-purple-800">${nome}</h4><button onclick="eliminaFornitore('${nome.replace(/'/g, "\\'")}')" class="text-red-300 p-2"><i class="fas fa-trash"></i></button></div>${acquisti.slice(-3).reverse().map(a => `<div class="flex justify-between text-[8px] font-bold border-b pb-1 mb-1"><span>${a.nome_fattura}</span><span class="text-emerald-600">€ ${a.prezzo_unitario.toFixed(2)}</span></div>`).join('')}</div>`).join('') || '<p class="text-center text-xs text-slate-400 p-6">Nessun fornitore.</p>'; }
         function aggiungiFornitoreManuale() { let nome = document.getElementById('new-fornitore-name').value.trim().toUpperCase(); if(nome && !fornitoriDB[nome]) { fornitoriDB[nome] = []; localStorage.setItem('belvedereFornitori', JSON.stringify(fornitoriDB)); document.getElementById('new-fornitore-name').value = ''; aggiornaVistaFornitori(); } }
         function eliminaFornitore(n) { if(confirm(`Eliminare lo storico di ${n}?`)) { delete fornitoriDB[n]; localStorage.setItem('belvedereFornitori', JSON.stringify(fornitoriDB)); aggiornaVistaFornitori(); } }
@@ -499,7 +559,7 @@
                         for(let id in daScaricare) { let {data: p} = await supabaseClient.from('inventario').select('quantita').eq('id',id).single(); if(p) await supabaseClient.from('inventario').update({quantita: p.quantita - daScaricare[id]}).eq('id',id); }
                         
                         let fileDate = new Date(input.files[0].lastModified); let dateString = fileDate.toLocaleDateString('it-IT');
-                        await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione: `Chiusura RCH del ${dateString}`, importo:lordo, iva:iva, stato_pagamento:'pagato', data: fileDate.toISOString() }]);
+                        await supabaseClient.from('finanza').insert([{ tipo:'entrata', categoria:'Ristorante', descrizione: fileID, importo:lordo, iva:iva, stato_pagamento:'pagato', data: fileDate.toISOString() }]);
                         nav('view-dashboard');
                     }
                 } catch(e) { alert("Errore: " + e.message); }
@@ -539,12 +599,14 @@
         function modificaPiattoEsistente(idx) { let p = menuRistorante[idx]; document.getElementById('piatto-nome').value = p.nome; document.getElementById('piatto-categoria').value = p.categoria || ''; ingredientiTempRicetta = [...p.ingredienti]; document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map((i, idx)=>`<div class="flex justify-between text-[10px] font-black uppercase border-b pb-1 mb-1"><span>${i.nome}</span><span>${i.qta} <button onclick="ingredientiTempRicetta.splice(${idx},1); document.getElementById('lista-ingredienti-piatto').innerHTML = ingredientiTempRicetta.map((x, i2)=>\`<div class='flex justify-between text-[10px] font-black uppercase border-b pb-1 mb-1'><span>\${x.nome}</span><span>\${x.qta}</span></div>\`).join('');" class="text-red-500 ml-2"><i class="fas fa-times"></i></button></span></div>`).join(''); document.getElementById('form-crea-piatto').classList.remove('hidden'); }
 
         // ==========================================
-        // STAFF
+        // STAFF & SPESA
         // ==========================================
         async function caricaStaff() { const { data } = await supabaseClient.from('staff').select('*').order('nome'); staffLocale = data || []; document.getElementById('staff-select').innerHTML = staffLocale.map(s => `<option value="${s.nome}">${s.nome}</option>`).join(''); let html = ''; for(let s of staffLocale) { let mese = document.getElementById('finanza-mese-selettore').value; const { data: ant } = await supabaseClient.from('finanza').select('importo').eq('categoria', 'Personale').ilike('descrizione', `%Anticipo ${s.nome}%`).filter('data', 'gte', mese+'-01'); let totA = (ant || []).reduce((acc, curr) => acc + parseFloat(curr.importo), 0); html += `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-sm uppercase">${s.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">Anticipi Mese</p></div><div class="flex items-center"><span class="font-black text-red-500 text-lg">€ ${totA.toFixed(2)}</span><button onclick="eliminaStaff('${s.id}')" class="text-red-300 bg-red-50 p-2 rounded-xl ml-3 active:scale-90"><i class="fas fa-trash"></i></button></div></div>`; } document.getElementById('staff-list-container').innerHTML = html || '<p class="p-6 text-center text-xs text-slate-400 uppercase">Nessuno staff</p>'; }
         async function eliminaStaff(id) { if(confirm("Licenziare / Eliminare questo dipendente?")) { await supabaseClient.from('staff').delete().eq('id', id); caricaStaff(); } }
         async function salvaAnticipoStaff() { let n = document.getElementById('staff-select').value, i = parseFloat(document.getElementById('staff-anticipo-val').value); if(i>0) { await supabaseClient.from('finanza').insert([{ tipo:'uscita', categoria:'Personale', descrizione:`Anticipo ${n}`, importo:i, stato_pagamento:'pagato', data:new Date().toISOString() }]); alert("Erogato!"); document.getElementById('staff-anticipo-val').value='0.00'; caricaStaff(); caricaFinanzaDaSupabase(); } }
         async function aggiungiDipendente() { let n = document.getElementById('new-staff-name').value.trim(); if(n) { await supabaseClient.from('staff').insert([{ nome:n }]); document.getElementById('new-staff-name').value=''; caricaStaff(); } }
+        function generaListaSpesa() { let autoItems = inventarioLocale.filter(p => parseFloat(p.quantita) <= parseFloat(p.soglia_minima)); document.getElementById('auto-shopping-list').innerHTML = autoItems.map(p => `<div class="p-4 flex justify-between bg-white"><div><p class="font-black text-sm uppercase">${p.nome}</p><p class="text-[8px] text-red-500 font-bold uppercase">Stock: ${p.quantita} / Soglia: ${p.soglia_minima}</p></div><i class="fas fa-triangle-exclamation text-amber-500"></i></div>`).join('') || '<p class="p-8 text-center text-xs text-slate-400">Tutto in stock!</p>'; }
+        let extraShopping = []; function aggiungiVoceManualeSpesa() { let v = document.getElementById('manual-shop-item').value.trim(); if(v) { extraShopping.push(v); document.getElementById('manual-shop-item').value=''; document.getElementById('manual-shopping-list').innerHTML = extraShopping.map((item, i) => `<div class="flex justify-between bg-white p-3 rounded-xl border text-xs font-bold uppercase"><span>${item}</span><button onclick="extraShopping.splice(${i},1); aggiungiVoceManualeSpesa();" class="text-red-400"><i class="fas fa-times"></i></button></div>`).join(''); } }
     </script>
 </body>
 </html>
