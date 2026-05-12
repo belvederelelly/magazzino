@@ -354,7 +354,6 @@
             if(id === 'view-finanza') caricaFinanzaDaSupabase();
             if(id === 'view-staff') caricaStaff();
             
-            // LA CORREZIONE È QUI SOTTO:
             if(id === 'view-add-product' || id === 'view-ricettario' || id === 'view-categorie') {
                 aggiornaVistaCategorie();
             }
@@ -393,7 +392,7 @@
         }
 
         // ==========================================
-        // CONNESSIONE SUPABASE: CATEGORIE
+        // CONNESSIONE SUPABASE: CATEGORIE E INGREDIENTI
         // ==========================================
         async function caricaCategorieCloud() { const { data } = await supabaseClient.from('categorie').select('*'); if(data && data.length > 0) { categorieDB = data.map(c => ({ id: c.id, nome: c.nome })); } else { let defaultCats = ['CANTINA', 'BEVANDE', 'CAFFETTERIA', 'CUCINA', 'PIZZERIA', 'VARIE']; await supabaseClient.from('categorie').insert(defaultCats.map(c => ({nome: c}))); const res = await supabaseClient.from('categorie').select('*'); categorieDB = res.data.map(c => ({ id: c.id, nome: c.nome })); } aggiornaVistaCategorie(); }
         
@@ -412,6 +411,14 @@
 
         async function aggiungiCategoria() { let v = document.getElementById('nuova-cat-input').value.trim().toUpperCase(); if(v && !categorieDB.find(c=>c.nome===v)) { await supabaseClient.from('categorie').insert([{ nome: v }]); document.getElementById('nuova-cat-input').value = ''; await caricaCategorieCloud(); } }
         async function eliminaCategoria(id) { if(confirm("Eliminare la categoria dal database cloud?")) { await supabaseClient.from('categorie').delete().eq('id', id); await caricaCategorieCloud(); } }
+
+        // ==========================================
+        // LA FUNZIONE RIPRISTINATA CHE CAUSAVA IL CRASH
+        // ==========================================
+        function popolaSelectIngredienti() { 
+            let sel = document.getElementById('select-ingrediente'); 
+            if(sel) sel.innerHTML = inventarioLocale.map(i=>`<option value="${i.id}" data-nome="${i.nome}">${i.nome} (${i.categoria||'VARIE'})</option>`).join(''); 
+        }
 
         // ==========================================
         // CONNESSIONE SUPABASE: FORNITORI
