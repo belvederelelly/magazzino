@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belvedere Smart - Cloud ERP</title>
+    <title>Belvedere Smart - Cloud ERP Finale</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -19,6 +19,13 @@
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 h-screen overflow-hidden flex flex-col">
+
+    <div id="error-overlay" class="hidden fixed inset-0 bg-red-600 z-[200] flex flex-col items-center justify-center text-white p-6 text-center">
+        <i class="fas fa-database text-5xl mb-4"></i>
+        <h2 class="text-2xl font-black mb-2 uppercase">Connessione Cloud Fallita</h2>
+        <p id="error-msg" class="text-sm font-bold opacity-90 mb-6 bg-red-800 p-4 rounded-xl border border-red-500"></p>
+        <button onclick="location.reload()" class="bg-white text-red-600 px-8 py-3 rounded-2xl font-black uppercase shadow-lg active:scale-95">Ricarica App</button>
+    </div>
 
     <div id="view-login" class="view-panel active h-full flex flex-col justify-center items-center bg-slate-900 px-6 fixed inset-0 z-[100]">
         <div class="text-center mb-8">
@@ -300,10 +307,30 @@
             } else { alert("Password errata."); }
         }
 
+        // FUNZIONE SICUREZZA ANTI PAGINA BIANCA
+        async function checkTable(tableName) {
+            const { error } = await supabaseClient.from(tableName).select('id').limit(1);
+            if (error && error.code === '42P01') { // 42P01 is "undefined_table"
+                document.getElementById('error-overlay').classList.remove('hidden');
+                document.getElementById('error-msg').innerText = `Manca la tabella su Supabase: "${tableName}".\nTorna su Supabase e creala!`;
+                return false;
+            }
+            return true;
+        }
+
         async function avviaApp() {
+            // Controlla prima che le tabelle esistano
+            const t1 = await checkTable('inventario'); const t2 = await checkTable('finanza'); 
+            const t3 = await checkTable('categorie'); const t4 = await checkTable('menu'); 
+            const t5 = await checkTable('fornitori_db'); const t6 = await checkTable('staff');
+            
+            if(!t1 || !t2 || !t3 || !t4 || !t5 || !t6) return; // Si ferma e mostra la schermata rossa
+
             document.getElementById('view-login').style.display = 'none'; 
             document.getElementById('app-interface').classList.remove('hidden');
+            
             await caricaCategorieCloud(); await caricaFornitoriCloud(); await caricaMenuCloud(); await caricaInventarioDaSupabase();
+            
             if (userRole === 'Staff') {
                 document.getElementById('role-badge').innerText = 'Staff Magazzino';
                 document.querySelectorAll('.titolare-only').forEach(el => el.classList.add('hidden'));
@@ -350,7 +377,7 @@
         async function eliminaSelezionati(tabella, className) {
             let ids = Array.from(document.querySelectorAll('.' + className + ':checked')).map(c => c.value);
             if(ids.length === 0) return;
-            if(confirm(`Sei sicuro di voler eliminare in blocco ${ids.length} elementi?\n\nQuesta azione è irreversibile e rimuoverà i dati dal Cloud.`)) {
+            if(confirm(`Sei sicuro di voler eliminare in blocco ${ids.length} elementi?\nQuesta azione rimuoverà i dati dal Cloud e non può essere annullata.`)) {
                 await supabaseClient.from(tabella).delete().in('id', ids);
                 if(tabella === 'inventario') await caricaInventarioDaSupabase();
                 if(tabella === 'finanza') await caricaFinanzaDaSupabase();
@@ -539,7 +566,7 @@
         async function salvaNuovoProdotto() { let pay = { nome: document.getElementById('new-nome').value.trim().toUpperCase(), quantita: parseFloat(document.getElementById('new-qta').value), categoria: document.getElementById('new-cat').value, prezzo: 0 }; if(!pay.nome) return; await supabaseClient.from('inventario').insert([pay]); nav('view-inventory'); }
 
         // ==========================================
-        // STAFF E ALTRO
+        // STAFF & SPESA
         // ==========================================
         async function caricaStaff() { const { data } = await supabaseClient.from('staff').select('*').order('nome'); staffLocale = data || []; document.getElementById('staff-select').innerHTML = staffLocale.map(s => `<option value="${s.nome}">${s.nome}</option>`).join(''); let html = ''; for(let s of staffLocale) { let mese = document.getElementById('finanza-mese-selettore').value; const { data: ant } = await supabaseClient.from('finanza').select('importo').eq('categoria', 'Personale').ilike('descrizione', `%Anticipo ${s.nome}%`).filter('data', 'gte', mese+'-01'); let totA = (ant || []).reduce((acc, curr) => acc + parseFloat(curr.importo), 0); html += `<div class="p-4 border-b flex justify-between items-center"><div><p class="font-black text-sm uppercase">${s.nome}</p><p class="text-[8px] font-bold text-slate-400 uppercase">Anticipi Mese</p></div><div class="flex items-center"><span class="font-black text-red-500 text-lg">€ ${totA.toFixed(2)}</span><button onclick="eliminaStaff('${s.id}')" class="text-red-300 bg-red-50 p-2 rounded-xl ml-3 active:scale-90"><i class="fas fa-trash"></i></button></div></div>`; } document.getElementById('staff-list-container').innerHTML = html || '<p class="p-6 text-center text-xs text-slate-400 uppercase">Nessuno staff</p>'; }
         async function eliminaStaff(id) { if(confirm("Licenziare / Eliminare dal Cloud?")) { await supabaseClient.from('staff').delete().eq('id', id); caricaStaff(); } }
