@@ -373,6 +373,7 @@
             if(id === 'view-inventory') caricaInventarioDaSupabase();
             if(id === 'view-finanza') caricaFinanzaDaSupabase();
             if(id === 'view-staff') caricaStaff();
+            if(id === 'view-fornitori') caricaFornitoriCloud(); 
             if(id === 'view-add-product' || id === 'view-ricettario' || id === 'view-categorie') aggiornaVistaCategorie();
             if(id === 'view-shopping') generaListaSpesa(); 
         }
@@ -404,7 +405,7 @@
         async function eliminaSelezionati(tabella, className) { let ids = Array.from(document.querySelectorAll('.' + className + ':checked')).map(c => c.value); if(ids.length === 0) return; if(confirm(`Sei sicuro di voler eliminare in blocco ${ids.length} elementi?\nQuesta azione rimuoverà i dati dal Cloud e non può essere annullata.`)) { await supabaseClient.from(tabella).delete().in('id', ids); if(tabella === 'inventario') await caricaInventarioDaSupabase(); if(tabella === 'finanza') await caricaFinanzaDaSupabase(); if(tabella === 'menu') await caricaMenuCloud(); toggleDeleteBulkBtn(className.split('-')[1]); } }
 
         // ==========================================
-        // CONNESSIONE SUPABASE: CATEGORIE
+        // CONNESSIONE SUPABASE: CATEGORIE E INGREDIENTI
         // ==========================================
         async function caricaCategorieCloud() { const { data } = await supabaseClient.from('categorie').select('*'); if(data && data.length > 0) { categorieDB = data.map(c => ({ id: c.id, nome: c.nome })); } else { let defaultCats = ['CANTINA', 'BEVANDE', 'CAFFETTERIA', 'CUCINA', 'PIZZERIA', 'VARIE']; await supabaseClient.from('categorie').insert(defaultCats.map(c => ({nome: c}))); const res = await supabaseClient.from('categorie').select('*'); categorieDB = res.data.map(c => ({ id: c.id, nome: c.nome })); } aggiornaVistaCategorie(); }
         function aggiornaVistaCategorie() { document.getElementById('lista-categorie').innerHTML = categorieDB.map(c => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border"><span class="font-black text-xs uppercase text-slate-700">${c.nome}</span><button onclick="eliminaCategoria('${c.id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button></div>`).join(''); let sel = document.getElementById('new-cat'); if(sel) sel.innerHTML = categorieDB.map(c => `<option value="${c.nome}">${c.nome}</option>`).join(''); let selRicetta = document.getElementById('piatto-categoria'); if(selRicetta) selRicetta.innerHTML = categorieDB.map(c => `<option value="${c.nome}">${c.nome}</option>`).join(''); }
@@ -414,11 +415,115 @@
         function popolaSelectIngredienti() { let sel = document.getElementById('select-ingrediente'); if(sel) sel.innerHTML = inventarioLocale.map(i=>`<option value="${i.id}" data-nome="${i.nome}">${i.nome} (${i.categoria||'VARIE'})</option>`).join(''); }
 
         // ==========================================
-        // CONNESSIONE SUPABASE: FORNITORI
+        // CONNESSIONE SUPABASE: FORNITORI (TOTALE, TREND E UNISCI)
         // ==========================================
-        async function caricaFornitoriCloud() { const { data } = await supabaseClient.from('fornitori_db').select('*'); fornitoriDict = {}; if(data) data.forEach(f => { fornitoriDict[f.nome] = f.storico || []; }); aggiornaVistaFornitori(); }
-        async function salvaStoricoFornitoreCloud(nomeFornitore, storicoArray) { const { data } = await supabaseClient.from('fornitori_db').select('id').eq('nome', nomeFornitore); if(data && data.length > 0) { await supabaseClient.from('fornitori_db').update({ storico: storicoArray }).eq('nome', nomeFornitore); } else { await supabaseClient.from('fornitori_db').insert([{ nome: nomeFornitore, storico: storicoArray }]); } }
-        function aggiornaVistaFornitori() { document.getElementById('fornitori-list-container').innerHTML = Object.entries(fornitoriDict).map(([nome, acquisti]) => `<div class="bg-white p-4 rounded-3xl border shadow-sm"><div class="flex justify-between items-center mb-3"><h4 class="font-black text-sm uppercase text-purple-800">${nome}</h4><button onclick="eliminaFornitore('${nome.replace(/'/g, "\\'")}')" class="text-red-300 p-2"><i class="fas fa-trash"></i></button></div>${acquisti.slice(-5).reverse().map(a => `<div class="flex justify-between text-[8px] font-bold border-b pb-1 mb-1"><div><span class="text-slate-800 font-black mr-1">${a.qta ? a.qta + ' ' + (a.um||'PZ') : ''}</span><span class="text-slate-500">${a.nome_fattura}</span></div><span class="text-emerald-600 whitespace-nowrap ml-2">€ ${parseFloat(a.prezzo_unitario||0).toFixed(2)} / ${a.um||'PZ'}</span></div>`).join('')}</div>`).join('') || '<p class="text-center text-xs text-slate-400 p-6">Nessun fornitore nel cloud.</p>'; }
+        async function caricaFornitoriCloud() { 
+            const { data } = await supabaseClient.from('fornitori_db').select('*').order('nome'); 
+            fornitoriDict = {}; 
+            if(data) data.forEach(f => { fornitoriDict[f.nome] = f.storico || []; }); 
+            aggiornaVistaFornitori(); 
+        }
+        
+        async function salvaStoricoFornitoreCloud(nomeFornitore, storicoArray) { 
+            const { data } = await supabaseClient.from('fornitori_db').select('id').eq('nome', nomeFornitore); 
+            if(data && data.length > 0) { await supabaseClient.from('fornitori_db').update({ storico: storicoArray }).eq('nome', nomeFornitore); } 
+            else { await supabaseClient.from('fornitori_db').insert([{ nome: nomeFornitore, storico: storicoArray }]); } 
+        }
+        
+        function aggiornaVistaFornitori() { 
+            let html = '';
+            for (const [nome, acquisti] of Object.entries(fornitoriDict)) {
+                let totaleSpeso = 0;
+                let storiciPrezzi = {}; 
+                
+                // Calcolo Trend e Totale
+                let acquistiRender = acquisti.map(a => {
+                    let qta = a.qta || 1;
+                    let p_unit = parseFloat(a.prezzo_unitario || 0);
+                    totaleSpeso += (qta * p_unit);
+
+                    let varHTML = '';
+                    if(storiciPrezzi[a.nome_fattura] !== undefined) {
+                        let diff = p_unit - storiciPrezzi[a.nome_fattura];
+                        if(diff > 0) varHTML = `<span class="text-red-500 ml-2" title="Aumentato di €${diff.toFixed(2)}"><i class="fas fa-arrow-trend-up"></i></span>`;
+                        else if (diff < 0) varHTML = `<span class="text-emerald-500 ml-2" title="Diminuito di €${Math.abs(diff).toFixed(2)}"><i class="fas fa-arrow-trend-down"></i></span>`;
+                        else varHTML = `<span class="text-slate-300 ml-2" title="Prezzo Invariato"><i class="fas fa-equals"></i></span>`;
+                    } else {
+                        varHTML = `<span class="text-blue-300 ml-2" title="Primo acquisto"><i class="fas fa-star text-[8px]"></i></span>`;
+                    }
+                    storiciPrezzi[a.nome_fattura] = p_unit;
+                    
+                    return { ...a, varHTML, p_unit, qta };
+                });
+
+                // Mostriamo gli ultimi 10 movimenti a ritroso
+                let itemHTML = acquistiRender.slice(-10).reverse().map(a => `
+                    <div class="flex justify-between items-center text-[10px] font-bold border-b pb-2 mb-2 hover:bg-slate-50 transition">
+                        <div class="flex-1 pr-2">
+                            <span class="text-slate-800 font-black mr-1">${a.qta} ${a.um||'PZ'}</span>
+                            <span class="text-slate-500">${a.nome_fattura}</span>
+                            <span class="block text-[8px] text-slate-400 font-normal mt-0.5">${a.data}</span>
+                        </div>
+                        <div class="text-right flex items-center justify-end w-24">
+                            <span class="text-slate-700 whitespace-nowrap">€ ${a.p_unit.toFixed(2)}</span>
+                            ${a.varHTML}
+                        </div>
+                    </div>
+                `).join('');
+
+                html += `
+                <div class="bg-white p-5 rounded-3xl border shadow-sm">
+                    <div class="flex justify-between items-start mb-4 border-b pb-3">
+                        <div>
+                            <h4 class="font-black text-sm uppercase text-purple-800">${nome}</h4>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase mt-1">Totale Speso: <span class="text-purple-600 font-black ml-1">€ ${totaleSpeso.toFixed(2)}</span></p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="unisciFornitorePrompt('${nome.replace(/'/g, "\\'")}')" class="text-blue-500 bg-blue-50 w-8 h-8 rounded-xl active:scale-90 flex justify-center items-center" title="Unisci in un altro Fornitore"><i class="fas fa-link"></i></button>
+                            <button onclick="eliminaFornitore('${nome.replace(/'/g, "\\'")}')" class="text-red-400 bg-red-50 w-8 h-8 rounded-xl active:scale-90 flex justify-center items-center" title="Elimina Fornitore"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div class="mt-2">${itemHTML || '<p class="text-[9px] text-slate-400">Nessun acquisto registrato.</p>'}</div>
+                </div>`;
+            }
+            document.getElementById('fornitori-list-container').innerHTML = html || '<p class="text-center text-xs text-slate-400 p-6">Nessun fornitore nel cloud.</p>'; 
+        }
+
+        async function unisciFornitorePrompt(sorgente) {
+            let options = Object.keys(fornitoriDict).filter(k => k !== sorgente).join('\n- ');
+            if(!options) return alert("Non ci sono altri fornitori nel database con cui unire questo.");
+            
+            let destinazione = prompt(`VUOI UNIRE "${sorgente}" IN UN ALTRO FORNITORE?\n\nScrivi il NOME ESATTO del fornitore di destinazione tra questi:\n\n- ${options}`).trim().toUpperCase();
+            
+            if(!destinazione) return;
+            if(!fornitoriDict[destinazione]) return alert("Fornitore non trovato. Devi scrivere il nome esattamente come appare nella lista.");
+            
+            if(confirm(`ATTENZIONE:\nSei sicuro di voler unire "${sorgente}" dentro "${destinazione}"?\n\nTutto lo storico verrà unito e il fornitore "${sorgente}" verrà eliminato. L'operazione è irreversibile.`)) {
+                
+                // 1. Uniamo gli array storici
+                let storicoUnito = [...fornitoriDict[destinazione], ...fornitoriDict[sorgente]];
+                
+                // 2. Aggiorniamo il fornitore di destinazione su DB
+                await supabaseClient.from('fornitori_db').update({ storico: storicoUnito }).eq('nome', destinazione);
+                
+                // 3. Eliminiamo il vecchio fornitore
+                await supabaseClient.from('fornitori_db').delete().eq('nome', sorgente);
+                
+                // 4. Aggiorniamo i movimenti di bilancio (Così non perdi lo storico dei debiti/pagamenti)
+                const { data: movs } = await supabaseClient.from('finanza').select('*').eq('categoria', 'Fornitori').ilike('descrizione', `%FATTURA: ${sorgente}%`);
+                if(movs && movs.length > 0) {
+                    for(let m of movs) {
+                        let newDesc = m.descrizione.replace(`FATTURA: ${sorgente}`, `FATTURA: ${destinazione}`);
+                        await supabaseClient.from('finanza').update({ descrizione: newDesc }).eq('id', m.id);
+                    }
+                }
+                
+                alert("Fornitori uniti con successo!");
+                await caricaFornitoriCloud();
+                await caricaFinanzaDaSupabase();
+            }
+        }
+
         async function aggiungiFornitoreManuale() { let n = document.getElementById('new-fornitore-name').value.trim().toUpperCase(); if(n && !fornitoriDict[n]) { await salvaStoricoFornitoreCloud(n, []); document.getElementById('new-fornitore-name').value = ''; await caricaFornitoriCloud(); } }
         async function eliminaFornitore(n) { if(confirm(`Eliminare ${n} dal cloud?`)) { await supabaseClient.from('fornitori_db').delete().eq('nome', n); await caricaFornitoriCloud(); } }
 
@@ -435,12 +540,11 @@
         function suggerisciGrammatura() { let n = document.getElementById('piatto-nome').value.toUpperCase(); let q = document.getElementById('qta-ingrediente'); if (n.includes('CAFFE') || n.includes('ESPRESSO')) { q.value = n.includes('DOPPIO') ? '0.014' : '0.007'; } else if (n.includes('1/2')) { q.value = '0.5'; } else if (n.includes('CALICE')) { q.value = '0.15'; } }
 
         // ==========================================
-        // FINANZA E CAMBIO STATO PAGAMENTO (PAGATO/DA PAGARE)
+        // FINANZA E CAMBIO STATO PAGAMENTO
         // ==========================================
         async function caricaFinanzaDaSupabase() { const { data } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false }); finanzaDatiGlobali = data || []; renderFinanzaList(); }
         function setFinanzaTab(tab) { currentFinanzaTab = tab; ['TUTTE', 'ENTRATE', 'PAGATE', 'DA_PAGARE'].forEach(t => { let btn = document.getElementById('tab-' + t); if(t === tab) { btn.className = "flex-1 py-3 text-[9px] font-black uppercase rounded-xl bg-white shadow-sm text-slate-800 transition"; } else { btn.className = "flex-1 py-3 text-[9px] font-black uppercase rounded-xl text-slate-500 transition hover:bg-slate-200"; } }); renderFinanzaList(); }
         
-        // LA NUOVA FUNZIONE: PERMETTE DI CAMBIARE DA "DA PAGARE" A "PAGATO" (E VICEVERSA) DIRETTAMENTE DALLA LISTA
         async function cambiaStatoPagamento(id, statoAttuale) {
             let nuovoStato = statoAttuale === 'pagato' ? 'da_pagare' : 'pagato';
             let msg = nuovoStato === 'pagato' ? "Vuoi segnare questo movimento come GIÀ PAGATO (Saldato)?" : "Vuoi segnare questo movimento come DA PAGARE (Debito)?";
@@ -448,7 +552,7 @@
             if(confirm(msg)) {
                 let dataPag = nuovoStato === 'pagato' ? new Date().toISOString() : null;
                 await supabaseClient.from('finanza').update({ stato_pagamento: nuovoStato, data_pagamento: dataPag }).eq('id', id);
-                await caricaFinanzaDaSupabase(); // Ricarica tutto e aggiorna i conti
+                await caricaFinanzaDaSupabase(); 
             }
         }
 
@@ -461,12 +565,9 @@
             
             document.getElementById('finanza-list').innerHTML = viewList.map(m => { 
                 let isE = (m.tipo === 'entrata'); 
-                
-                // I BADGE SONO ORA BOTTONI CLICCABILI (Tranne gli incassi che sono sempre pagati)
                 let badge = m.stato_pagamento === 'da_pagare' 
                     ? `<button onclick="cambiaStatoPagamento('${m.id}', '${m.stato_pagamento}')" class="bg-red-500 text-white status-badge ml-2 border border-red-600 shadow-sm">DA PAGARE</button>` 
                     : (isE ? `<span class="bg-emerald-100 text-emerald-700 status-badge ml-2 border border-emerald-200">Incasso</span>` : `<button onclick="cambiaStatoPagamento('${m.id}', '${m.stato_pagamento}')" class="bg-slate-200 text-slate-600 status-badge ml-2 border border-slate-300 shadow-sm">Pagato</button>`); 
-                
                 let dataStr = new Date(m.data).toLocaleDateString('it-IT'); let descJS = (m.descrizione||'').replace(/'/g, "\\'"); 
                 return `<div class="p-4 border-b flex justify-between items-center bg-white hover:bg-slate-50 transition"><input type="checkbox" class="chk-finanza w-4 h-4 accent-emerald-600 mr-3" value="${m.id}" onchange="toggleDeleteBulkBtn('finanza')"><div class="flex-1 mr-2 overflow-hidden"><p class="font-black text-[11px] uppercase text-slate-800 truncate">${m.descrizione}</p><p class="text-[8px] font-bold text-slate-400 mt-1">${dataStr} ${badge}</p></div><div class="flex items-center gap-1"><span class="font-black ${isE?'text-emerald-500':'text-slate-700'} whitespace-nowrap">€ ${m.importo.toFixed(2)}</span><button onclick="rinominaMovimentoFinanza('${m.id}', '${descJS}')" class="text-blue-400 p-2 bg-blue-50 rounded-lg active:scale-90 ml-2"><i class="fas fa-pencil"></i></button></div></div>`; 
             }).join('') || '<p class="p-8 text-center text-xs text-slate-400 uppercase">Nessun movimento trovato</p>';
@@ -607,7 +708,7 @@
         }
 
         // ==========================================
-        // STOCK MAGGIO
+        // STOCK MAGGIO E ASSOCIAZIONI
         // ==========================================
         async function caricaInventarioDaSupabase() {
             const { data } = await supabaseClient.from('inventario').select('*').order('categoria').order('nome'); inventarioLocale = data || [];
