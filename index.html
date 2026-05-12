@@ -396,7 +396,7 @@
         }
 
         // ==========================================
-        // FINANZA (SCADENZE + ORDINAMENTO)
+        // FINANZA (SCADENZE E SPUNTA PAGATO)
         // ==========================================
         async function caricaFinanzaDaSupabase() { const { data } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false }); finanzaDatiGlobali = data || []; renderFinanzaList(); }
         
@@ -413,12 +413,12 @@
 
             let viewList = filtratiMese.filter(m => { let desc = (m.descrizione||'').toLowerCase(); let cat = (m.categoria||'').toLowerCase(); if (testo !== "" && !desc.includes(testo) && !cat.includes(testo)) return false; if (currentFinanzaTab === 'ENTRATE') return m.tipo === 'entrata'; if (currentFinanzaTab === 'PAGATE') return m.tipo === 'uscita' && m.stato_pagamento === 'pagato'; if (currentFinanzaTab === 'DA_PAGARE') return m.tipo === 'uscita' && m.stato_pagamento === 'da_pagare'; return true; });
             
-            // ORDINAMENTO SPECIALE PER "DA PAGARE"
+            // ORDINAMENTO "DA PAGARE" PER SCADENZA
             if (currentFinanzaTab === 'DA_PAGARE') {
                 viewList.sort((a, b) => {
                     let dateA = a.data_scadenza ? new Date(a.data_scadenza).getTime() : Infinity;
                     let dateB = b.data_scadenza ? new Date(b.data_scadenza).getTime() : Infinity;
-                    return dateA - dateB; // Più vicine prima
+                    return dateA - dateB;
                 });
             }
 
@@ -432,11 +432,25 @@
                     let scad = new Date(m.data_scadenza); let oggi = new Date();
                     let isScaduta = scad < oggi;
                     scadenzaHtml = `<p class="text-[9px] font-black mt-1 ${isScaduta ? 'text-red-600' : 'text-amber-500'}"><i class="fas fa-clock"></i> Scade: ${scad.toLocaleDateString('it-IT')}</p>`;
+                } else if (m.stato_pagamento === 'pagato' && m.data_pagamento && !isE) {
+                    scadenzaHtml = `<p class="text-[9px] font-black mt-1 text-emerald-600"><i class="fas fa-check-circle"></i> Saldata il: ${new Date(m.data_pagamento).toLocaleDateString('it-IT')}</p>`;
                 }
 
                 let descJS = (m.descrizione||'').replace(/'/g, "\\'");
-                return `<div class="p-4 border-b flex justify-between items-center bg-white hover:bg-slate-50 transition"><div class="flex-1 mr-2 overflow-hidden"><p class="font-black text-[11px] uppercase text-slate-800 truncate">${m.descrizione}</p><p class="text-[8px] font-bold text-slate-400 mt-1">Emessa: ${dataStr} ${badge}</p>${scadenzaHtml}</div><div class="flex items-center gap-1"><span class="font-black ${isE?'text-emerald-500':'text-slate-700'} whitespace-nowrap">€ ${m.importo.toFixed(2)}</span><button onclick="rinominaMovimentoFinanza('${m.id}', '${descJS}')" class="text-blue-400 p-2 bg-blue-50 rounded-lg active:scale-90 ml-2"><i class="fas fa-pencil"></i></button><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-300 p-2 bg-red-50 rounded-lg active:scale-90"><i class="fas fa-trash"></i></button></div></div>`;
+                
+                // TASTO SEGNA COME PAGATO
+                let btnPaga = m.stato_pagamento === 'da_pagare' ? `<button onclick="segnaComePagato('${m.id}')" class="text-emerald-600 p-2 bg-emerald-50 rounded-lg active:scale-90 ml-1" title="Segna Pagato Oggi"><i class="fas fa-check-double"></i></button>` : '';
+
+                return `<div class="p-4 border-b flex justify-between items-center bg-white hover:bg-slate-50 transition"><div class="flex-1 mr-2 overflow-hidden"><p class="font-black text-[11px] uppercase text-slate-800 truncate">${m.descrizione}</p><p class="text-[8px] font-bold text-slate-400 mt-1">Emessa: ${dataStr} ${badge}</p>${scadenzaHtml}</div><div class="flex items-center gap-1"><span class="font-black ${isE?'text-emerald-500':'text-slate-700'} whitespace-nowrap">€ ${m.importo.toFixed(2)}</span>${btnPaga}<button onclick="rinominaMovimentoFinanza('${m.id}', '${descJS}')" class="text-blue-400 p-2 bg-blue-50 rounded-lg active:scale-90 ml-1"><i class="fas fa-pencil"></i></button><button onclick="eliminaMovimentoFinanza('${m.id}')" class="text-red-300 p-2 bg-red-50 rounded-lg active:scale-90 ml-1"><i class="fas fa-trash"></i></button></div></div>`;
             }).join('') || '<p class="p-8 text-center text-xs text-slate-400 uppercase">Nessun movimento</p>';
+        }
+
+        async function segnaComePagato(id) {
+            if(confirm("Confermi di aver saldato questo debito oggi?")) {
+                let dataOggi = new Date().toISOString();
+                await supabaseClient.from('finanza').update({ stato_pagamento: 'pagato', data_pagamento: dataOggi }).eq('id', id);
+                caricaFinanzaDaSupabase();
+            }
         }
 
         async function rinominaMovimentoFinanza(id, oldName) { let newName = prompt("Modifica intestatario o descrizione:", oldName); if (newName !== null && newName.trim() !== "") { await supabaseClient.from('finanza').update({ descrizione: newName.trim().toUpperCase() }).eq('id', id); caricaFinanzaDaSupabase(); } }
