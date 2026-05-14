@@ -474,11 +474,11 @@
                         
                         <div class="flex gap-2 items-end pt-2">
                             <div class="flex-1">
-                                <label class="text-[9px] font-bold uppercase text-slate-400 ml-1">Scegli il Padre</label>
+                                <label class="text-[8px] font-bold uppercase text-slate-400 ml-1">Scegli il Padre</label>
                                 <select id="select-ingrediente" class="w-full border-2 border-slate-300 p-2.5 rounded-xl font-bold text-xs bg-white outline-none focus:border-blue-500"></select>
                             </div>
                             <div class="w-24">
-                                <label class="text-[9px] font-bold uppercase text-blue-600 ml-1">Dose / Q.tà</label>
+                                <label class="text-[8px] font-bold uppercase text-blue-600 ml-1">Dose / Q.tà</label>
                                 <input type="number" id="qta-ingrediente" class="w-full border-2 border-blue-300 p-2.5 rounded-xl font-black text-sm text-center bg-white text-blue-700 outline-none focus:border-blue-500" placeholder="0.25">
                             </div>
                             <button onclick="aggiungiIngredienteRicetta()" class="bg-slate-800 text-white w-12 h-[42px] rounded-xl font-black active:scale-95 transition shadow-md flex items-center justify-center">
@@ -520,7 +520,6 @@
             </div>
 
             <div id="view-shopping" class="view-panel space-y-4 titolare-only">
-                
                 <div class="bg-white p-6 rounded-3xl border shadow-xl">
                     <h3 class="font-black text-slate-800 text-xl mb-4 border-b border-slate-100 pb-3"><i class="fas fa-cart-shopping text-emerald-500 mr-2"></i> Crea Ordine</h3>
                     
@@ -571,7 +570,7 @@
     </div>
 
     <script>
-        // Gestione Errori Globali
+        // GESTIONE ERRORI GLOBALI
         window.onerror = function(msg, url, line) {
             document.getElementById('error-overlay').classList.remove('hidden');
             document.getElementById('error-msg').innerText = "Errore di Codice Interno:\n" + msg + "\nAlla riga: " + line;
@@ -883,7 +882,7 @@
             
             if(ids.length === 0) return; 
             
-            if(confirm(`Sei sicuro di voler eliminare in blocco ${ids.length} elementi?\nQuesta azione rimuoverà i dati dal Cloud in modo irreversibile.`)) { 
+            if(confirm(`Sei sicuro di voler eliminare in blocco ${ids.length} elementi?\nQuesta azione rimuoverà i dati dal Cloud e non può essere annullata.`)) { 
                 await supabaseClient.from(tabella).delete().in('id', ids); 
                 
                 if(tabella === 'inventario') await caricaInventarioDaSupabase(); 
@@ -957,7 +956,7 @@
         }
 
         // ==========================================
-        // FORNITORI E MODALE STORICO PREZZI (IL NUOVO AGGIORNAMENTO!)
+        // FORNITORI E MODALE STORICO PREZZI
         // ==========================================
         async function caricaFornitoriCloud() { 
             const { data } = await supabaseClient.from('fornitori_db').select('*').order('nome'); 
@@ -1013,8 +1012,6 @@
                     return { ...a, varHTML, p_unit, qta };
                 });
 
-                // Rendering degli ultimi 10 movimenti a ritroso
-                // ORA IL BLOCCO DESTRO È CLICCABILE E APRE LA MODALE
                 let safeNomeFornitore = nome.replace(/'/g, "\\'");
                 
                 let itemHTML = acquistiRender.slice(-10).reverse().map(a => {
@@ -1072,19 +1069,15 @@
             let storico = fornitoriDict[fornitore];
             if (!storico) return;
 
-            // Filtra solo gli acquisti di questo specifico articolo
             let acquistiArticolo = storico.filter(a => a.nome_fattura === articolo);
 
             let htmlList = '';
-            
-            // Creiamo una copia e la giriamo per avere dal più recente al più vecchio
             let acquistiReverse = [...acquistiArticolo].reverse();
 
             acquistiReverse.forEach((a, idx) => {
                 let p = parseFloat(a.prezzo_unitario || 0);
                 let varSpan = '';
                 
-                // Visto che l'array è rovesciato, il prezzo *precedente* nel tempo si trova all'indice successivo (idx + 1)
                 if (idx < acquistiReverse.length - 1) {
                     let oldP = parseFloat(acquistiReverse[idx + 1].prezzo_unitario || 0);
                     let diff = p - oldP;
@@ -1344,7 +1337,7 @@
         }
 
         // ==========================================
-        // GESTIONE FINANZIARIA (Bilancio e Modifica Data)
+        // 12. GESTIONE FINANZIARIA (Bilancio, Modifica Data E IMPORTO)
         // ==========================================
         async function caricaFinanzaDaSupabase() { 
             const { data } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false }); 
@@ -1375,12 +1368,10 @@
             
             if(confirm(msg)) {
                 let dataPag = nuovoStato === 'pagato' ? new Date().toISOString() : null;
-                
                 await supabaseClient.from('finanza').update({ 
                     stato_pagamento: nuovoStato, 
                     data_pagamento: dataPag 
                 }).eq('id', id);
-                
                 await caricaFinanzaDaSupabase(); 
             }
         }
@@ -1403,6 +1394,25 @@
                     alert("Formato Data Errato. Usa l'anno, trattino, mese, trattino, giorno (Es. 2026-06-25)");
                 }
             } 
+        }
+
+        // NUOVA FUNZIONE: MODIFICA IMPORTO
+        async function modificaImportoMovimento(id, oldImporto) {
+            let nuovoImporto = prompt("MODIFICA IMPORTO\nInserisci il nuovo importo totale della fattura o spesa (€):", oldImporto);
+            
+            if (nuovoImporto !== null && nuovoImporto.trim() !== "") {
+                let parsed = parseFloat(nuovoImporto.replace(',', '.'));
+                
+                if (!isNaN(parsed)) {
+                    await supabaseClient.from('finanza').update({ 
+                        importo: parsed 
+                    }).eq('id', id);
+                    
+                    await caricaFinanzaDaSupabase();
+                } else {
+                    alert("Errore: Hai inserito un formato numerico non valido.");
+                }
+            }
         }
 
         function renderFinanzaList() {
@@ -1491,9 +1501,14 @@
                     </div>
                     
                     <div class="flex items-center">
-                        <span class="font-black text-base ${isE ? 'text-emerald-500' : 'text-slate-700'} whitespace-nowrap tracking-tight">€ ${m.importo.toLocaleString('it-IT', {minimumFractionDigits:2})}</span>
+                        <div class="flex items-center">
+                            <span class="font-black text-base ${isE ? 'text-emerald-500' : 'text-slate-700'} whitespace-nowrap tracking-tight">€ ${m.importo.toLocaleString('it-IT', {minimumFractionDigits:2})}</span>
+                            <button onclick="modificaImportoMovimento('${m.id}', ${m.importo})" class="text-slate-400 hover:text-emerald-600 p-2 transition ml-1" title="Modifica Importo">
+                                <i class="fas fa-edit text-xs"></i>
+                            </button>
+                        </div>
                         
-                        <div class="flex flex-col ml-3 gap-1">
+                        <div class="flex flex-col ml-1 gap-1 border-l border-slate-200 pl-2">
                             <button onclick="modificaDataMovimento('${m.id}', '${m.data}')" class="text-amber-500 bg-amber-50 w-7 h-7 rounded-md active:scale-90 flex items-center justify-center border border-amber-200" title="Sposta Mese / Modifica Data">
                                 <i class="fas fa-calendar-day text-[10px]"></i>
                             </button>
@@ -1564,8 +1579,284 @@
         }
 
         // ==========================================
-        // FINE CODICE APPLICAZIONE
+        // LETTORE FATTURE XML (A.I. Intelligente)
         // ==========================================
+        function elaboraFatturaXML(input) {
+            if(!input.files[0]) return; 
+            
+            document.getElementById('fattura-loader').classList.remove('hidden'); 
+            document.getElementById('fattura-result').classList.add('hidden');
+            
+            const reader = new FileReader(); 
+            reader.onload = function(e) {
+                try {
+                    let rawText = e.target.result; 
+                    let items = []; 
+                    let ivaT = 0; 
+                    let extractedFornitore = ""; 
+                    let extractedDataDoc = new Date().toISOString().substring(0, 10);
+                    
+                    let matchDenom = rawText.match(/<CedentePrestatore>[\s\S]*?<Denominazione>(.*?)<\/Denominazione>/i); 
+                    if (matchDenom) {
+                        extractedFornitore = matchDenom[1].trim().toUpperCase(); 
+                    } else { 
+                        let matchHtml = rawText.match(/Cedente \/ Prestatore[\s\S]*?<b>(.*?)<\/b>/i); 
+                        if (matchHtml) extractedFornitore = matchHtml[1].trim().toUpperCase(); 
+                    }
+                    
+                    if (rawText.includes('<html')) {
+                        let dataMatch = rawText.match(/(\d{2})\/(\d{2})\/(\d{4})/); 
+                        if(dataMatch) {
+                            extractedDataDoc = `${dataMatch[3]}-${dataMatch[2]}-${dataMatch[1]}`;
+                        }
+                        
+                        const parser = new DOMParser(); 
+                        const htmlDoc = parser.parseFromString(rawText, "text/html"); 
+                        const tabelle = htmlDoc.querySelectorAll('table'); 
+                        let tabellaP = null;
+                        
+                        for (let tb of tabelle) { 
+                            if (tb.textContent.includes('Prezzo unitario') || tb.textContent.includes('Prezzo Unitario')) { 
+                                tabellaP = tb; 
+                                break; 
+                            } 
+                        }
+                        
+                        if (tabellaP) { 
+                            tabellaP.querySelectorAll('tbody tr').forEach(riga => { 
+                                const celle = riga.querySelectorAll('td'); 
+                                if (celle.length >= 7) { 
+                                    let desc = celle[1].innerText.split('Periodo')[0].trim(); 
+                                    let qta = parseFloat(celle[2].innerText.replace(/\./g,'').replace(',','.'))||0; 
+                                    let p = parseFloat(celle[3].innerText.replace(/\./g,'').replace(',','.'))||0; 
+                                    let percIva = parseFloat(celle[6].innerText.replace(',','.'))||0; 
+                                    
+                                    let um = celle[4] ? celle[4].innerText.trim().toUpperCase() : "PZ"; 
+                                    if(um === "") um = "PZ";
+                                    
+                                    if (desc && qta > 0) { 
+                                        items.push({ 
+                                            nome: desc.substring(0,50), 
+                                            qta: qta, 
+                                            um: um.substring(0,5), 
+                                            costo_unit: p 
+                                        }); 
+                                        ivaT += (qta * p) * (percIva / 100); 
+                                    } 
+                                } 
+                            }); 
+                        }
+                        
+                    } else {
+                        let estrazione = rawText.match(/(<[a-zA-Z0-9_:]*FatturaElettronica[\s\S]*<\/[a-zA-Z0-9_:]*FatturaElettronica>)/i); 
+                        if(estrazione) rawText = estrazione[1];
+                        
+                        const parser = new DOMParser(); 
+                        const xmlDoc = parser.parseFromString(rawText, "text/xml"); 
+                        
+                        const getTags = (nodo, n) => { 
+                            let t = nodo.getElementsByTagName(n); 
+                            return t.length === 0 ? nodo.getElementsByTagNameNS("*", n) : t; 
+                        };
+                        
+                        let dataTag = getTags(xmlDoc.documentElement, "Data")[0]; 
+                        if(dataTag && dataTag.textContent) {
+                            extractedDataDoc = dataTag.textContent.substring(0,10);
+                        }
+                        
+                        const linee = getTags(xmlDoc.documentElement, "DettaglioLinee");
+                        for(let i=0; i < linee.length; i++) { 
+                            let tagDesc = getTags(linee[i], "Descrizione")[0];
+                            let tagQta = getTags(linee[i], "Quantita")[0];
+                            let tagPrezzo = getTags(linee[i], "PrezzoUnitario")[0];
+                            let tagIva = getTags(linee[i], "AliquotaIVA")[0];
+                            let tagUM = getTags(linee[i], "UnitaMisura")[0]; 
+                            
+                            let um = tagUM && tagUM.textContent ? tagUM.textContent.trim().toUpperCase() : "PZ"; 
+                            
+                            if(tagDesc && tagPrezzo) { 
+                                let q = tagQta ? parseFloat(tagQta.textContent) : 1; 
+                                let p = parseFloat(tagPrezzo.textContent); 
+                                let perc = tagIva ? parseFloat(tagIva.textContent) : 0; 
+                                
+                                ivaT += (q * p) * (perc / 100); 
+                                
+                                items.push({ 
+                                    nome: tagDesc.textContent.trim().substring(0,50), 
+                                    qta: q, 
+                                    um: um.substring(0,5), 
+                                    costo_unit: p 
+                                }); 
+                            } 
+                        }
+                    }
+                    
+                    fatturaItemsLetti = items; 
+                    
+                    document.getElementById('ocr-tot-iva').value = ivaT.toFixed(2); 
+                    document.getElementById('ocr-data-doc').value = extractedDataDoc;
+                    
+                    impostaFornitoreUI(extractedFornitore);
+                    
+                    let htmlItems = items.map((i, idx) => {
+                        let nomeUpper = i.nome.toUpperCase();
+                        let exactMatch = inventarioLocale.find(inv => inv.nome === nomeUpper);
+                        let defaultSelect = exactMatch ? exactMatch.id : 'NEW';
+                        
+                        let opts = inventarioLocale.map(inv => `
+                            <option value="${inv.id}" ${inv.id === defaultSelect ? 'selected' : ''}>
+                                ${inv.nome} (${inv.categoria||'VARIE'})
+                            </option>
+                        `).join('');
+                        
+                        return `
+                        <div class="p-4 border-b border-slate-100 hover:bg-slate-50 transition">
+                            <div class="flex justify-between text-[11px] font-black uppercase mb-2">
+                                <span class="text-slate-800">${i.nome} <span class="bg-slate-200 px-1 rounded text-slate-600 ml-1">x${i.qta} ${i.um}</span></span>
+                                <span class="text-emerald-600 bg-emerald-50 px-2 rounded">€${i.costo_unit.toFixed(2)} / ${i.um}</span>
+                            </div>
+                            <select id="map-fattura-${idx}" class="w-full border-2 border-slate-200 p-2 rounded-xl text-[10px] font-bold ${exactMatch ? 'bg-emerald-100 border-emerald-300' : 'bg-amber-50 border-amber-200'} outline-none focus:border-slate-500 transition">
+                                <option value="NEW">+ CREA COME NUOVA MATERIA IN MAGAZZINO</option>
+                                <optgroup label="Materie in Magazzino">
+                                    ${opts}
+                                </optgroup>
+                            </select>
+                        </div>`;
+                    }).join('');
+                    
+                    document.getElementById('fattura-items-list').innerHTML = htmlItems || '<p class="p-4 text-xs text-center text-slate-400 font-bold uppercase">Nessuna voce estraibile trovata in fattura.</p>';
+                    
+                    document.getElementById('fattura-loader').classList.add('hidden'); 
+                    document.getElementById('fattura-result').classList.remove('hidden');
+                    
+                } catch(err) { 
+                    alert("Ops! L'Intelligenza Artificiale non è riuscita a leggere questo file XML/HTML.\nPossibile tracciato corrotto o formato non supportato da SDI."); 
+                    document.getElementById('fattura-loader').classList.add('hidden'); 
+                }
+            }; 
+            
+            reader.readAsText(input.files[0]);
+        }
+
+        function impostaFornitoreUI(name) {
+            let sel = document.getElementById('fattura-fornitore-select'); 
+            let customInput = document.getElementById('fattura-fornitore-custom');
+            
+            let opts = `<option value="NUOVO" class="font-black text-emerald-600">--- 📝 INSERISCI NUOVO FORNITORE ---</option>`;
+            opts += Object.keys(fornitoriDict).map(f => `<option value="${f}">${f}</option>`).join('');
+            
+            sel.innerHTML = opts;
+            
+            if (name && Object.keys(fornitoriDict).includes(name)) { 
+                sel.value = name; 
+                customInput.classList.add('hidden'); 
+            } else { 
+                sel.value = 'NUOVO'; 
+                customInput.value = name || ""; 
+                customInput.classList.remove('hidden'); 
+            }
+        }
+
+        function checkFornitoreCustom() { 
+            let sel = document.getElementById('fattura-fornitore-select'); 
+            document.getElementById('fattura-fornitore-custom').classList.toggle('hidden', sel.value !== 'NUOVO'); 
+        }
+
+        async function confermaCaricoFattura() {
+            let selVal = document.getElementById('fattura-fornitore-select').value; 
+            let fornitore = selVal === 'NUOVO' ? document.getElementById('fattura-fornitore-custom').value.trim().toUpperCase() : selVal;
+            
+            let doc = document.getElementById('ocr-tipo-doc').value;
+            let stato = document.getElementById('ocr-stato-pag').value;
+            
+            let tot = 0;
+            let ivaE = parseFloat(document.getElementById('ocr-tot-iva').value) || 0;
+            let dataFattura = document.getElementById('ocr-data-doc').value; 
+            
+            if(!dataFattura) {
+                dataFattura = new Date().toISOString().substring(0,10); 
+            }
+            let isoData = new Date(dataFattura + "T12:00:00.000Z").toISOString();
+            
+            if(!fornitore) return alert("Inserisci il nome del fornitore prima di procedere."); 
+            if(!fornitoriDict[fornitore]) fornitoriDict[fornitore] = [];
+
+            event.currentTarget.innerText = "Salvataggio in corso...";
+            event.currentTarget.disabled = true;
+
+            for(let i=0; i < fatturaItemsLetti.length; i++) {
+                let item = fatturaItemsLetti[i]; 
+                tot += (item.qta * item.costo_unit);
+                
+                if(doc === 'merce') {
+                    let mapScelta = document.getElementById(`map-fattura-${i}`).value; 
+                    let idAss = null; 
+                    let nomeAss = item.nome;
+                    
+                    if(mapScelta === 'NEW') { 
+                        let existing = inventarioLocale.find(p => p.nome === item.nome.toUpperCase());
+                        
+                        if (existing) {
+                            idAss = existing.id; 
+                            nomeAss = existing.nome;
+                            await supabaseClient.from('inventario').update({ 
+                                quantita: parseFloat(existing.quantita) + item.qta, 
+                                prezzo: item.costo_unit 
+                            }).eq('id', idAss);
+                        } else {
+                            const { data } = await supabaseClient.from('inventario').insert([{ 
+                                nome: item.nome.toUpperCase(), 
+                                quantita: item.qta, 
+                                prezzo: item.costo_unit, 
+                                categoria: 'VARIE' 
+                            }]).select(); 
+                            
+                            if(data) idAss = data[0].id; 
+                        }
+                    } else { 
+                        idAss = mapScelta; 
+                        let p = inventarioLocale.find(x => x.id === mapScelta); 
+                        if(p) { 
+                            nomeAss = p.nome; 
+                            await supabaseClient.from('inventario').update({ 
+                                quantita: parseFloat(p.quantita) + item.qta, 
+                                prezzo: item.costo_unit 
+                            }).eq('id', idAss); 
+                        } 
+                    }
+                    
+                    fornitoriDict[fornitore].push({ 
+                        nome_fattura: item.nome, 
+                        padre_magazzino: nomeAss, 
+                        qta: item.qta, 
+                        um: item.um, 
+                        prezzo_unitario: item.costo_unit, 
+                        data: new Date(dataFattura).toLocaleDateString('it-IT') 
+                    });
+                }
+            }
+            
+            await salvaStoricoFornitoreCloud(fornitore, fornitoriDict[fornitore]);
+            
+            await supabaseClient.from('finanza').insert([{ 
+                tipo: 'uscita', 
+                categoria: 'Fornitori', 
+                descrizione: `FATTURA: ${fornitore}`, 
+                importo: tot + ivaE, 
+                iva: ivaE, 
+                stato_pagamento: stato, 
+                data: isoData, 
+                data_pagamento: stato === 'pagato' ? isoData : null 
+            }]);
+            
+            alert("Fattura Inviata e Magazzino Aggiornato nel Cloud!"); 
+            nav('view-dashboard'); 
+            document.getElementById('file-xml').value = '';
+            
+            await caricaInventarioDaSupabase(); 
+            await caricaFornitoriCloud();
+        }
+
     </script>
 </body>
 </html>
