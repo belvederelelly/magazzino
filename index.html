@@ -153,18 +153,9 @@
                     </div>
                     
                     <div class="flex justify-between text-[11px] font-bold mt-5 border-t border-slate-700 pt-5">
-                        <div class="text-left">
-                            <p class="text-slate-400 uppercase text-[9px]">Tot. Incassato</p>
-                            <p id="finanza-entrate" class="text-white text-base">€ 0.00</p>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-slate-400 uppercase text-[9px]">Spese Pagate</p>
-                            <p id="finanza-uscite-pagate" class="text-white text-base">€ 0.00</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-red-400 uppercase text-[9px]">Debiti Aperti</p>
-                            <p id="finanza-debiti" class="text-red-400 text-base font-black">€ 0.00</p>
-                        </div>
+                        <div class="text-left"><p class="text-slate-400 uppercase text-[9px]">Tot. Incassato</p><p id="finanza-entrate" class="text-white text-base">€ 0.00</p></div>
+                        <div class="text-center"><p class="text-slate-400 uppercase text-[9px]">Spese Pagate</p><p id="finanza-uscite-pagate" class="text-white text-base">€ 0.00</p></div>
+                        <div class="text-right"><p class="text-red-400 uppercase text-[9px]">Debiti Aperti</p><p id="finanza-debiti" class="text-red-400 text-base font-black">€ 0.00</p></div>
                     </div>
                 </div>
 
@@ -234,7 +225,7 @@
                         <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Stato Pagamento</label>
                         <select id="man-stato" class="w-full border-2 border-slate-200 p-3 rounded-xl font-black bg-slate-50 text-xs text-slate-700 outline-none focus:border-emerald-500">
                             <option value="pagato">GIÀ PAGATO (Saldato)</option>
-                            <option value="da_pagare">DA PAGARE (Crea Debito)</option>
+                            <option value="da_pagare">DA PAGARE (Debito)</option>
                         </select>
                     </div>
                     
@@ -520,6 +511,7 @@
             </div>
 
             <div id="view-shopping" class="view-panel space-y-4 titolare-only">
+                
                 <div class="bg-white p-6 rounded-3xl border shadow-xl">
                     <h3 class="font-black text-slate-800 text-xl mb-4 border-b border-slate-100 pb-3"><i class="fas fa-cart-shopping text-emerald-500 mr-2"></i> Crea Ordine</h3>
                     
@@ -1059,9 +1051,6 @@
                 </div>`; 
         }
 
-        // ==========================================
-        // LA NUOVA FUNZIONE: STORICO PREZZI MODALE
-        // ==========================================
         function mostraStoricoPrezzi(fornitore, articolo) {
             document.getElementById('storico-modal-titolo').innerText = articolo;
             document.getElementById('storico-modal-fornitore').innerText = "Fornitore: " + fornitore;
@@ -1119,9 +1108,6 @@
             document.getElementById('modal-storico-prezzi').classList.add('hidden');
         }
 
-        // ==========================================
-        // FUSIONE FORNITORI
-        // ==========================================
         async function unisciFornitorePrompt(sorgente) {
             let options = Object.keys(fornitoriDict).filter(k => k !== sorgente).join('\n- ');
             
@@ -1337,7 +1323,7 @@
         }
 
         // ==========================================
-        // 12. GESTIONE FINANZIARIA (Bilancio, Modifica Data E IMPORTO)
+        // BILANCIO, MODIFICA DATA E MODIFICA IMPORTO
         // ==========================================
         async function caricaFinanzaDaSupabase() { 
             const { data } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false }); 
@@ -1372,6 +1358,7 @@
                     stato_pagamento: nuovoStato, 
                     data_pagamento: dataPag 
                 }).eq('id', id);
+                
                 await caricaFinanzaDaSupabase(); 
             }
         }
@@ -1396,9 +1383,8 @@
             } 
         }
 
-        // NUOVA FUNZIONE: MODIFICA IMPORTO
         async function modificaImportoMovimento(id, oldImporto) {
-            let nuovoImporto = prompt("MODIFICA IMPORTO\nInserisci il nuovo importo totale della fattura o spesa (€):", oldImporto);
+            let nuovoImporto = prompt("MODIFICA IMPORTO\nInserisci il nuovo importo totale della fattura o incasso (€):", oldImporto);
             
             if (nuovoImporto !== null && nuovoImporto.trim() !== "") {
                 let parsed = parseFloat(nuovoImporto.replace(',', '.'));
@@ -1765,7 +1751,6 @@
         async function confermaCaricoFattura() {
             let selVal = document.getElementById('fattura-fornitore-select').value; 
             let fornitore = selVal === 'NUOVO' ? document.getElementById('fattura-fornitore-custom').value.trim().toUpperCase() : selVal;
-            
             let doc = document.getElementById('ocr-tipo-doc').value;
             let stato = document.getElementById('ocr-stato-pag').value;
             
@@ -1849,7 +1834,7 @@
                 data_pagamento: stato === 'pagato' ? isoData : null 
             }]);
             
-            alert("Fattura Inviata e Magazzino Aggiornato nel Cloud!"); 
+            alert("Fattura Registrata in Cloud!"); 
             nav('view-dashboard'); 
             document.getElementById('file-xml').value = '';
             
