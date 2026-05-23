@@ -222,11 +222,17 @@
             </div>
 
             <div id="view-fornitori" class="view-panel space-y-4 titolare-only">
-                <div class="bg-purple-50 p-5 rounded-3xl border border-purple-200 mb-2">
-                    <h3 class="font-black text-purple-900 text-sm uppercase"><i class="fas fa-truck mr-2"></i> Aggiungi Fornitore</h3>
-                    <div class="flex gap-2 mt-2">
-                        <input type="text" id="new-fornitore-name" placeholder="Es. PARTESA, METRO..." class="flex-1 border p-3 rounded-xl font-bold text-xs uppercase bg-white">
-                        <button onclick="aggiungiFornitoreManuale()" class="bg-purple-600 text-white px-4 rounded-xl font-black active:scale-95">+</button>
+                <div class="bg-purple-50 p-5 rounded-3xl border border-purple-200 mb-2 space-y-3">
+                    <div>
+                        <h3 class="font-black text-purple-900 text-sm uppercase mb-2"><i class="fas fa-search mr-2"></i> Cerca nel Cloud</h3>
+                        <input type="text" id="cerca-fornitore-input" onkeyup="aggiornaVistaFornitori()" placeholder="Cerca fornitore o prodotto..." class="w-full border p-3 rounded-xl font-bold text-xs uppercase bg-white outline-none focus:border-purple-400 shadow-sm">
+                    </div>
+                    <div class="border-t border-purple-200 pt-3 mt-3">
+                        <h3 class="font-black text-purple-900 text-[10px] uppercase mb-2"><i class="fas fa-plus mr-1"></i> Nuovo Fornitore</h3>
+                        <div class="flex gap-2">
+                            <input type="text" id="new-fornitore-name" placeholder="Es. PARTESA, METRO..." class="flex-1 border p-3 rounded-xl font-bold text-xs uppercase bg-white shadow-sm">
+                            <button onclick="aggiungiFornitoreManuale()" class="bg-purple-600 text-white px-4 rounded-xl font-black active:scale-95 shadow-sm">+</button>
+                        </div>
                     </div>
                 </div>
                 <div id="fornitori-list-container" class="space-y-4"></div>
@@ -411,13 +417,14 @@
 
             <div id="modal-fornitore-prodotti" class="hidden fixed inset-0 bg-slate-900/80 z-[150] flex flex-col justify-end">
                 <div class="bg-white rounded-t-3xl p-6 pb-safe h-[85vh] flex flex-col">
-                    <div class="flex justify-between items-center border-b pb-2 mb-4">
+                    <div class="flex justify-between items-center border-b pb-2 mb-3">
                         <div>
                             <h3 id="titolo-fornitore-prodotti" class="font-black text-xl text-purple-800 uppercase">Fornitore</h3>
                             <p class="text-[9px] font-bold text-slate-400 uppercase">Seleziona un prodotto per lo storico prezzi</p>
                         </div>
                         <button onclick="chiudiDettaglioFornitore()" class="text-slate-400 text-2xl active:scale-90"><i class="fas fa-times"></i></button>
                     </div>
+                    <input type="text" id="cerca-prodotto-modal" onkeyup="filtraProdottiModal()" placeholder="Cerca prodotto in questo fornitore..." class="w-full border-2 border-slate-100 p-3 rounded-xl font-bold text-xs uppercase bg-slate-50 outline-none focus:border-purple-400 mb-3">
                     <div class="flex-1 overflow-y-auto space-y-2 hide-scroll" id="lista-prodotti-fornitore"></div>
                 </div>
             </div>
@@ -461,6 +468,7 @@
         let fornitoriDict = {}; 
         let categorieDB = [];
         let extraShopping = [];
+        let currentFornitoreModal = '';
 
         // ==========================================
         // STARTUP
@@ -823,39 +831,75 @@
 
         function aggiornaVistaFornitori() { 
             let html = '';
+            let qEl = document.getElementById('cerca-fornitore-input');
+            let query = qEl ? qEl.value.trim().toLowerCase() : '';
             
             for (const [nome, acquisti] of Object.entries(fornitoriDict)) {
+                let matchFornitore = nome.toLowerCase().includes(query);
+                let matchProdotto = acquisti.some(a => (a.nome_fattura || '').toLowerCase().includes(query));
+                
+                if (query !== '' && !matchFornitore && !matchProdotto) {
+                    continue; 
+                }
+
                 let totaleSpeso = 0;
+                let countProdottiTrovati = 0;
+
                 acquisti.forEach(a => {
                     totaleSpeso += ((a.qta || 1) * parseFloat(a.prezzo_unitario || 0));
+                    if (query !== '' && (a.nome_fattura || '').toLowerCase().includes(query)) {
+                        countProdottiTrovati++;
+                    }
                 });
+
+                let badgeRicerca = '';
+                if (query !== '' && matchProdotto && !matchFornitore) {
+                    badgeRicerca = `<p class="text-[9px] font-black text-purple-500 uppercase mt-1 bg-purple-100 border border-purple-200 inline-block px-2 py-0.5 rounded shadow-sm"><i class="fas fa-bullseye mr-1"></i> Trovati ${countProdottiTrovati} acquisti</p>`;
+                }
 
                 let safeNome = nome.replace(/'/g, "\\'");
                 html += `
                 <div class="bg-white p-5 rounded-3xl border shadow-sm">
-                    <div class="flex justify-between items-center mb-1">
+                    <div class="flex justify-between items-start mb-1">
                         <div class="flex-1 cursor-pointer active:scale-95 transition" onclick="apriDettaglioFornitore('${safeNome}')">
                             <h4 class="font-black text-sm uppercase text-purple-800">${nome}</h4>
                             <p class="text-[10px] font-bold text-slate-500 uppercase mt-1">Acquisti Totali: <span class="text-purple-600 font-black ml-1">€ ${totaleSpeso.toFixed(2)}</span></p>
-                            <div class="mt-2 text-[9px] font-black uppercase text-purple-500 bg-purple-50 inline-block px-2 py-1 rounded-lg"><i class="fas fa-box-open mr-1"></i>Vedi Prodotti</div>
+                            ${badgeRicerca}
+                            <div class="mt-2 text-[9px] font-black uppercase text-purple-500 bg-purple-50 inline-block px-2 py-1 rounded-lg border border-purple-100 shadow-sm"><i class="fas fa-box-open mr-1"></i>Vedi Prodotti</div>
                         </div>
                         <div class="flex flex-col gap-2 ml-4">
-                            <button onclick="unisciFornitorePrompt('${safeNome}')" class="text-blue-500 bg-blue-50 w-8 h-8 rounded-xl active:scale-90 flex justify-center items-center" title="Unisci"><i class="fas fa-link"></i></button>
-                            <button onclick="eliminaFornitore('${safeNome}')" class="text-red-400 bg-red-50 w-8 h-8 rounded-xl active:scale-90 flex justify-center items-center" title="Elimina"><i class="fas fa-trash"></i></button>
+                            <button onclick="unisciFornitorePrompt('${safeNome}')" class="text-blue-500 bg-blue-50 w-8 h-8 rounded-xl active:scale-90 flex justify-center items-center shadow-sm" title="Unisci"><i class="fas fa-link"></i></button>
+                            <button onclick="eliminaFornitore('${safeNome}')" class="text-red-400 bg-red-50 w-8 h-8 rounded-xl active:scale-90 flex justify-center items-center shadow-sm" title="Elimina"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 </div>`;
             }
             
-            document.getElementById('fornitori-list-container').innerHTML = html || '<p class="text-center text-xs text-slate-400 p-6">Nessun fornitore nel cloud.</p>'; 
+            document.getElementById('fornitori-list-container').innerHTML = html || '<p class="text-center text-xs text-slate-400 p-6 uppercase font-bold">Nessun risultato trovato.</p>'; 
         }
 
         function apriDettaglioFornitore(nome) {
+            currentFornitoreModal = nome;
+            let searchInput = document.getElementById('cerca-prodotto-modal');
+            if(searchInput) searchInput.value = ''; 
+            renderProdottiModal(nome, '');
+            document.getElementById('modal-fornitore-prodotti').classList.remove('hidden');
+        }
+
+        function filtraProdottiModal() {
+            let q = document.getElementById('cerca-prodotto-modal').value.toLowerCase();
+            renderProdottiModal(currentFornitoreModal, q);
+        }
+
+        function renderProdottiModal(nome, query) {
             let acquisti = fornitoriDict[nome] || [];
             let prodottiMap = {};
             
             acquisti.forEach(a => {
                 let nProd = a.nome_fattura || 'Sconosciuto';
+                
+                if (query !== '' && !nProd.toLowerCase().includes(query)) return; 
+
                 if(!prodottiMap[nProd]) {
                     prodottiMap[nProd] = { acquisti: [], totale_speso: 0, qta_totale: 0 };
                 }
@@ -891,13 +935,7 @@
             }).join('');
 
             document.getElementById('titolo-fornitore-prodotti').innerText = nome;
-            document.getElementById('lista-prodotti-fornitore').innerHTML = htmlList || '<p class="text-xs text-center text-slate-400 mt-4">Nessun prodotto trovato.</p>';
-            
-            document.getElementById('modal-fornitore-prodotti').classList.remove('hidden');
-        }
-
-        function chiudiDettaglioFornitore() {
-            document.getElementById('modal-fornitore-prodotti').classList.add('hidden');
+            document.getElementById('lista-prodotti-fornitore').innerHTML = htmlList || '<p class="text-xs text-center text-slate-400 mt-4 uppercase font-bold">Nessun prodotto trovato.</p>';
         }
 
         function apriStoricoPrezziProdotto(nomeFornitore, nomeProdotto) {
