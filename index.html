@@ -43,12 +43,11 @@
                 <i class="fas fa-wallet text-4xl text-white"></i>
             </div>
             <h1 class="text-3xl font-black text-white uppercase tracking-tight mb-1">Belvedere Finanza</h1>
-            <p class="text-emerald-400 text-[10px] font-bold tracking-widest uppercase">Accesso Protetto</p>
+            <p class="text-emerald-400 text-[10px] font-bold tracking-widest uppercase">Accesso Privato</p>
         </div>
         <div class="w-full max-w-sm space-y-4">
-            <input type="email" id="email-field" class="w-full bg-slate-800 border-2 border-slate-700 text-white rounded-xl py-4 px-5 focus:outline-none focus:border-emerald-500 font-bold text-center text-sm" placeholder="EMAIL UTENTE">
-            <input type="password" id="pass-field" class="w-full bg-slate-800 border-2 border-slate-700 text-white rounded-xl py-4 px-5 focus:outline-none focus:border-emerald-500 font-bold text-center text-lg" placeholder="PASSWORD">
-            <button onclick="window.handleAuth()" id="btn-login" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-wider text-sm transition">Accedi Al Sistema</button>
+            <input type="password" id="pass-field" class="w-full bg-slate-800 border-2 border-slate-700 text-white rounded-xl py-4 px-5 focus:outline-none focus:border-emerald-500 font-bold text-center text-lg tracking-widest" placeholder="INSERISCI PASSWORD">
+            <button onclick="window.handleAuth()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-wider text-sm transition">Accedi Al Sistema</button>
         </div>
     </div>
 
@@ -282,65 +281,48 @@
     </div>
 
     <script>
-        // CHIAVI SUPABASE
+        // CHIAVI SUPABASE (Servono per leggere i dati)
         const SB_URL = 'https://nizktofcamulygzszydw.supabase.co';
         const SB_KEY = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
-        
-        // Inizializzazione Client
         const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-        // MEMORIA STATO LOCALE APPLICATIVO
         let finanzaDatiGlobali = []; 
         let currentFinanzaTab = 'TUTTE';
         let staffAnagrafica = [];
 
-        // STARTUP LOGIC: VERIFICA SESSIONE
+        // AVVIO: CONTROLLO PASSWORD SALVATA NEL TELEFONO
         window.onload = async () => { 
             let oggi = new Date(); 
             document.getElementById('finanza-mese-selettore').value = oggi.getFullYear() + '-' + String(oggi.getMonth() + 1).padStart(2, '0');
             document.getElementById('man-data').value = oggi.toISOString().substring(0,10);
             
-            try {
-                const { data: { session }, error } = await supabase.auth.getSession();
-                if (error) throw error;
-                
-                if (session) {
-                    await window.avviaApp(); 
-                } else {
-                    document.getElementById('view-login').style.display = 'flex';
-                }
-            } catch (err) {
-                console.error("Errore inizializzazione:", err);
+            // Se la password era già stata messa, entra diretto
+            if (localStorage.getItem('auth_belvedere') === 'sbloccato') {
+                await window.avviaApp(); 
+            } else {
+                // Altrimenti mostra la schermata col lucchetto
                 document.getElementById('view-login').style.display = 'flex';
             }
         };
 
-        // LOGIN
+        // NUOVA LOGICA LOGIN PASSWORD MANUALE
         window.handleAuth = async function() {
-            let email = document.getElementById('email-field').value.trim();
             let password = document.getElementById('pass-field').value.trim();
-            if (!email || !password) return alert("Inserire le credenziali.");
             
-            let btn = document.getElementById('btn-login');
-            btn.innerText = "VERIFICA IN CORSO...";
-            
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) {
-                    alert("Errore Autenticazione: " + error.message);
-                    btn.innerText = "ACCEDI AL SISTEMA";
-                } else {
-                    await window.avviaApp();
-                }
-            } catch (err) {
-                alert("Errore di connessione.");
-                btn.innerText = "ACCEDI AL SISTEMA";
+            if (password === 'belveder59') {
+                // Salva lo stato nel browser così non lo chiede più
+                localStorage.setItem('auth_belvedere', 'sbloccato');
+                await window.avviaApp();
+            } else {
+                alert("Password errata. Riprova.");
+                document.getElementById('pass-field').value = '';
             }
         };
 
-        window.eseguiLogout = async function() { 
-            await supabase.auth.signOut(); 
-            location.reload(); 
+        // LOGOUT MANUALE
+        window.eseguiLogout = function() { 
+            localStorage.removeItem('auth_belvedere'); // Cancella la memoria della password
+            location.reload(); // Ricarica la pagina per tornare al login
         };
 
         window.avviaApp = async function() {
