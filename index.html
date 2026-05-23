@@ -7,6 +7,7 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
@@ -117,7 +118,7 @@
                     <div class="flex gap-2">
                         <div class="relative flex-1">
                             <i class="fas fa-search absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
-                            <input type="text" id="finanza-filtro-testo" onkeyup="window.renderFinanzaList()" placeholder="Cerca movimento per descrizione..." class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl font-bold text-xs uppercase bg-slate-50 outline-none focus:border-slate-400">
+                            <input type="text" id="finanza-filtro-testo" onkeyup="window.renderFinanzaList()" placeholder="Cerca movimento..." class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl font-bold text-xs uppercase bg-slate-50 outline-none focus:border-slate-400">
                         </div>
                         <button onclick="window.toggleFormManuale()" class="bg-slate-900 text-white px-4 rounded-xl font-black text-[10px] uppercase shadow-sm flex items-center gap-1 active:scale-95 transition">
                             <i class="fas fa-plus"></i> Nuovo
@@ -129,7 +130,7 @@
                             <i class="fas fa-check-double mr-1"></i> Inverti Selezioni
                         </button>
                         <button onclick="window.eliminaMovimentiSelezionati()" class="bg-red-600 text-white px-3 py-2 rounded-lg text-[9px] font-black uppercase shadow-sm active:scale-95 transition">
-                            <i class="fas fa-trash mr-1"></i> Elimina Riferimenti (<span id="selected-count">0</span>)
+                            <i class="fas fa-trash mr-1"></i> Elimina (<span id="selected-count">0</span>)
                         </button>
                     </div>
                 </div>
@@ -156,7 +157,7 @@
                     
                     <div>
                         <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Anagrafica / Causale</label>
-                        <input type="text" id="man-desc" placeholder="ES: CORRISPETTIVI CASSA, UTENZA LUCE, FATTURA ENERCOOP" class="w-full border p-3 rounded-xl font-black uppercase bg-slate-50 text-xs outline-none focus:border-slate-400">
+                        <input type="text" id="man-desc" placeholder="ES: CORRISPETTIVI CASSA, UTENZA LUCE" class="w-full border p-3 rounded-xl font-black uppercase bg-slate-50 text-xs outline-none focus:border-slate-400">
                     </div>
                     
                     <div class="grid grid-cols-2 gap-3">
@@ -281,9 +282,13 @@
     </div>
 
     <script>
-        // CONFIGURAZIONE CHIAVI DI ACCESSO PROGETTO
+        // ==============================================================
+        // INSERISCI QUI LE TUE CHIAVI SUPABASE (ATTENZIONE AGLI APICI!)
+        // ==============================================================
         const SB_URL = 'https://nizktofcamulygzszydw.supabase.co';
         const SB_KEY = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
+        
+        // Inizializzazione Client
         const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
         // MEMORIA STATO LOCALE APPLICATIVO
@@ -297,10 +302,18 @@
             document.getElementById('finanza-mese-selettore').value = oggi.getFullYear() + '-' + String(oggi.getMonth() + 1).padStart(2, '0');
             document.getElementById('man-data').value = oggi.toISOString().substring(0,10);
             
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                await window.avviaApp(); 
-            } else {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                if (error) throw error;
+                
+                if (session) {
+                    await window.avviaApp(); 
+                } else {
+                    document.getElementById('view-login').style.display = 'flex';
+                }
+            } catch (err) {
+                console.error("Errore inizializzazione:", err);
+                // Se la chiave è sbagliata, mostriamo comunque il form di login per non "congelare" la UI
                 document.getElementById('view-login').style.display = 'flex';
             }
         };
@@ -314,12 +327,17 @@
             let btn = document.getElementById('btn-login');
             btn.innerText = "VERIFICA IN CORSO...";
             
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) {
-                alert("Errore Autenticazione: Credenziali errate o utente non configurato.");
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) {
+                    alert("Errore Autenticazione: " + error.message);
+                    btn.innerText = "ACCEDI AL SISTEMA";
+                } else {
+                    await window.avviaApp();
+                }
+            } catch (err) {
+                alert("Errore di connessione. Verifica le chiavi nel codice.");
                 btn.innerText = "ACCEDI AL SISTEMA";
-            } else {
-                await window.avviaApp();
             }
         };
 
@@ -354,11 +372,14 @@
         };
 
         // ==========================================
-        // QUERIES E LOGICA CONTABILE (FINANZA)     -->
+        // QUERIES E LOGICA CONTABILE (FINANZA)
         // ==========================================
         window.caricaFinanzaDaSupabase = async function() { 
             const { data, error } = await supabase.from('finanza').select('*').order('data', { ascending: false }); 
-            if (error) return alert("Errore di sincronizzazione RLS: " + error.message);
+            if (error) {
+                console.error(error);
+                return alert("Errore di sincronizzazione RLS: " + error.message);
+            }
             finanzaDatiGlobali = data || []; 
             window.renderFinanzaList(); 
             window.renderStaffSummary();
@@ -393,11 +414,11 @@
             
             let isoData = new Date(dateVal + "T12:00:00.000Z").toISOString(); 
             const { error } = await supabase.from('finanza').insert([{ 
-                tipo, 
+                tipo: tipo, 
                 categoria: (tipo === 'entrata' ? 'Ristorante' : 'Varie'), 
                 descrizione: desc, 
                 importo: imp, 
-                iva, 
+                iva: iva, 
                 stato_pagamento: stato, 
                 data: isoData, 
                 data_pagamento: (stato === 'pagato' ? isoData : null) 
@@ -677,10 +698,14 @@
         };
 
         // ==========================================
-        // STRUTTURA REGISTRO PERSONALE / ANTICIPI  -->
+        // STRUTTURA REGISTRO PERSONALE / ANTICIPI
         // ==========================================
         window.caricaStaffDaCloud = async function() {
-            const { data } = await supabase.from('staff').select('*').order('nome');
+            const { data, error } = await supabase.from('staff').select('*').order('nome');
+            if (error) {
+                console.warn("Tabella staff non trovata o non accessibile:", error);
+                return;
+            }
             staffAnagrafica = data || [];
             
             let sel = document.getElementById('staff-select');
@@ -691,6 +716,7 @@
 
         window.salvaAnticipoStaff = async function() {
             let dipendente = document.getElementById('staff-select').value;
+            if(!dipendente) return alert("Seleziona un collaboratore prima.");
             let importo = parseFloat(document.getElementById('staff-anticipo-val').value);
             if(isNaN(importo) || importo <= 0) return alert("Digitare un acconto valido.");
             
