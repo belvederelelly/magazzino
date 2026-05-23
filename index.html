@@ -283,7 +283,7 @@
 
     <script>
         // ==============================================================
-        // INSERISCI QUI LE TUE CHIAVI SUPABASE (ATTENZIONE AGLI APICI!)
+        // CHIAVI SUPABASE INSERITE
         // ==============================================================
         const SB_URL = 'https://nizktofcamulygzszydw.supabase.co';
         const SB_KEY = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
@@ -313,7 +313,6 @@
                 }
             } catch (err) {
                 console.error("Errore inizializzazione:", err);
-                // Se la chiave è sbagliata, mostriamo comunque il form di login per non "congelare" la UI
                 document.getElementById('view-login').style.display = 'flex';
             }
         };
