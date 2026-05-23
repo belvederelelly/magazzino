@@ -4,102 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Belvedere Smart - Modulo Finanza Cloud</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <style>
-        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-        .view-panel { display: none; }
-        .view-panel.active { display: block; animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .status-badge { font-size: 10px; font-weight: 900; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; cursor: pointer; transition: transform 0.1s; }
-        .status-badge:active { transform: scale(0.92); }
-        .hide-scroll::-webkit-scrollbar { display: none; }
-    </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-900 h-screen overflow-hidden flex flex-col relative">
+<body class="bg-slate-900 font-sans h-screen flex flex-col justify-center items-center px-6">
 
-    <div id="view-login" class="view-panel active h-full flex flex-col justify-center items-center bg-slate-900 px-6 fixed inset-0 z-[100]">
-        <div class="text-center mb-8">
-            <div class="bg-emerald-500 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
-                <i class="fas fa-wallet text-4xl text-white"></i>
-            </div>
-            <h1 class="text-3xl font-black text-white uppercase tracking-tight mb-1">Belvedere Finanza</h1>
-            <p class="text-emerald-400 text-[10px] font-bold tracking-widest uppercase">Accesso protetto da RLS</p>
-        </div>
-        <div class="w-full max-w-sm space-y-4">
-            <input type="email" id="email-field" class="w-full bg-slate-800 border-2 border-slate-700 text-white rounded-xl py-4 px-5 focus:outline-none focus:border-emerald-500 font-bold text-center text-sm" placeholder="EMAIL UTENTE">
-            <input type="password" id="pass-field" class="w-full bg-slate-800 border-2 border-slate-700 text-white rounded-xl py-4 px-5 focus:outline-none focus:border-emerald-500 font-bold text-center text-lg" placeholder="PASSWORD">
-            <button onclick="window.handleAuth()" id="btn-login" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-wider text-sm transition">Accedi Al Sistema</button>
-        </div>
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-black text-white uppercase mb-1">Belvedere Finanza</h1>
     </div>
-
-    <div id="app-interface" class="hidden h-full flex flex-col">
-        <header class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm z-20">
-            <div>
-                <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Gestione Finanziaria</h2>
-                <div class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1 bg-emerald-100 text-emerald-700 border border-emerald-200">Online</div>
-            </div>
-            <button onclick="window.eseguiLogout()" class="bg-red-50 text-red-500 w-11 h-11 rounded-full flex items-center justify-center border border-red-100 shadow-sm"><i class="fas fa-power-off text-base"></i></button>
-        </header>
-        <main class="flex-1 overflow-y-auto p-4 pb-12 bg-slate-50 hide-scroll">
-            <div class="bg-white p-5 rounded-2xl border shadow-sm text-center mt-10">
-                <i class="fas fa-check-circle text-5xl text-emerald-500 mb-4"></i>
-                <h3 class="font-black text-xl uppercase text-slate-800">Accesso Riuscito!</h3>
-                <p class="text-sm text-slate-500 mt-2 font-bold">Il database è collegato correttamente.</p>
-            </div>
-        </main>
+    
+    <div class="w-full max-w-sm space-y-4">
+        <input type="email" id="email-field" class="w-full bg-slate-800 border-2 border-slate-700 text-white rounded-xl py-4 px-5 focus:outline-none font-bold text-center" placeholder="EMAIL UTENTE">
+        <input type="password" id="pass-field" class="w-full bg-slate-800 border-2 border-slate-700 text-white rounded-xl py-4 px-5 focus:outline-none font-bold text-center" placeholder="PASSWORD">
+        
+        <button onclick="window.handleAuth()" id="btn-login" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl uppercase shadow-lg">
+            ENTRA (NUOVO TEST)
+        </button>
     </div>
 
     <script>
-        // Rilevatore Errori a Schermo
-        window.onerror = function(msg, url, line) { alert("Errore di blocco:\n" + msg + "\nRiga: " + line); return false; };
-
-        // Chiavi Supabase
         const SB_URL = 'https://nizktofcamulygzszydw.supabase.co';
         const SB_KEY = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
-        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+        let supabase;
 
-        window.onload = async () => { 
-            try {
-                const { data: { session }, error } = await supabase.auth.getSession();
-                if (session) window.avviaApp(); 
-            } catch (err) { console.error(err); }
-        };
-
-        window.handleAuth = async function() {
-            try {
-                let email = document.getElementById('email-field').value.trim();
-                let password = document.getElementById('pass-field').value.trim();
-                let btn = document.getElementById('btn-login');
-
-                if (!email || !password) return alert("Inserisci email e password.");
-                btn.innerText = "VERIFICA IN CORSO...";
-                
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                
-                if (error) {
-                    alert("SUPABASE HA RIFIUTATO L'ACCESSO:\n" + error.message);
-                    btn.innerText = "ACCEDI AL SISTEMA";
-                } else {
-                    window.avviaApp();
-                }
-            } catch (err) {
-                alert("Errore imprevisto:\n" + err.message);
-                document.getElementById('btn-login').innerText = "ACCEDI AL SISTEMA";
+        window.onload = function() {
+            if (window.supabase) {
+                supabase = window.supabase.createClient(SB_URL, SB_KEY);
             }
         };
 
-        window.avviaApp = function() {
-            document.getElementById('view-login').style.display = 'none'; 
-            document.getElementById('app-interface').classList.remove('hidden');
-        };
+        window.handleAuth = async function() {
+            alert("BINGO! Il bottone ora è vivo e cliccabile.");
+            
+            if (!supabase) return alert("Errore: Supabase non caricato. Ricarica la pagina.");
 
-        window.eseguiLogout = async function() { 
-            await supabase.auth.signOut(); 
-            location.reload(); 
+            let email = document.getElementById('email-field').value.trim();
+            let password = document.getElementById('pass-field').value.trim();
+            let btn = document.getElementById('btn-login');
+
+            if (!email || !password) return alert("Inserisci email e password.");
+            
+            btn.innerText = "VERIFICA IN CORSO...";
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) {
+                    alert("SUPABASE DICE NO:\n" + error.message);
+                    btn.innerText = "ENTRA (NUOVO TEST)";
+                } else {
+                    alert("ACCESSO RIUSCITO!");
+                    btn.innerText = "SEI DENTRO!";
+                }
+            } catch (err) {
+                alert("Errore strano:\n" + err.message);
+            }
         };
     </script>
 </body>
