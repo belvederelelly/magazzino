@@ -7,32 +7,16 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
         .view-panel { display: none; }
         .view-panel.active { display: block; animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { 
-            from { opacity: 0; transform: translateY(10px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
-        .status-badge { 
-            font-size: 10px; 
-            font-weight: 900; 
-            text-transform: uppercase; 
-            padding: 4px 10px; 
-            border-radius: 99px; 
-            cursor: pointer; 
-            transition: transform 0.1s, background-color 0.2s; 
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .status-badge { font-size: 10px; font-weight: 900; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; cursor: pointer; transition: transform 0.1s; }
         .status-badge:active { transform: scale(0.92); }
         .hide-scroll::-webkit-scrollbar { display: none; }
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; margin: 0; 
-        }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 h-screen overflow-hidden flex flex-col relative">
@@ -53,714 +37,69 @@
     </div>
 
     <div id="app-interface" class="hidden h-full flex flex-col">
-        
         <header class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm z-20">
             <div>
                 <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Gestione Finanziaria</h2>
-                <div class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1 bg-emerald-100 text-emerald-700 border border-emerald-200">Cloud Sync Attivo</div>
+                <div class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mt-1 bg-emerald-100 text-emerald-700 border border-emerald-200">Online</div>
             </div>
-            <button onclick="window.eseguiLogout()" class="bg-red-50 text-red-500 w-11 h-11 rounded-full flex items-center justify-center border border-red-100 active:bg-red-100 transition shadow-sm">
-                <i class="fas fa-power-off text-base"></i>
-            </button>
+            <button onclick="window.eseguiLogout()" class="bg-red-50 text-red-500 w-11 h-11 rounded-full flex items-center justify-center border border-red-100 shadow-sm"><i class="fas fa-power-off text-base"></i></button>
         </header>
-
-        <div class="bg-white border-b px-4 py-2 flex gap-2 overflow-x-auto hide-scroll">
-            <button onclick="window.switchSubView('sub-registro')" id="btn-sub-registro" class="sub-nav-btn px-4 py-2 rounded-xl text-xs font-black uppercase bg-slate-900 text-white shadow-sm transition">Bilancio Mensile</button>
-            <button onclick="window.switchSubView('sub-fatture')" id="btn-sub-fatture" class="sub-nav-btn px-4 py-2 rounded-xl text-xs font-bold uppercase bg-slate-100 text-slate-600 border transition">Importa XML/HTML</button>
-            <button onclick="window.switchSubView('sub-anticipi')" id="btn-sub-anticipi" class="sub-nav-btn px-4 py-2 rounded-xl text-xs font-bold uppercase bg-slate-100 text-slate-600 border transition">Anticipi Personale</button>
-        </div>
-
         <main class="flex-1 overflow-y-auto p-4 pb-12 bg-slate-50 hide-scroll">
-            
-            <div id="sub-registro" class="sub-view active space-y-4">
-                
-                <div class="bg-white p-3 rounded-2xl border shadow-sm flex items-center gap-3">
-                    <i class="fas fa-filter text-slate-400 ml-2"></i>
-                    <input type="month" id="finanza-mese-selettore" onchange="window.renderFinanzaList()" class="flex-1 font-black text-slate-700 bg-transparent text-center text-base outline-none cursor-pointer">
-                </div>
-                
-                <div class="bg-slate-950 p-6 rounded-3xl shadow-xl border border-slate-800 text-center relative overflow-hidden">
-                    <div id="finanza-saldo-segno" class="inline-block text-[9px] font-black uppercase px-3 py-1 rounded-full mb-2 border">CALCOLO IN CORSO...</div>
-                    <p id="finanza-saldo" class="text-4xl font-black text-white my-1 tracking-tight">€ 0.00</p>
-                    
-                    <div class="bg-slate-900/60 rounded-2xl p-4 my-4 flex justify-between items-center border border-slate-800">
-                        <div class="text-left">
-                            <p class="text-[9px] font-black uppercase text-slate-400 tracking-wider">Calcolo Margine IVA</p>
-                            <p id="finanza-iva-totale" class="text-lg font-black text-white mt-0.5">€ 0.00</p>
-                        </div>
-                        <span id="finanza-iva-badge" class="text-[9px] font-black uppercase px-3 py-1.5 rounded">--</span>
-                    </div>
-                    
-                    <div class="grid grid-cols-3 gap-2 text-[11px] font-bold mt-4 border-t border-slate-800/80 pt-4">
-                        <div class="text-left">
-                            <p class="text-slate-400 uppercase text-[9px]">Incassato Lordo</p>
-                            <p id="finanza-entrate" class="text-emerald-400 text-sm font-black mt-0.5">€ 0.00</p>
-                        </div>
-                        <div class="text-center border-x border-slate-800/60 px-1">
-                            <p class="text-slate-400 uppercase text-[9px]">Spese Saldate</p>
-                            <p id="finanza-uscite-pagate" class="text-white text-sm font-black mt-0.5">€ 0.00</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-red-400 uppercase text-[9px]">Debiti Aperti</p>
-                            <p id="finanza-debiti" class="text-red-400 text-sm font-black mt-0.5">€ 0.00</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
-                    <div class="flex gap-1.5 bg-slate-100 p-1.5 rounded-xl">
-                        <button onclick="window.setFinanzaTab('TUTTE')" id="tab-TUTTE" class="flex-1 py-2 text-[10px] font-black uppercase rounded-lg bg-white shadow-sm text-slate-800 transition">Tutte</button>
-                        <button onclick="window.setFinanzaTab('ENTRATE')" id="tab-ENTRATE" class="flex-1 py-2 text-[10px] font-bold uppercase rounded-lg text-slate-500 transition hover:bg-slate-200">Entrate</button>
-                        <button onclick="window.setFinanzaTab('PAGATE')" id="tab-PAGATE" class="flex-1 py-2 text-[10px] font-bold uppercase rounded-lg text-slate-500 transition hover:bg-slate-200">Pagate</button>
-                        <button onclick="window.setFinanzaTab('DA_PAGARE')" id="tab-DA_PAGARE" class="flex-1 py-2 text-[10px] font-bold uppercase rounded-lg text-slate-500 transition hover:bg-slate-200">Debiti</button>
-                    </div>
-                    
-                    <div class="flex gap-2">
-                        <div class="relative flex-1">
-                            <i class="fas fa-search absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
-                            <input type="text" id="finanza-filtro-testo" onkeyup="window.renderFinanzaList()" placeholder="Cerca movimento..." class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl font-bold text-xs uppercase bg-slate-50 outline-none focus:border-slate-400">
-                        </div>
-                        <button onclick="window.toggleFormManuale()" class="bg-slate-900 text-white px-4 rounded-xl font-black text-[10px] uppercase shadow-sm flex items-center gap-1 active:scale-95 transition">
-                            <i class="fas fa-plus"></i> Nuovo
-                        </button>
-                    </div>
-                    
-                    <div id="bulk-actions-area" class="flex gap-2 items-center pt-2 border-t border-slate-100 hidden">
-                        <button onclick="window.toggleAllCheckboxes()" class="text-[9px] font-black uppercase text-slate-500 bg-slate-100 px-3 py-2 rounded-lg border active:bg-slate-200">
-                            <i class="fas fa-check-double mr-1"></i> Inverti Selezioni
-                        </button>
-                        <button onclick="window.eliminaMovimentiSelezionati()" class="bg-red-600 text-white px-3 py-2 rounded-lg text-[9px] font-black uppercase shadow-sm active:scale-95 transition">
-                            <i class="fas fa-trash mr-1"></i> Elimina (<span id="selected-count">0</span>)
-                        </button>
-                    </div>
-                </div>
-
-                <div id="form-movimento-manuale" class="hidden bg-white p-5 rounded-2xl border-2 border-slate-900 shadow-xl space-y-4 relative animate-[fadeIn_0.2s_ease-in-out]">
-                    <div class="flex justify-between items-center border-b pb-2">
-                        <h3 class="font-black text-sm uppercase text-slate-800">Registrazione Scrittura Manuale</h3>
-                        <button onclick="window.toggleFormManuale()" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fas fa-times"></i></button>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Tipo Flusso</label>
-                            <select id="man-tipo" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-xs outline-none focus:border-slate-400">
-                                <option value="uscita">USCITA (Spesa/Costo)</option>
-                                <option value="entrata">ENTRATA (Incasso/Corrispettivo)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Data Reg.</label>
-                            <input type="date" id="man-data" class="w-full border p-2.5 rounded-xl font-bold bg-slate-50 text-xs outline-none focus:border-slate-400">
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Anagrafica / Causale</label>
-                        <input type="text" id="man-desc" placeholder="ES: CORRISPETTIVI CASSA, UTENZA LUCE" class="w-full border p-3 rounded-xl font-black uppercase bg-slate-50 text-xs outline-none focus:border-slate-400">
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Importo Lordo (€)</label>
-                            <input type="number" id="man-importo" step="0.01" placeholder="0.00" class="w-full border p-3 rounded-xl font-black text-center text-lg text-slate-800 bg-slate-50 outline-none focus:border-slate-900">
-                        </div>
-                        <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Quota IVA Incorporata (€)</label>
-                            <input type="number" id="man-iva" step="0.01" value="0.00" class="w-full border p-3 rounded-xl font-black text-center text-lg text-slate-500 bg-slate-50 outline-none focus:border-slate-400">
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Stato di Regolazione</label>
-                        <select id="man-stato" class="w-full border p-3 rounded-xl font-black bg-slate-50 text-xs outline-none focus:border-slate-400">
-                            <option value="pagato">SALDATO / INCASSATO IN DATA</option>
-                            <option value="da_pagare">DA SALDARE (FORMA DEBITO)</option>
-                        </select>
-                    </div>
-                    
-                    <button onclick="window.salvaMovimentoManuale()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-xl uppercase text-xs tracking-wider transition shadow-md">Esegui Registrazione Cloud</button>
-                </div>
-
-                <div class="bg-white rounded-2xl border shadow-sm overflow-hidden" id="finanza-list-parent">
-                    <div class="p-3 bg-slate-50 border-b flex items-center gap-2">
-                        <input type="checkbox" id="master-select-checkbox" onclick="window.toggleMasterSelection()" class="w-4 h-4 accent-slate-900 cursor-pointer rounded">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Lista Scritture Contabili</span>
-                    </div>
-                    <div class="divide-y divide-slate-100" id="finanza-list">
-                        </div>
-                </div>
+            <div class="bg-white p-5 rounded-2xl border shadow-sm text-center mt-10">
+                <i class="fas fa-check-circle text-5xl text-emerald-500 mb-4"></i>
+                <h3 class="font-black text-xl uppercase text-slate-800">Accesso Riuscito!</h3>
+                <p class="text-sm text-slate-500 mt-2 font-bold">Il database è collegato correttamente.</p>
             </div>
-
-            <div id="sub-fatture" class="sub-view space-y-4">
-                <div class="bg-white border-2 border-dashed border-slate-300 p-8 rounded-2xl text-center shadow-sm hover:bg-slate-50 transition cursor-pointer" onclick="document.getElementById('file-xml').click()">
-                    <i class="fas fa-file-invoice-dollar text-4xl text-slate-400 mb-3"></i>
-                    <h4 class="font-black text-sm uppercase text-slate-800 mb-0.5">Importazione Automatica File SDI</h4>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Trascina o seleziona fatture elettroniche (.xml / .html)</p>
-                    <input type="file" accept=".xml, .html, .htm" id="file-xml" onchange="window.elaboraFatturaXML(this)" class="hidden">
-                </div>
-                
-                <div id="fattura-loader" class="hidden text-center py-8">
-                    <i class="fas fa-circle-notch fa-spin text-3xl text-slate-700 mb-2"></i>
-                    <p class="text-[10px] font-black uppercase text-slate-400">Parsing strutturato e scorporo dati...</p>
-                </div>
-                
-                <div id="fattura-result" class="hidden bg-white p-5 rounded-2xl border shadow-md space-y-4">
-                    <div class="border-b pb-3 flex justify-between items-center">
-                        <h4 class="font-black text-xs uppercase text-slate-700">Metadati Estratti SDI</h4>
-                        <input type="date" id="ocr-data-doc" class="border p-2 rounded-xl font-bold text-xs bg-slate-50 outline-none">
-                    </div>
-                    
-                    <div>
-                        <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Anagrafica Fornitore Estrapolata</label>
-                        <input type="text" id="fattura-fornitore-input" class="w-full border p-3 rounded-xl font-black bg-slate-100 text-xs uppercase outline-none mt-1" readonly>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Totale Documento (€)</label>
-                            <input type="number" id="ocr-tot-doc" step="0.01" class="w-full border p-3 rounded-xl font-black text-center text-base bg-slate-50 outline-none" readonly>
-                        </div>
-                        <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase ml-1">IVA Totale Rilevata (€)</label>
-                            <input type="number" id="ocr-tot-iva" step="0.01" class="w-full border p-3 rounded-xl font-black text-center text-base text-slate-600 bg-slate-50 outline-none">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Assegnazione Categoria</label>
-                            <select id="ocr-categoria" class="w-full border p-3 rounded-xl font-bold text-xs bg-slate-50 outline-none">
-                                <option value="Fornitori">FORNITORI MATERIE PRIME</option>
-                                <option value="Utenze">UTENZE (LUCE, GAS, ACQUA)</option>
-                                <option value="Affitto">LOCAZIONE IMMOBILE</option>
-                                <option value="Consulenze">COMMERCIALISTA / CONSULENTI</option>
-                                <option value="Varie">SPESE VARIE D'ESERCIZIO</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Regolazione Finanziaria</label>
-                            <select id="ocr-stato-pag" class="w-full border p-3 rounded-xl font-black text-xs bg-slate-50 outline-none">
-                                <option value="pagato">FATTURA GIÀ SALDATA (Cassa/Banca)</option>
-                                <option value="da_pagare">DA SALDARE (Aggiungi a Debiti)</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <button onclick="window.confermaCaricoFattura()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-xl font-black uppercase text-xs tracking-wider transition shadow-md">Archivia Documento Nel Cloud</button>
-                </div>
-            </div>
-
-            <div id="sub-anticipi" class="sub-view space-y-4">
-                <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-4">
-                    <h3 class="font-black text-xs uppercase text-slate-700 border-b pb-2">Registrazione Anticipo / Acconto</h3>
-                    
-                    <div class="space-y-3">
-                        <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase ml-1 block">Collaboratore Dipendente</label>
-                            <select id="staff-select" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-xs outline-none focus:border-slate-400 mt-1">
-                                </select>
-                        </div>
-                        
-                        <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase ml-1 block">Somma Erogata (€)</label>
-                            <input type="number" id="staff-anticipo-val" step="1" placeholder="0.00" class="w-full border p-3 rounded-xl font-black text-center text-xl text-slate-800 bg-slate-50 outline-none focus:border-slate-900 mt-1">
-                        </div>
-                        
-                        <button onclick="window.salvaAnticipoStaff()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-xl uppercase text-xs tracking-wider transition shadow-md">Scompatta in Finanza</button>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl border shadow-sm p-4">
-                    <h4 class="font-black text-slate-400 text-[10px] uppercase tracking-wider mb-3">Monitoraggio Organico Staff</h4>
-                    <div id="staff-summary-list" class="divide-y divide-slate-100">
-                        </div>
-                </div>
-            </div>
-
         </main>
     </div>
 
     <script>
-        // ==============================================================
-        // CHIAVI SUPABASE INSERITE
-        // ==============================================================
+        // Rilevatore Errori a Schermo
+        window.onerror = function(msg, url, line) { alert("Errore di blocco:\n" + msg + "\nRiga: " + line); return false; };
+
+        // Chiavi Supabase
         const SB_URL = 'https://nizktofcamulygzszydw.supabase.co';
         const SB_KEY = 'sb_publishable_X6Oml3MZiMid06t3UKrjGw_qan_DuIH';
-        
-        // Inizializzazione Client
         const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-        // MEMORIA STATO LOCALE APPLICATIVO
-        let finanzaDatiGlobali = []; 
-        let currentFinanzaTab = 'TUTTE';
-        let staffAnagrafica = [];
-
-        // STARTUP LOGIC: VERIFICA SE ESISTE SESSIONE ATTRAVERSO L'RLS
         window.onload = async () => { 
-            let oggi = new Date(); 
-            document.getElementById('finanza-mese-selettore').value = oggi.getFullYear() + '-' + String(oggi.getMonth() + 1).padStart(2, '0');
-            document.getElementById('man-data').value = oggi.toISOString().substring(0,10);
-            
             try {
                 const { data: { session }, error } = await supabase.auth.getSession();
-                if (error) throw error;
+                if (session) window.avviaApp(); 
+            } catch (err) { console.error(err); }
+        };
+
+        window.handleAuth = async function() {
+            try {
+                let email = document.getElementById('email-field').value.trim();
+                let password = document.getElementById('pass-field').value.trim();
+                let btn = document.getElementById('btn-login');
+
+                if (!email || !password) return alert("Inserisci email e password.");
+                btn.innerText = "VERIFICA IN CORSO...";
                 
-                if (session) {
-                    await window.avviaApp(); 
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                
+                if (error) {
+                    alert("SUPABASE HA RIFIUTATO L'ACCESSO:\n" + error.message);
+                    btn.innerText = "ACCEDI AL SISTEMA";
                 } else {
-                    document.getElementById('view-login').style.display = 'flex';
+                    window.avviaApp();
                 }
             } catch (err) {
-                console.error("Errore inizializzazione:", err);
-                document.getElementById('view-login').style.display = 'flex';
+                alert("Errore imprevisto:\n" + err.message);
+                document.getElementById('btn-login').innerText = "ACCEDI AL SISTEMA";
             }
         };
 
-        // CORE FUNZIONE AUTHENTICATION LOG IN
-        window.handleAuth = async function() {
-            let email = document.getElementById('email-field').value.trim();
-            let password = document.getElementById('pass-field').value.trim();
-            if (!email || !password) return alert("Inserire le credenziali.");
-            
-            let btn = document.getElementById('btn-login');
-            btn.innerText = "VERIFICA IN CORSO...";
-            
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) {
-                    alert("Errore Autenticazione: " + error.message);
-                    btn.innerText = "ACCEDI AL SISTEMA";
-                } else {
-                    await window.avviaApp();
-                }
-            } catch (err) {
-                alert("Errore di connessione. Verifica le chiavi nel codice.");
-                btn.innerText = "ACCEDI AL SISTEMA";
-            }
+        window.avviaApp = function() {
+            document.getElementById('view-login').style.display = 'none'; 
+            document.getElementById('app-interface').classList.remove('hidden');
         };
 
         window.eseguiLogout = async function() { 
             await supabase.auth.signOut(); 
             location.reload(); 
-        };
-
-        window.avviaApp = async function() {
-            document.getElementById('view-login').style.display = 'none'; 
-            document.getElementById('app-interface').classList.remove('hidden');
-            
-            // Chiamate simultanee protette da token
-            await window.caricaStaffDaCloud();
-            await window.caricaFinanzaDaSupabase(); 
-        };
-
-        window.switchSubView = function(viewId) {
-            document.querySelectorAll('.sub-view').forEach(v => v.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            
-            document.querySelectorAll('.sub-nav-btn').forEach(btn => {
-                btn.classList.remove('bg-slate-900', 'text-white', 'shadow-sm');
-                btn.classList.add('bg-slate-100', 'text-slate-600');
-            });
-            
-            let actBtn = document.getElementById('btn-' + viewId);
-            if(actBtn) {
-                actBtn.classList.remove('bg-slate-100', 'text-slate-600');
-                actBtn.classList.add('bg-slate-900', 'text-white', 'shadow-sm');
-            }
-        };
-
-        // ==========================================
-        // QUERIES E LOGICA CONTABILE (FINANZA)
-        // ==========================================
-        window.caricaFinanzaDaSupabase = async function() { 
-            const { data, error } = await supabase.from('finanza').select('*').order('data', { ascending: false }); 
-            if (error) {
-                console.error(error);
-                return alert("Errore di sincronizzazione RLS: " + error.message);
-            }
-            finanzaDatiGlobali = data || []; 
-            window.renderFinanzaList(); 
-            window.renderStaffSummary();
-        };
-
-        window.setFinanzaTab = function(tab) { 
-            currentFinanzaTab = tab; 
-            ['TUTTE', 'ENTRATE', 'PAGATE', 'DA_PAGARE'].forEach(t => { 
-                let btn = document.getElementById('tab-' + t);
-                if(btn) {
-                    if(t === tab) btn.className = "flex-1 py-2 text-[10px] font-black uppercase rounded-lg bg-white shadow-sm text-slate-800 transition";
-                    else btn.className = "flex-1 py-2 text-[10px] font-bold uppercase rounded-lg text-slate-500 transition hover:bg-slate-200";
-                }
-            }); 
-            window.renderFinanzaList(); 
-        };
-
-        window.toggleFormManuale = function() {
-            let el = document.getElementById('form-movimento-manuale');
-            el.classList.toggle('hidden');
-        };
-
-        window.salvaMovimentoManuale = async function() {
-            let desc = document.getElementById('man-desc').value.trim().toUpperCase(); 
-            let imp = parseFloat(document.getElementById('man-importo').value); 
-            let iva = parseFloat(document.getElementById('man-iva').value) || 0; 
-            let dateVal = document.getElementById('man-data').value; 
-            let tipo = document.getElementById('man-tipo').value; 
-            let stato = document.getElementById('man-stato').value; 
-            
-            if(!desc || isNaN(imp) || !dateVal) return alert("Compilare i campi contrassegnati."); 
-            
-            let isoData = new Date(dateVal + "T12:00:00.000Z").toISOString(); 
-            const { error } = await supabase.from('finanza').insert([{ 
-                tipo: tipo, 
-                categoria: (tipo === 'entrata' ? 'Ristorante' : 'Varie'), 
-                descrizione: desc, 
-                importo: imp, 
-                iva: iva, 
-                stato_pagamento: stato, 
-                data: isoData, 
-                data_pagamento: (stato === 'pagato' ? isoData : null) 
-            }]);
-            
-            if(error) return alert("Errore scrittura RLS: " + error.message);
-            
-            document.getElementById('man-desc').value = ''; 
-            document.getElementById('man-importo').value = ''; 
-            document.getElementById('man-iva').value = '0.00'; 
-            window.toggleFormManuale();
-            await window.caricaFinanzaDaSupabase();
-        };
-
-        window.cambiaStatoPagamento = async function(id, statoAttuale) {
-            let nuovoStato = statoAttuale === 'pagato' ? 'da_pagare' : 'pagato';
-            let dataPag = nuovoStato === 'pagato' ? new Date().toISOString() : null;
-            
-            const { error } = await supabase.from('finanza').update({ 
-                stato_pagamento: nuovoStato, 
-                data_pagamento: dataPag 
-            }).eq('id', id);
-            
-            if (error) alert(error.message);
-            else await window.caricaFinanzaDaSupabase();
-        };
-
-        window.modificaImportoMovimento = async function(id, vecchioImporto) {
-            let input = prompt("Correggi importo monetario (€):", vecchioImporto);
-            if (input !== null && input.trim() !== "") {
-                let parsed = parseFloat(input.replace(',', '.'));
-                if (!isNaN(parsed)) {
-                    await supabase.from('finanza').update({ importo: parsed }).eq('id', id);
-                    await window.caricaFinanzaDaSupabase();
-                } else alert("Numero non conforme.");
-            }
-        };
-
-        window.modificaDataMovimento = async function(id, dataIso) {
-            let vecchiaData = dataIso.substring(0, 10);
-            let input = prompt("Cambia data valuta/competenza (AAAA-MM-GG):", vecchiaData);
-            if (input && /^\d{4}-\d{2}-\d{2}$/.test(input.trim())) {
-                let isoData = new Date(input.trim() + "T12:00:00.000Z").toISOString();
-                await supabase.from('finanza').update({ data: isoData, data_pagamento: isoData }).eq('id', id);
-                await window.caricaFinanzaDaSupabase();
-            }
-        };
-
-        window.rinominaDescrizioneMovimento = async function(id, vecchiaDesc) {
-            let input = prompt("Modifica anagrafica scrittura contabile:", vecchiaDesc);
-            if (input && input.trim() !== "") {
-                await supabase.from('finanza').update({ descrizione: input.trim().toUpperCase() }).eq('id', id);
-                await window.caricaFinanzaDaSupabase();
-            }
-        };
-
-        // ENGINE COMPATIBILITÀ RENDERING CONTABILE METRICHE
-        window.renderFinanzaList = function() {
-            let meseSel = document.getElementById('finanza-mese-selettore');
-            if(!meseSel) return;
-            
-            let filtroMese = meseSel.value; 
-            let queryTesto = document.getElementById('finanza-filtro-testo').value.toLowerCase(); 
-            
-            let recordMese = finanzaDatiGlobali.filter(m => m.data && m.data.startsWith(filtroMese));
-            
-            let entrate = 0; let spesePagate = 0; let speseAperte = 0; let ivaDebito = 0; let ivaCredito = 0;
-            
-            recordMese.forEach(m => { 
-                let isEntrata = (m.tipo === 'entrata'); 
-                if(isEntrata) { 
-                    entrate += m.importo; 
-                    ivaDebito += (m.iva || 0); 
-                } else { 
-                    if(m.stato_pagamento === 'pagato') { 
-                        spesePagate += m.importo; 
-                    } else { 
-                        speseAperte += m.importo; 
-                    }
-                    ivaCredito += (m.iva || 0); 
-                } 
-            });
-            
-            let utileMensile = entrate - spesePagate; 
-            
-            document.getElementById('finanza-saldo').innerText = '€ ' + Math.abs(utileMensile).toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2}); 
-            document.getElementById('finanza-saldo-segno').innerText = utileMensile >= 0 ? "Utile d'Esercizio" : "Disavanzo / Perdita"; 
-            document.getElementById('finanza-saldo-segno').className = `inline-block text-[9px] font-black uppercase px-3 py-1 rounded-full mb-1 border ${utileMensile >= 0 ? 'bg-emerald-950/80 border-emerald-500 text-emerald-400' : 'bg-red-950/80 border-red-500 text-red-400'}`; 
-            
-            let ivaF24 = ivaDebito - ivaCredito;
-            document.getElementById('finanza-iva-totale').innerText = '€ ' + Math.abs(ivaF24).toLocaleString('it-IT', {minimumFractionDigits:2}); 
-            document.getElementById('finanza-iva-badge').innerText = ivaF24 >= 0 ? "F24 Debito" : "Credito IVA"; 
-            document.getElementById('finanza-iva-badge').className = `text-[9px] font-black uppercase px-2 py-1 rounded ${ ivaF24 >= 0 ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white' }`; 
-            
-            document.getElementById('finanza-entrate').innerText = '€ ' + entrate.toLocaleString('it-IT', {minimumFractionDigits:2}); 
-            document.getElementById('finanza-uscite-pagate').innerText = '€ ' + spesePagate.toLocaleString('it-IT', {minimumFractionDigits:2}); 
-            document.getElementById('finanza-debiti').innerText = '€ ' + speseAperte.toLocaleString('it-IT', {minimumFractionDigits:2}); 
-            
-            let visualizzabili = recordMese.filter(m => { 
-                let desc = (m.descrizione||'').toLowerCase(); 
-                let cat = (m.categoria||'').toLowerCase(); 
-                if (queryTesto !== "" && !desc.includes(queryTesto) && !cat.includes(queryTesto)) return false; 
-                if (currentFinanzaTab === 'ENTRATE') return m.tipo === 'entrata'; 
-                if (currentFinanzaTab === 'PAGATE') return m.tipo === 'uscita' && m.stato_pagamento === 'pagato'; 
-                if (currentFinanzaTab === 'DA_PAGARE') return m.tipo === 'uscita' && m.stato_pagamento === 'da_pagare'; 
-                return true; 
-            });
-            
-            document.getElementById('finanza-list').innerHTML = visualizzabili.map(m => { 
-                let isEntrata = (m.tipo === 'entrata'); 
-                let badge = '';
-                
-                if (m.stato_pagamento === 'da_pagare') {
-                    badge = `<button onclick="window.cambiaStatoPagamento('${m.id}', '${m.stato_pagamento}')" class="bg-red-500 text-white border border-red-600 status-badge ml-2">DEBITO</button>`;
-                } else if (isEntrata) {
-                    badge = `<span class="bg-emerald-100 text-emerald-700 border border-emerald-200 status-badge ml-2">CORRISPETTIVO</span>`;
-                } else {
-                    badge = `<button onclick="window.cambiaStatoPagamento('${m.id}', '${m.stato_pagamento}')" class="bg-slate-200 text-slate-600 border border-slate-300 status-badge ml-2 hover:bg-slate-300">SALDATO</button>`;
-                }
-                
-                let dataFormattata = new Date(m.data).toLocaleDateString('it-IT'); 
-                let safeDesc = (m.descrizione||'').replace(/'/g, "\\'");
-                
-                return `
-                <div class="p-4 flex justify-between items-center bg-white hover:bg-slate-50 transition">
-                    <input type="checkbox" class="chk-finanza w-4 h-4 accent-slate-900 mr-3 cursor-pointer" value="${m.id}" onchange="window.aggiornaStatoPulsantiBulk()">
-                    
-                    <div class="flex-1 min-w-0 pr-2">
-                        <p class="font-black text-xs text-slate-800 uppercase truncate">${m.descrizione}</p>
-                        <div class="flex items-center gap-1.5 mt-1">
-                            <span class="text-[9px] font-bold text-slate-400"><i class="far fa-calendar-alt mr-0.5"></i> ${dataFormattata}</span>
-                            ${badge}
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center gap-3">
-                        <span class="font-black text-sm ${isEntrata ? 'text-emerald-600' : 'text-slate-800'} whitespace-nowrap">€ ${m.importo.toLocaleString('it-IT', {minimumFractionDigits:2})}</span>
-                        <div class="flex gap-1 border-l pl-2 border-slate-200">
-                            <button onclick="window.modificaImportoMovimento('${m.id}', ${m.importo})" class="text-slate-400 hover:text-slate-700 p-1.5 text-xs"><i class="fas fa-edit"></i></button>
-                            <button onclick="window.modificaDataMovimento('${m.id}', '${m.data}')" class="text-slate-400 hover:text-slate-700 p-1.5 text-xs"><i class="fas fa-calendar-day"></i></button>
-                            <button onclick="window.rinominaDescrizioneMovimento('${m.id}', '${safeDesc}')" class="text-slate-400 hover:text-slate-700 p-1.5 text-xs"><i class="fas fa-pen"></i></button>
-                        </div>
-                    </div>
-                </div>`; 
-            }).join('');
-            
-            window.aggiornaStatoPulsantiBulk();
-        };
-
-        // MULTI-SELEZIONE & BULK ACTION DELETE
-        window.toggleMasterSelection = function() {
-            let state = document.getElementById('master-select-checkbox').checked;
-            document.querySelectorAll('.chk-finanza').forEach(c => c.checked = state);
-            window.aggiornaStatoPulsantiBulk();
-        };
-
-        window.toggleAllCheckboxes = function() {
-            document.querySelectorAll('.chk-finanza').forEach(c => c.checked = !c.checked);
-            window.aggiornaStatoPulsantiBulk();
-        };
-
-        window.aggiornaStatoPulsantiBulk = function() {
-            let selezionati = document.querySelectorAll('.chk-finanza:checked').length;
-            let area = document.getElementById('bulk-actions-area');
-            if(area) {
-                area.classList.toggle('hidden', selezionati === 0);
-                document.getElementById('selected-count').innerText = selezionati;
-            }
-        };
-
-        window.eliminaMovimentiSelezionati = async function() {
-            let ids = Array.from(document.querySelectorAll('.chk-finanza:checked')).map(c => c.value);
-            if(ids.length === 0) return;
-            
-            if(confirm(`Operazione ad alto rischio.\nConfermi l'eliminazione cloud di ${ids.length} movimenti selezionati?`)) {
-                const { error } = await supabase.from('finanza').delete().in('id', ids);
-                if(error) alert(error.message);
-                document.getElementById('master-select-checkbox').checked = false;
-                await window.caricaFinanzaDaSupabase();
-            }
-        };
-
-        // ==========================================
-        // PARSER DETTAGLIATO FATTURAZIONE ELETTRONICA
-        // ==========================================
-        window.elaboraFatturaXML = function(input) {
-            if(!input.files[0]) return; 
-            document.getElementById('fattura-loader').classList.remove('hidden'); 
-            document.getElementById('fattura-result').classList.add('hidden');
-            const reader = new FileReader(); 
-            
-            reader.onload = function(e) {
-                try {
-                    let text = e.target.result; 
-                    let fornitore = "Fornitore Sconosciuto"; 
-                    let lordo = 0; let iva = 0; 
-                    let dataDoc = new Date().toISOString().substring(0, 10);
-                    
-                    // Regex Estrattori Anagrafici SDI
-                    let matchDenom = text.match(/<CedentePrestatore>[\s\S]*?<Denominazione>(.*?)<\/Denominazione>/i); 
-                    if (matchDenom) fornitore = matchDenom[1].trim().toUpperCase(); 
-                    
-                    if (text.includes('<html')) { // Caso Html convertito o visualizzato
-                        let matchHtml = text.match(/Cedente \/ Prestatore[\s\S]*?<b>(.*?)<\/b>/i); 
-                        if (matchHtml) fornitore = matchHtml[1].trim().toUpperCase(); 
-                        
-                        let dataMatch = text.match(/(\d{2})\/(\d{2})\/(\d{4})/); 
-                        if(dataMatch) dataDoc = `${dataMatch[3]}-${dataMatch[2]}-${dataMatch[1]}`;
-                    } else { // Tracciato XML Puro Compliant Agenzia delle Entrate
-                        const parser = new DOMParser(); 
-                        const xml = parser.parseFromString(text, "text/xml");
-                        const getTags = (nodo, n) => { 
-                            let t = nodo.getElementsByTagName(n); 
-                            return t.length === 0 ? nodo.getElementsByTagNameNS("*", n) : t; 
-                        };
-                        
-                        let tagData = getTags(xml.documentElement, "Data")[0]; 
-                        if(tagData && tagData.textContent) dataDoc = tagData.textContent.substring(0,10);
-                        
-                        // Calcolo importo di riepilogo
-                        const riepilogo = getTags(xml.documentElement, "DatiRiepilogo");
-                        for(let i=0; i<riepilogo.length; i++) {
-                            let imp = getTags(riepilogo[i], "ImponibileImporto")[0];
-                            let tax = getTags(riepilogo[i], "Imposta")[0];
-                            if(imp) lordo += parseFloat(imp.textContent || 0);
-                            if(tax) {
-                                iva += parseFloat(tax.textContent || 0);
-                                lordo += parseFloat(tax.textContent || 0);
-                            }
-                        }
-                    }
-                    
-                    document.getElementById('fattura-fornitore-input').value = fornitore;
-                    document.getElementById('ocr-data-doc').value = dataDoc;
-                    document.getElementById('ocr-tot-doc').value = lordo.toFixed(2);
-                    document.getElementById('ocr-tot-iva').value = iva.toFixed(2);
-                    
-                    document.getElementById('fattura-loader').classList.add('hidden'); 
-                    document.getElementById('fattura-result').classList.remove('hidden');
-                } catch(err) { 
-                    alert("Fallimento nel Parsing del Documento XML/HTML."); 
-                    document.getElementById('fattura-loader').classList.add('hidden'); 
-                }
-            }; 
-            reader.readAsText(input.files[0]);
-        };
-
-        window.confermaCaricoFattura = async function() {
-            let fornitore = document.getElementById('fattura-fornitore-input').value;
-            let lordo = parseFloat(document.getElementById('ocr-tot-doc').value) || 0;
-            let iva = parseFloat(document.getElementById('ocr-tot-iva').value) || 0;
-            let cat = document.getElementById('ocr-categoria').value;
-            let stato = document.getElementById('ocr-stato-pag').value;
-            let dataFattura = document.getElementById('ocr-data-doc').value;
-            
-            let isoData = new Date(dataFattura + "T12:00:00.000Z").toISOString();
-            
-            const { error } = await supabase.from('finanza').insert([{
-                tipo: 'uscita',
-                categoria: cat,
-                descrizione: `FATTURA SDI: ${fornitore}`,
-                importo: lordo,
-                iva: iva,
-                stato_pagamento: stato,
-                data: isoData,
-                data_pagamento: (stato === 'pagato' ? isoData : null)
-            }]);
-            
-            if(error) alert(error.message);
-            else {
-                alert("Fattura SDI registrata correttamente nel bilancio cloud.");
-                document.getElementById('file-xml').value = '';
-                document.getElementById('fattura-result').classList.add('hidden');
-                window.switchSubView('sub-registro');
-                await window.caricaFinanzaDaSupabase();
-            }
-        };
-
-        // ==========================================
-        // STRUTTURA REGISTRO PERSONALE / ANTICIPI
-        // ==========================================
-        window.caricaStaffDaCloud = async function() {
-            const { data, error } = await supabase.from('staff').select('*').order('nome');
-            if (error) {
-                console.warn("Tabella staff non trovata o non accessibile:", error);
-                return;
-            }
-            staffAnagrafica = data || [];
-            
-            let sel = document.getElementById('staff-select');
-            if(sel) {
-                sel.innerHTML = staffAnagrafica.map(s => `<option value="${s.nome.replace(/"/g, '&quot;')}">${s.nome}</option>`).join('');
-            }
-        };
-
-        window.salvaAnticipoStaff = async function() {
-            let dipendente = document.getElementById('staff-select').value;
-            if(!dipendente) return alert("Seleziona un collaboratore prima.");
-            let importo = parseFloat(document.getElementById('staff-anticipo-val').value);
-            if(isNaN(importo) || importo <= 0) return alert("Digitare un acconto valido.");
-            
-            let isoNow = new Date().toISOString();
-            const { error } = await supabase.from('finanza').insert([{
-                tipo: 'uscita',
-                categoria: 'Personale',
-                descrizione: `ANTICIPO ACCONTO: ${dipendente}`,
-                importo: importo,
-                iva: 0,
-                stato_pagamento: 'pagato',
-                data: isoNow,
-                data_pagamento: isoNow
-            }]);
-            
-            if(error) alert(error.message);
-            else {
-                alert(`Anticipo per ${dipendente} contabilizzato.`);
-                document.getElementById('staff-anticipo-val').value = '';
-                await window.caricaFinanzaDaSupabase();
-            }
-        };
-
-        window.renderStaffSummary = function() {
-            let cont = document.getElementById('staff-summary-list');
-            if(!cont) return;
-            
-            let meseSel = document.getElementById('finanza-mese-selettore');
-            let meseAttivo = meseSel ? meseSel.value : new Date().toISOString().substring(0,7);
-            
-            cont.innerHTML = staffAnagrafica.map(s => {
-                let anticipiDipendente = finanzaDatiGlobali.filter(m => 
-                    m.categoria === 'Personale' && 
-                    m.descrizione.includes(s.nome) && 
-                    m.data.startsWith(meseAttivo)
-                );
-                
-                let totalePrelevato = anticipiDipendente.reduce((acc, curr) => acc + curr.importo, 0);
-                
-                return `
-                <div class="py-3 flex justify-between items-center text-xs font-bold">
-                    <span class="uppercase text-slate-700">${s.nome}</span>
-                    <span class="font-black text-red-500 bg-red-50 border border-red-100 px-2.5 py-1 rounded-lg">Prelevati: € ${totalePrelevato.toFixed(2)}</span>
-                </div>`;
-            }).join('');
         };
     </script>
 </body>
