@@ -382,57 +382,55 @@
                     <button onclick="salvaNuovoProdotto()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl uppercase text-sm mt-4">Salva in Stock</button>
                 </div>
             </div>
-            <!-- MODAL MODIFICA FINANZA -->
-    <div id="modal-edit-finanza" class="hidden fixed inset-0 bg-slate-900/80 z-[150] flex flex-col justify-end">
-        <div class="bg-white rounded-t-3xl p-6 pb-safe space-y-4">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="font-black text-lg text-slate-800 uppercase">Modifica Movimento</h3>
-                <button onclick="chiudiModificaFinanza()" class="text-slate-400 text-xl active:scale-90"><i class="fas fa-times"></i></button>
-            </div>
-            <input type="hidden" id="edit-finanza-id">
-            <input type="text" id="edit-finanza-desc" class="w-full border p-3 rounded-xl font-bold uppercase bg-slate-50 text-sm" placeholder="Descrizione">
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Data Competenza</label>
-                    <input type="date" id="edit-finanza-data" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-xs text-slate-700">
-                </div>
-                <div>
-                    <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Importo Tot. (€)</label>
-                    <input type="number" id="edit-finanza-importo" class="w-full border p-3 rounded-xl font-black text-center text-lg text-emerald-600" placeholder="0.00">
-                </div>
-            </div>
-            <select id="edit-finanza-stato" class="w-full border p-3 rounded-xl font-black bg-slate-50 text-xs text-slate-700 mt-2">
-                <option value="pagato">GIÀ PAGATO (Saldato)</option>
-                <option value="da_pagare">DA PAGARE (Debito)</option>
-            </select>
-            <button onclick="salvaModificaFinanza()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm mt-4 active:scale-95">Salva Modifiche</button>
-        </div>
-    </div>
 
-    <!-- MODAL PRODOTTI FORNITORE -->
-    <div id="modal-fornitore-prodotti" class="hidden fixed inset-0 bg-slate-900/80 z-[150] flex flex-col justify-end">
-        <div class="bg-white rounded-t-3xl p-6 pb-safe h-[85vh] flex flex-col">
-            <div class="flex justify-between items-center border-b pb-2 mb-4">
-                <div>
-                    <h3 id="titolo-fornitore-prodotti" class="font-black text-xl text-purple-800 uppercase">Fornitore</h3>
-                    <p class="text-[9px] font-bold text-slate-400 uppercase">Seleziona un prodotto per lo storico prezzi</p>
+            <div id="modal-edit-finanza" class="hidden fixed inset-0 bg-slate-900/80 z-[150] flex flex-col justify-end">
+                <div class="bg-white rounded-t-3xl p-6 pb-safe space-y-4">
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <h3 class="font-black text-lg text-slate-800 uppercase">Modifica Movimento</h3>
+                        <button onclick="chiudiModificaFinanza()" class="text-slate-400 text-xl active:scale-90"><i class="fas fa-times"></i></button>
+                    </div>
+                    <input type="hidden" id="edit-finanza-id">
+                    <input type="text" id="edit-finanza-desc" class="w-full border p-3 rounded-xl font-bold uppercase bg-slate-50 text-sm" placeholder="Descrizione">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Data Competenza</label>
+                            <input type="date" id="edit-finanza-data" class="w-full border p-3 rounded-xl font-bold bg-slate-50 text-xs text-slate-700">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Importo Tot. (€)</label>
+                            <input type="number" id="edit-finanza-importo" class="w-full border p-3 rounded-xl font-black text-center text-lg text-emerald-600" placeholder="0.00">
+                        </div>
+                    </div>
+                    <select id="edit-finanza-stato" class="w-full border p-3 rounded-xl font-black bg-slate-50 text-xs text-slate-700 mt-2">
+                        <option value="pagato">GIÀ PAGATO (Saldato)</option>
+                        <option value="da_pagare">DA PAGARE (Debito)</option>
+                    </select>
+                    <button onclick="salvaModificaFinanza()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm mt-4 active:scale-95">Salva Modifiche</button>
                 </div>
-                <button onclick="chiudiDettaglioFornitore()" class="text-slate-400 text-2xl active:scale-90"><i class="fas fa-times"></i></button>
             </div>
-            <div class="flex-1 overflow-y-auto space-y-2 hide-scroll" id="lista-prodotti-fornitore"></div>
-        </div>
-    </div>
 
-    <!-- MODAL STORICO PREZZI SINGOLO PRODOTTO -->
-    <div id="modal-fornitore-storico" class="hidden fixed inset-0 bg-slate-900/90 z-[160] flex flex-col justify-center items-center p-4">
-        <div class="bg-white rounded-3xl p-5 w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl border-4 border-purple-500">
-            <div class="flex justify-between items-start border-b pb-3 mb-3">
-                <h3 id="titolo-storico-prodotto" class="font-black text-sm text-slate-800 uppercase leading-tight pr-4">Prodotto</h3>
-                <button onclick="chiudiStoricoPrezzi()" class="text-slate-400 text-xl active:scale-90"><i class="fas fa-times"></i></button>
+            <div id="modal-fornitore-prodotti" class="hidden fixed inset-0 bg-slate-900/80 z-[150] flex flex-col justify-end">
+                <div class="bg-white rounded-t-3xl p-6 pb-safe h-[85vh] flex flex-col">
+                    <div class="flex justify-between items-center border-b pb-2 mb-4">
+                        <div>
+                            <h3 id="titolo-fornitore-prodotti" class="font-black text-xl text-purple-800 uppercase">Fornitore</h3>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase">Seleziona un prodotto per lo storico prezzi</p>
+                        </div>
+                        <button onclick="chiudiDettaglioFornitore()" class="text-slate-400 text-2xl active:scale-90"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto space-y-2 hide-scroll" id="lista-prodotti-fornitore"></div>
+                </div>
             </div>
-            <div class="flex-1 overflow-y-auto space-y-2 hide-scroll" id="lista-storico-prezzi"></div>
-        </div>
-    </div>
+
+            <div id="modal-fornitore-storico" class="hidden fixed inset-0 bg-slate-900/90 z-[160] flex flex-col justify-center items-center p-4">
+                <div class="bg-white rounded-3xl p-5 w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl border-4 border-purple-500">
+                    <div class="flex justify-between items-start border-b pb-3 mb-3">
+                        <h3 id="titolo-storico-prodotto" class="font-black text-sm text-slate-800 uppercase leading-tight pr-4">Prodotto</h3>
+                        <button onclick="chiudiStoricoPrezzi()" class="text-slate-400 text-xl active:scale-90"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto space-y-2 hide-scroll" id="lista-storico-prezzi"></div>
+                </div>
+            </div>
 
         </main>
 
@@ -801,7 +799,7 @@
         }
 
         // ==========================================
-        // CONNESSIONE SUPABASE: FORNITORI (TREND E UNISCI)
+        // CONNESSIONE SUPABASE: FORNITORI E STORICO
         // ==========================================
         async function caricaFornitoriCloud() { 
             const { data } = await supabaseClient.from('fornitori_db').select('*').order('nome'); 
@@ -828,63 +826,125 @@
             
             for (const [nome, acquisti] of Object.entries(fornitoriDict)) {
                 let totaleSpeso = 0;
-                let storiciPrezzi = {}; 
-                
-                let acquistiRender = acquisti.map(a => {
-                    let qta = a.qta || 1;
-                    let p_unit = parseFloat(a.prezzo_unitario || 0);
-                    totaleSpeso += (qta * p_unit);
-
-                    let varHTML = '';
-                    if(storiciPrezzi[a.nome_fattura] !== undefined) {
-                        let diff = p_unit - storiciPrezzi[a.nome_fattura];
-                        if(diff > 0) {
-                            varHTML = `<span class="text-red-500 ml-2" title="Aumentato di €${diff.toFixed(2)}"><i class="fas fa-arrow-trend-up"></i></span>`;
-                        } else if (diff < 0) {
-                            varHTML = `<span class="text-emerald-500 ml-2" title="Diminuito di €${Math.abs(diff).toFixed(2)}"><i class="fas fa-arrow-trend-down"></i></span>`;
-                        } else {
-                            varHTML = `<span class="text-slate-300 ml-2" title="Prezzo Invariato"><i class="fas fa-equals"></i></span>`;
-                        }
-                    } else {
-                        varHTML = `<span class="text-blue-300 ml-2" title="Primo acquisto"><i class="fas fa-star text-[8px]"></i></span>`;
-                    }
-                    storiciPrezzi[a.nome_fattura] = p_unit;
-                    
-                    return { ...a, varHTML, p_unit, qta };
+                acquisti.forEach(a => {
+                    totaleSpeso += ((a.qta || 1) * parseFloat(a.prezzo_unitario || 0));
                 });
-
-                let itemHTML = acquistiRender.slice(-10).reverse().map(a => `
-                    <div class="flex justify-between items-center text-[10px] font-bold border-b pb-2 mb-2 hover:bg-slate-50 transition">
-                        <div class="flex-1 pr-2">
-                            <span class="text-slate-800 font-black mr-1">${a.qta} ${a.um||'PZ'}</span>
-                            <span class="text-slate-500">${a.nome_fattura}</span>
-                            <span class="block text-[8px] text-slate-400 font-normal mt-0.5">${a.data}</span>
-                        </div>
-                        <div class="text-right flex items-center justify-end w-24">
-                            <span class="text-slate-700 whitespace-nowrap">€ ${a.p_unit.toFixed(2)}</span>
-                            ${a.varHTML}
-                        </div>
-                    </div>
-                `).join('');
 
                 let safeNome = nome.replace(/'/g, "\\'");
                 html += `
                 <div class="bg-white p-5 rounded-3xl border shadow-sm">
-                    <div class="flex justify-between items-start mb-4 border-b pb-3">
-                        <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <div class="flex-1 cursor-pointer active:scale-95 transition" onclick="apriDettaglioFornitore('${safeNome}')">
                             <h4 class="font-black text-sm uppercase text-purple-800">${nome}</h4>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase mt-1">Totale Speso: <span class="text-purple-600 font-black ml-1">€ ${totaleSpeso.toFixed(2)}</span></p>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase mt-1">Acquisti Totali: <span class="text-purple-600 font-black ml-1">€ ${totaleSpeso.toFixed(2)}</span></p>
+                            <div class="mt-2 text-[9px] font-black uppercase text-purple-500 bg-purple-50 inline-block px-2 py-1 rounded-lg"><i class="fas fa-box-open mr-1"></i>Vedi Prodotti</div>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="unisciFornitorePrompt('${safeNome}')" class="text-blue-500 bg-blue-50 w-8 h-8 rounded-xl active:scale-90 flex justify-center items-center" title="Unisci in un altro Fornitore"><i class="fas fa-link"></i></button>
-                            <button onclick="eliminaFornitore('${safeNome}')" class="text-red-400 bg-red-50 w-8 h-8 rounded-xl active:scale-90 flex justify-center items-center" title="Elimina Fornitore"><i class="fas fa-trash"></i></button>
+                        <div class="flex flex-col gap-2 ml-4">
+                            <button onclick="unisciFornitorePrompt('${safeNome}')" class="text-blue-500 bg-blue-50 w-8 h-8 rounded-xl active:scale-90 flex justify-center items-center" title="Unisci"><i class="fas fa-link"></i></button>
+                            <button onclick="eliminaFornitore('${safeNome}')" class="text-red-400 bg-red-50 w-8 h-8 rounded-xl active:scale-90 flex justify-center items-center" title="Elimina"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
-                    <div class="mt-2">${itemHTML || '<p class="text-[9px] text-slate-400">Nessun acquisto registrato.</p>'}</div>
                 </div>`;
             }
             
             document.getElementById('fornitori-list-container').innerHTML = html || '<p class="text-center text-xs text-slate-400 p-6">Nessun fornitore nel cloud.</p>'; 
+        }
+
+        function apriDettaglioFornitore(nome) {
+            let acquisti = fornitoriDict[nome] || [];
+            let prodottiMap = {};
+            
+            acquisti.forEach(a => {
+                let nProd = a.nome_fattura || 'Sconosciuto';
+                if(!prodottiMap[nProd]) {
+                    prodottiMap[nProd] = { acquisti: [], totale_speso: 0, qta_totale: 0 };
+                }
+                prodottiMap[nProd].acquisti.push(a);
+                let q = a.qta || 1;
+                let p = parseFloat(a.prezzo_unitario || 0);
+                prodottiMap[nProd].totale_speso += (q * p);
+                prodottiMap[nProd].qta_totale += q;
+            });
+
+            let prodottiArr = Object.keys(prodottiMap).map(k => ({
+                nome: k,
+                ...prodottiMap[k],
+                ultimo_prezzo: parseFloat(prodottiMap[k].acquisti[prodottiMap[k].acquisti.length - 1].prezzo_unitario || 0),
+                ultima_um: prodottiMap[k].acquisti[prodottiMap[k].acquisti.length - 1].um || 'PZ'
+            })).sort((a,b) => b.totale_speso - a.totale_speso);
+
+            let safeNomeFornitore = nome.replace(/'/g, "\\'");
+            
+            let htmlList = prodottiArr.map(p => {
+                let safeNomeProdotto = p.nome.replace(/'/g, "\\'");
+                return `
+                <div onclick="apriStoricoPrezziProdotto('${safeNomeFornitore}', '${safeNomeProdotto}')" class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex justify-between items-center active:bg-slate-200 transition cursor-pointer">
+                    <div class="flex-1 pr-3">
+                        <p class="font-black text-xs text-slate-800 uppercase leading-tight">${p.nome}</p>
+                        <p class="text-[9px] font-bold text-slate-400 mt-1">Acquistati: ${p.qta_totale} ${p.ultima_um} | Prezzo Attuale: €${p.ultimo_prezzo.toFixed(2)}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-black text-purple-600 text-sm">€ ${p.totale_speso.toFixed(2)}</p>
+                        <i class="fas fa-chart-line text-slate-300 mt-1"></i>
+                    </div>
+                </div>`;
+            }).join('');
+
+            document.getElementById('titolo-fornitore-prodotti').innerText = nome;
+            document.getElementById('lista-prodotti-fornitore').innerHTML = htmlList || '<p class="text-xs text-center text-slate-400 mt-4">Nessun prodotto trovato.</p>';
+            
+            document.getElementById('modal-fornitore-prodotti').classList.remove('hidden');
+        }
+
+        function chiudiDettaglioFornitore() {
+            document.getElementById('modal-fornitore-prodotti').classList.add('hidden');
+        }
+
+        function apriStoricoPrezziProdotto(nomeFornitore, nomeProdotto) {
+            let acquisti = fornitoriDict[nomeFornitore] || [];
+            let storico = acquisti.filter(a => a.nome_fattura === nomeProdotto);
+            
+            let html = '';
+            let prevP = null;
+            
+            let storiciRender = storico.map(a => {
+                let p = parseFloat(a.prezzo_unitario || 0);
+                let varHTML = '';
+                
+                if(prevP !== null) {
+                    let diff = p - prevP;
+                    if(diff > 0) varHTML = `<span class="text-red-500 ml-2"><i class="fas fa-arrow-trend-up"></i> +€${diff.toFixed(2)}</span>`;
+                    else if(diff < 0) varHTML = `<span class="text-emerald-500 ml-2"><i class="fas fa-arrow-trend-down"></i> -€${Math.abs(diff).toFixed(2)}</span>`;
+                    else varHTML = `<span class="text-slate-300 ml-2"><i class="fas fa-equals"></i> invariato</span>`;
+                } else {
+                    varHTML = `<span class="text-blue-400 ml-2"><i class="fas fa-star text-[8px]"></i> Base</span>`;
+                }
+                prevP = p;
+                return { ...a, p_unit: p, varHTML };
+            });
+
+            storiciRender.reverse().forEach(a => {
+                html += `
+                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-xl mb-2">
+                    <div>
+                        <p class="font-black text-xs text-slate-800">${a.data}</p>
+                        <p class="text-[9px] font-bold text-slate-400 mt-0.5 uppercase">Q.tà: <span class="text-slate-600">${a.qta} ${a.um || 'PZ'}</span></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-black text-lg text-slate-700">€ ${a.p_unit.toFixed(2)}</p>
+                        <div class="text-[9px] font-black uppercase mt-1">${a.varHTML}</div>
+                    </div>
+                </div>`;
+            });
+
+            document.getElementById('titolo-storico-prodotto').innerText = nomeProdotto;
+            document.getElementById('lista-storico-prezzi').innerHTML = html;
+            
+            document.getElementById('modal-fornitore-storico').classList.remove('hidden');
+        }
+
+        function chiudiStoricoPrezzi() {
+            document.getElementById('modal-fornitore-storico').classList.add('hidden');
         }
 
         async function unisciFornitorePrompt(sorgente) {
@@ -1086,7 +1146,7 @@
         }
 
         // ==========================================
-        // FINANZA E BILANCIO
+        // FINANZA E BILANCIO (INCLUSA MODIFICA)
         // ==========================================
         async function caricaFinanzaDaSupabase() { 
             const { data } = await supabaseClient.from('finanza').select('*').order('data', { ascending: false }); 
@@ -1184,7 +1244,6 @@
                 }
                 
                 let dataStr = new Date(m.data).toLocaleDateString('it-IT'); 
-                let descJS = (m.descrizione||'').replace(/'/g, "\\'"); 
                 
                 return `
                 <div class="p-4 border-b flex justify-between items-center bg-white hover:bg-slate-50 transition">
@@ -1195,9 +1254,9 @@
                     </div>
                     <div class="flex items-center gap-1">
                         <span class="font-black ${isE ? 'text-emerald-500' : 'text-slate-700'} whitespace-nowrap">€ ${m.importo.toFixed(2)}</span>
-                       <button onclick="apriModificaFinanza('${m.id}')" class="text-blue-400 p-2 bg-blue-50 rounded-lg active:scale-90 ml-2">
-                        <i class="fas fa-pencil"></i>
-                    </button>
+                        <button onclick="apriModificaFinanza('${m.id}')" class="text-blue-400 p-2 bg-blue-50 rounded-lg active:scale-90 ml-2">
+                            <i class="fas fa-pencil"></i>
+                        </button>
                     </div>
                 </div>`; 
             }).join('');
@@ -1207,12 +1266,46 @@
             toggleDeleteBulkBtn('finanza');
         }
 
-        async function rinominaMovimentoFinanza(id, oldName) { 
-            let newName = prompt("Modifica intestatario o descrizione:", oldName); 
-            if (newName !== null && newName.trim() !== "") { 
-                await supabaseClient.from('finanza').update({ descrizione: newName.trim().toUpperCase() }).eq('id', id); 
-                caricaFinanzaDaSupabase(); 
-            } 
+        function apriModificaFinanza(id) {
+            let m = finanzaDatiGlobali.find(x => x.id === id);
+            if(!m) return;
+            
+            document.getElementById('edit-finanza-id').value = m.id;
+            document.getElementById('edit-finanza-desc').value = m.descrizione;
+            let dataGrezza = m.data ? m.data.substring(0, 10) : new Date().toISOString().substring(0, 10);
+            document.getElementById('edit-finanza-data').value = dataGrezza;
+            document.getElementById('edit-finanza-importo').value = m.importo;
+            document.getElementById('edit-finanza-stato').value = m.stato_pagamento;
+            
+            document.getElementById('modal-edit-finanza').classList.remove('hidden');
+        }
+
+        function chiudiModificaFinanza() {
+            document.getElementById('modal-edit-finanza').classList.add('hidden');
+        }
+
+        async function salvaModificaFinanza() {
+            let id = document.getElementById('edit-finanza-id').value;
+            let desc = document.getElementById('edit-finanza-desc').value.trim().toUpperCase();
+            let dataInput = document.getElementById('edit-finanza-data').value;
+            let importo = parseFloat(document.getElementById('edit-finanza-importo').value);
+            let stato = document.getElementById('edit-finanza-stato').value;
+
+            if(!desc || isNaN(importo) || !dataInput) return alert("Compila tutti i campi obbligatori.");
+
+            let isoData = new Date(dataInput + "T12:00:00.000Z").toISOString();
+            let dataPag = stato === 'pagato' ? isoData : null;
+
+            await supabaseClient.from('finanza').update({ 
+                descrizione: desc, 
+                data: isoData, 
+                importo: importo, 
+                stato_pagamento: stato,
+                data_pagamento: dataPag
+            }).eq('id', id);
+
+            chiudiModificaFinanza();
+            await caricaFinanzaDaSupabase();
         }
 
         function apriMovimentoManuale() { 
